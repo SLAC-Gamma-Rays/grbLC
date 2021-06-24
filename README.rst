@@ -34,7 +34,7 @@ Quickstart
    [011211] 32 entries found.
    >>> pdfs = adsgrb.getArticles(articles)
    [ADSGRB] 31/32 papers grabbed.
-   >>> adsgrb.savePDF(pdfs)
+   >>> adsgrb.savePDF(pdfs, output='./011211')
 
 Credits
 -------
