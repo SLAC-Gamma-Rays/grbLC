@@ -16,7 +16,7 @@ adsgrb
 
 
 
-A simple way to scour the ADS for GRB B data.
+A simple way to scour the ADS for GRB data.
 
 
 * Free software: MIT license
