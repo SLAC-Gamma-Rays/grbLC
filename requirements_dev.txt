@@ -7,5 +7,5 @@ tox==3.14.0
 coverage==4.5.4
 Sphinx==1.8.5
 twine==1.14.0
-
-
+ads==0.12.3
+requests==2.25.1
