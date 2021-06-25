@@ -9,6 +9,6 @@ deploy:
   provider: pypi
   on:
     branch: master
-  username: __token__
+  username: youngsm
   password:
-    secure: IMHAw8102hT7mDu2ZNwQUmiqrDywMn119NYzg4MUVqT6NVUbKEmnKJ5L+Tatfc1kFJAAqRoFX7UJ3xmGPvZ/zVLL4g4vpV63GYB+obMPbvhJQj2YgyeCH+7x26+o+uileht6Y/q3er3wPj8p7/6n2ACdixLi/6ezRlN1bEKTJNJ4uSctH2ipWXZFs0IPtyH/0tG0DohzRLZJarvCRE7DqEcji0NKZpEipwhHtu5PecC0zvEqnQDdwPR6cFPxAVkso3OG4B/etfsKuDMWsaN5DCNWtMytj30pdjGYvJxSx6j+NaQmbugVaqqeGMKX6VWL3BDM5C7XokjuakeFOKPz6kz9Vao7r8SQ3T950YKLoy9ExkGk8QjYusozsxur7Y/Im1JxGSzXSxlOH5GJ/i19kYED/7Ka7zysiU6VeD464XN5TJ8JYMV9ucYIvvY4GAKTmnZo5Jn5rdvH4bxnrsOc2pSSAlKOTwxNcYx02IFrl2BFGkj3z0G1mvGnUXtjbXVrqHZ0VhM6tD0ZpfFhSCrJ5Pd8V8l8n/c9ohWUKDH4C9l4S6Swq/M7g9nIXcJ/FEnfC8DBK2/E27Sh1xm+RmOYrL2Bi8P6AxeNGH/b7hK47BPXvkK6BgdxM6H7xt1zk47lcU2/pP9/X3m2I47+czzi6J6RofjXVH13F8GaVKeZDwM=
+    secure: ${PYPI_PASSWORD}
