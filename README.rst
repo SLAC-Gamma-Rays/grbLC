@@ -14,27 +14,11 @@ adsgrb
         :alt: Documentation Status
 
 
-
-
 A simple way to scour the ADS for GRB data.
 
 
 * Free software: MIT license
 * Documentation: https://adsgrb.readthedocs.io.
-
-Quickstart
---------
-
-   >>> import adsgrb
-   API key not found in /Users/youngsam/.ads/dev_key. Either set adsgrb.config.token manually or consider
-   calling adsgrb.set_apikey() to save the API key onto your system, bypassing the need to set your API key after
-   each import. Your key can be found here: https://ui.adsabs.harvard.edu/user/settings/token.
-   >>> adsgrb.set_key('secret api key')
-   >>> articles = adsgrb.litSearch('011211')
-   [011211] 32 entries found.
-   >>> pdfs = adsgrb.getArticles(articles)
-   [ADSGRB] 31/32 papers grabbed.
-   >>> adsgrb.savePDF(pdfs, output='./011211')
 
 Credits
 -------
