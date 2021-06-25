@@ -10,5 +10,4 @@ deploy:
   on:
     branch: master
   username: youngsm
-  password:
-    secure: ${PYPI_PASSWORD}
+  password: ${PYPI_PASSWORD}
