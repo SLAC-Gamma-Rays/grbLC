@@ -9,5 +9,5 @@ deploy:
   provider: pypi
   on:
     branch: master
-  username: youngsm
-  password: ${PYPI_PASSWORD}
+  username: __token__
+  password: $PYPI_PASSWORD
