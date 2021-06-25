@@ -152,7 +152,6 @@ def litSearch(GRB, keywords=None, printlength=True, debug=False):
 def getArticle(articlelist, article, debug=False):
     """
     Download an article from arXiv or other sources.
-
     :param articlelist:
         The string list to append article texts to.
     :type articlelist:
@@ -161,13 +160,8 @@ def getArticle(articlelist, article, debug=False):
         The ADS article to retrieve.
     :type article:
         :class:`ads.search.Article`
-    :param debug:
-        Optional debugging
-    :type debug:
-        :class:
     :returns:
         Nothing. Side effect of appending text of article body to articlelist.
-
     Modified from https://github.com/andycasey/ads/blob/master/examples/monthly-institute-publications/stromlo.py#22
     """
 
@@ -202,10 +196,9 @@ def getArticle(articlelist, article, debug=False):
         try:
             records = deserialized["links"]["records"]
             for record in records:
-                if "PDF" in record["link_type"]:
-                    ECHO(record["url"].replace("arxiv.org", "export.arxiv.org"))
+                if "PDF" in record["link_type"] and "iopscience" not in record["link_type"]:
                     # switch any arxiv url to export.arxiv so we don't get locked out
-                    url = record["url"].replace("arxiv,org", "export.arxiv.org")
+                    url = record["url"].replace("arxiv.org", "export.arxiv.org")
                     q = requests.get(url, stream=True)
                     break
         except:
