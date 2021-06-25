@@ -8,7 +8,6 @@ script: tox
 deploy:
   provider: pypi
   on:
-    tags: true
     branch: master
   username: __token__
   password:
