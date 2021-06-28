@@ -5,7 +5,7 @@ import concurrent.futures, warnings
 from ads import SearchQuery
 
 
-def getArticles(papers, threading=True, debug=False):
+def getArticles(finds, threading=True, debug=False):
     """
     User function to create a single string containing seperated text bodies from a
     list of `ads.search.Article`'s.
@@ -21,26 +21,46 @@ def getArticles(papers, threading=True, debug=False):
     :returns:
         String containing each GCN separated by a line.
     """
+    papers = finds['articlelist']
+    GRB = finds['GRB']
     if len(papers) == 0:
         return r"No articles found! ¯\(°_o)/¯"
 
     articlelist = []
     if threading:
         threads = min(30, len(papers))
-        _wrapped_getArticle = lambda article: getArticle(articlelist, article, debug=debug)
+        _wrapped_getArticle = lambda article: getArticle(articlelist, article, GRB, debug=debug)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
             executor.map(_wrapped_getArticle, papers)
             executor.shutdown()
     else:
-        articlelist = [getArticle(articlelist, paper, debug=debug) for paper in papers]
+        articlelist = [getArticle(articlelist, paper, GRB, debug=debug) for paper in papers]
 
     if "gcn" in papers[0].bibcode.lower():
         result = "\n=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n\n".join(articlelist)
     else:
         result = articlelist
-
+        
+    ECHO(f"[{GRB}] {len(result)}/{len(papers)} saved.")
     return result
+
+def prepareGRB(GRB):
+    if GRB[-1].isalpha():
+        finalchar = GRB[-1]
+        allbutfinal = GRB[:-1]
+    else:
+        finalchar = None
+        allbutfinal = GRB
+
+    if len(allbutfinal) < 6:
+        finalGRB = '0'*(6-len(allbutfinal))+allbutfinal
+        if finalchar:
+            finalGRB += finalchar
+    else:
+        finalGRB = GRB
+    
+    return finalGRB
 
 
 def getGRBComboQuery(GRB):
@@ -73,8 +93,8 @@ def additionalKeywords(keywords):
 
     if not isinstance(keywords, (type(None), list, tuple)):
         keywords = (keywords,)
-
-    return " AND " + " AND ".join(keywords) if keywords else ""
+    
+    return f"full:({" AND ".join(keywords)})" else "" 
 
 
 def gcnSearch(GRB, keywords=None, printlength=True, debug=False):
@@ -106,9 +126,9 @@ def gcnSearch(GRB, keywords=None, printlength=True, debug=False):
     keywords = additionalKeywords(keywords)
     finds = list(SearchQuery(q=f"{query + keywords}", fl=["bibcode", "identifier"]))
     if debug:
-        print(f"[ADSGRB] Query: {query + keywords}")
+        ECHO(f"[{GRB}] Query: {query + keywords}")
     if printlength:
-        print(f"[{GRB}] {len(finds)} entries found.")
+        ECHO(f"[{GRB}] {len(finds)} candidates.")
     return finds
 
 
@@ -133,23 +153,22 @@ def litSearch(GRB, keywords=None, printlength=True, debug=False):
         A list of `ads.search.Article`'s containing GCNs pertaining to GRB and optional
         keywords.
     """
-
-    if keywords is not None:
-        warnings.warn("Keywords aren't working correctly right now.", stacklevel=2)
     assert isinstance(GRB, str), "GRB is not of type string."
+    GRB = prepareGRB(GRB)
     query = getGRBComboQuery(GRB)
     keywords = additionalKeywords(keywords)
-    querysnippet = f"(grb AND {query + keywords})"
-    fullquery = f"title:{querysnippet} OR abstract:{querysnippet} OR keyword:{querysnippet} doctype:article"
+    fullquery = f"title:{query} OR abstract:{query} OR keyword:{query} full:({keywords}) -bibstem:GCN"
     finds = list(SearchQuery(q=fullquery, fl=["bibcode", "identifier", "title", "author", "year"], rows=100))
+    if (printlength or debug) and len(finds)>0:
+        ECHO(f"[{GRB}] {len(finds)} found.")
     if debug:
-        print(f"[ADSGRB] Query: {fullquery}")
-    if printlength:
-        print(f"[{GRB}] {len(finds)} entries found.")
-    return finds
+        ECHO(f"[{GRB}] Query: \'{fullquery}\'")
+        ECHO(f"Finds: {', '.join([find.bibcode for find in finds])}")
+
+    return {'GRB': GRB, 'articlelist': finds}
 
 
-def getArticle(articlelist, article, debug=False):
+def getArticle(articlelist, article, GRB, debug=False):
     """
     Download an article from arXiv or other sources.
     :param articlelist:
@@ -166,7 +185,7 @@ def getArticle(articlelist, article, debug=False):
     """
 
     if debug:
-        ECHO("[ADSGRB] Retrieving {0}".format(article.bibcode))
+        ECHO(f"[{GRB}] Retrieving {article.bibcode}")
     isGCN = "GCN" in article.bibcode
     header = {"Authorization": f"Bearer {read_apikey()}"}
     # Ask ADS to redirect us to the journal article.
@@ -178,17 +197,19 @@ def getArticle(articlelist, article, debug=False):
     url = requests.get("http://adsabs.harvard.edu/cgi-bin/nph-data_query", params=params).url
 
     if isGCN:
-        q = requests.get(url, allow_redirects=True)
+        q = requests.get(url)
     else:
+        url = f"https://api.adsabs.harvard.edu/v1/resolver/{article.bibcode}/esource"
         q = requests.get(
-            f"https://api.adsabs.harvard.edu/v1/resolver/{article.bibcode}/esource",
+            url,
             headers=header,
             allow_redirects=False,
         )
         if not q.ok:
-            ECHO("Error retrieving {0}: {1} for {2}".format(article, q.status_code, url))
             if debug:
+                ECHO(f"[{GRB}] Pass 1: Error retrieving {article.bibcode} ({q.status_code}): https://ui.adsabs.harvard.edu/abs/{article.bibcode}/abstract.")
                 q.raise_for_status()
+                return
             else:
                 return
 
@@ -196,36 +217,50 @@ def getArticle(articlelist, article, debug=False):
         try:
             records = deserialized["links"]["records"]
             for record in records:
-                if "PDF" in record["link_type"] and "iopscience" not in record["link_type"]:
+                linktype = record['link_type']
+                link = record["url"]
+                if "PDF" in linktype and not "iop" in link and not "doi" in link and not '$' in link:
                     # switch any arxiv url to export.arxiv so we don't get locked out
-                    url = record["url"].replace("arxiv.org", "export.arxiv.org")
+                    url = link.replace("arxiv.org", "export.arxiv.org")
                     q = requests.get(url, stream=True)
                     break
+                # record is guaranteed to be of length > 0
+                elif record == records[-1]:
+                    ECHO(f'[{GRB}] Could not find suitable link for {article.bibcode}. {link}')
+                    return
         except:
             # switch any arxiv url to export.arxiv so we don't get locked out
+            linktype = deserialized["link_type"]
             url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
-            q = requests.get(url, stream=True)
+            if "PDF" in linktype and not "iop" in link and not "doi" in link and not '$' in link:
+                q = requests.get(url, stream=True)
+            else:
+                ECHO(f'[{GRB}] Pass 2: No suitable link for {article.bibcode}. {link}')
+                return
+            
 
     if not q.ok:
-        ECHO("Error retrieving {0}: {1} for {2}".format(article, q.status_code, url))
         if debug:
+            ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} ({q.status_code}): {url}")
             q.raise_for_status()
+            return
         else:
             return
+    
     # Check if the journal has given back forbidden HTML.
     try:
-        if q.content.endswith("</html>"):
-            ECHO("Error retrieving {0}: 200 (access denied?) for {1}".format(article, url))
+        if q.content.endswith("</html>") or not str(q.content):
+            ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
     except:
-        if q.text.endswith("</html>"):
-            ECHO("Error retrieving {0}: 200 (access denied?) for {1}".format(article, url))
+        if q.text.endswith("</html>") or not str(q.text):
+            ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
 
     if isGCN:
         articlelist.append(q.text)
     else:
-        articlelist.append([q.content, article.title, article.year])
+        articlelist.append([q.content, article.title, article.year, url])
 
 
 ECHO = SynchronizedEcho()
