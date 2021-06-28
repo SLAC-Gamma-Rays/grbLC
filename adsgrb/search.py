@@ -21,8 +21,8 @@ def getArticles(finds, threading=True, debug=False):
     :returns:
         String containing each GCN separated by a line.
     """
-    papers = finds['articlelist']
-    GRB = finds['GRB']
+    papers = finds["articlelist"]
+    GRB = finds["GRB"]
     if len(papers) == 0:
         return r"No articles found! ¯\(°_o)/¯"
 
@@ -41,9 +41,10 @@ def getArticles(finds, threading=True, debug=False):
         result = "\n=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n\n".join(articlelist)
     else:
         result = articlelist
-        
+
     ECHO(f"[{GRB}] {len(result)}/{len(papers)} saved.")
     return result
+
 
 def prepareGRB(GRB):
     if GRB[-1].isalpha():
@@ -54,12 +55,12 @@ def prepareGRB(GRB):
         allbutfinal = GRB
 
     if len(allbutfinal) < 6:
-        finalGRB = '0'*(6-len(allbutfinal))+allbutfinal
+        finalGRB = "0" * (6 - len(allbutfinal)) + allbutfinal
         if finalchar:
             finalGRB += finalchar
     else:
         finalGRB = GRB
-    
+
     return finalGRB
 
 
@@ -93,8 +94,9 @@ def additionalKeywords(keywords):
 
     if not isinstance(keywords, (type(None), list, tuple)):
         keywords = (keywords,)
-    
-    return f"full:({" AND ".join(keywords)})" else "" 
+
+    keywordquery = " AND ".join(keywords)
+    return f"full:({keywordquery})" if keywords else ""
 
 
 def gcnSearch(GRB, keywords=None, printlength=True, debug=False):
@@ -159,13 +161,13 @@ def litSearch(GRB, keywords=None, printlength=True, debug=False):
     keywords = additionalKeywords(keywords)
     fullquery = f"title:{query} OR abstract:{query} OR keyword:{query} full:({keywords}) -bibstem:GCN"
     finds = list(SearchQuery(q=fullquery, fl=["bibcode", "identifier", "title", "author", "year"], rows=100))
-    if (printlength or debug) and len(finds)>0:
+    if (printlength or debug) and len(finds) > 0:
         ECHO(f"[{GRB}] {len(finds)} found.")
     if debug:
-        ECHO(f"[{GRB}] Query: \'{fullquery}\'")
+        ECHO(f"[{GRB}] Query: '{fullquery}'")
         ECHO(f"Finds: {', '.join([find.bibcode for find in finds])}")
 
-    return {'GRB': GRB, 'articlelist': finds}
+    return {"GRB": GRB, "articlelist": finds}
 
 
 def getArticle(articlelist, article, GRB, debug=False):
@@ -207,7 +209,9 @@ def getArticle(articlelist, article, GRB, debug=False):
         )
         if not q.ok:
             if debug:
-                ECHO(f"[{GRB}] Pass 1: Error retrieving {article.bibcode} ({q.status_code}): https://ui.adsabs.harvard.edu/abs/{article.bibcode}/abstract.")
+                ECHO(
+                    f"[{GRB}] Pass 1: Error retrieving {article.bibcode} ({q.status_code}): https://ui.adsabs.harvard.edu/abs/{article.bibcode}/abstract."
+                )
                 q.raise_for_status()
                 return
             else:
@@ -217,27 +221,26 @@ def getArticle(articlelist, article, GRB, debug=False):
         try:
             records = deserialized["links"]["records"]
             for record in records:
-                linktype = record['link_type']
+                linktype = record["link_type"]
                 link = record["url"]
-                if "PDF" in linktype and not "iop" in link and not "doi" in link and not '$' in link:
+                if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
                     # switch any arxiv url to export.arxiv so we don't get locked out
                     url = link.replace("arxiv.org", "export.arxiv.org")
                     q = requests.get(url, stream=True)
                     break
                 # record is guaranteed to be of length > 0
                 elif record == records[-1]:
-                    ECHO(f'[{GRB}] Could not find suitable link for {article.bibcode}. {link}')
+                    ECHO(f"[{GRB}] Could not find suitable link for {article.bibcode}. {link}")
                     return
         except:
             # switch any arxiv url to export.arxiv so we don't get locked out
             linktype = deserialized["link_type"]
             url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
-            if "PDF" in linktype and not "iop" in link and not "doi" in link and not '$' in link:
+            if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
                 q = requests.get(url, stream=True)
             else:
-                ECHO(f'[{GRB}] Pass 2: No suitable link for {article.bibcode}. {link}')
+                ECHO(f"[{GRB}] Pass 2: No suitable link for {article.bibcode}. {link}")
                 return
-            
 
     if not q.ok:
         if debug:
@@ -246,7 +249,7 @@ def getArticle(articlelist, article, GRB, debug=False):
             return
         else:
             return
-    
+
     # Check if the journal has given back forbidden HTML.
     try:
         if q.content.endswith("</html>") or not str(q.content):
