@@ -3,6 +3,7 @@ from .config import read_apikey
 from .ECHO import SynchronizedEcho
 import concurrent.futures, warnings
 from ads import SearchQuery
+import time
 
 
 def getArticles(finds, threading=True, debug=False):
@@ -95,8 +96,13 @@ def additionalKeywords(keywords):
     if not isinstance(keywords, (type(None), list, tuple)):
         keywords = (keywords,)
 
-    keywordquery = " AND ".join(keywords)
-    return f"full:({keywordquery})" if keywords else ""
+    if keywords:
+        keywordquery = " AND ".join(keywords)
+        query = f"full:({keywordquery})"
+    else:
+        query = ""
+
+    return query
 
 
 def gcnSearch(GRB, keywords=None, printlength=True, debug=False):
@@ -159,7 +165,7 @@ def litSearch(GRB, keywords=None, printlength=True, debug=False):
     GRB = prepareGRB(GRB)
     query = getGRBComboQuery(GRB)
     keywords = additionalKeywords(keywords)
-    fullquery = f"title:{query} OR abstract:{query} OR keyword:{query} full:({keywords}) -bibstem:GCN"
+    fullquery = f"title:{query} OR abstract:{query} OR keyword:{query} {keywords} -bibstem:GCN"
     finds = list(SearchQuery(q=fullquery, fl=["bibcode", "identifier", "title", "author", "year"], rows=100))
     if (printlength or debug) and len(finds) > 0:
         ECHO(f"[{GRB}] {len(finds)} found.")
@@ -226,7 +232,7 @@ def getArticle(articlelist, article, GRB, debug=False):
                 if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
                     # switch any arxiv url to export.arxiv so we don't get locked out
                     url = link.replace("arxiv.org", "export.arxiv.org")
-                    if 'arxiv' in url:
+                    if "arxiv" in url:
                         q = requests.get(url, stream=True)
                         time.sleep(10)
                     q = requests.get(url, stream=True)
@@ -240,6 +246,7 @@ def getArticle(articlelist, article, GRB, debug=False):
             linktype = deserialized["link_type"]
             url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
             if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
+                if "arxiv" in url:
                     q = requests.get(url, stream=True)
                     time.sleep(10)
                 q = requests.get(url, stream=True)
@@ -257,11 +264,11 @@ def getArticle(articlelist, article, GRB, debug=False):
 
     # Check if the journal has given back forbidden HTML.
     try:
-        if q.content.contains('</html>', case=False) or not str(q.content):
+        if q.content.contains("</html>", case=False) or not str(q.content):
             ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
     except:
-        if q.text.contains('</html>', case=False) or not str(q.text):
+        if q.text.contains("</html>", case=False) or not str(q.text):
             ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
 
