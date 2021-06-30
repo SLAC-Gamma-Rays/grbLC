@@ -3,6 +3,7 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+import re, os, sys
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -13,6 +14,25 @@ with open("HISTORY.rst") as history_file:
 requirements = ["ads", "requests"]
 
 test_requirements = []
+
+# Thank you Andy Casey for this nice versioning method
+major, minor1, minor2, release, serial = sys.version_info
+
+
+readfile_kwargs = {"encoding": "utf-8"} if major >= 3 else {}
+
+
+def readfile(filename):
+    with open(filename, **readfile_kwargs) as fp:
+        contents = fp.read()
+    return contents
+
+
+version_regex = re.compile('__version__ = "(.*?)"')
+contents = readfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ads", "__init__.py"))
+
+version = version_regex.findall(contents)[0]
+
 
 setup(
     author="Sam Young",
@@ -44,6 +64,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/youngsm/adsgrb",
-    version="0.0.3",
+    version=version,
     zip_safe=False,
 )
