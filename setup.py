@@ -29,7 +29,7 @@ def readfile(filename):
 
 
 version_regex = re.compile('__version__ = "(.*?)"')
-contents = readfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ads", "__init__.py"))
+contents = readfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "adsgrb", "__init__.py"))
 
 version = version_regex.findall(contents)[0]
 
