@@ -224,6 +224,7 @@ def getArticle(articlelist, article, GRB, debug=False):
                 return
 
         deserialized = q.json()
+
         try:
             records = deserialized["links"]["records"]
             for record in records:
@@ -232,9 +233,6 @@ def getArticle(articlelist, article, GRB, debug=False):
                 if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
                     # switch any arxiv url to export.arxiv so we don't get locked out
                     url = link.replace("arxiv.org", "export.arxiv.org")
-                    if "arxiv" in url:
-                        q = requests.get(url, stream=True)
-                        time.sleep(10)
                     q = requests.get(url, stream=True)
                     break
                 # record is guaranteed to be of length > 0
@@ -244,11 +242,8 @@ def getArticle(articlelist, article, GRB, debug=False):
         except:
             # switch any arxiv url to export.arxiv so we don't get locked out
             linktype = deserialized["link_type"]
-            url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
             if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
-                if "arxiv" in url:
-                    q = requests.get(url, stream=True)
-                    time.sleep(10)
+                url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
                 q = requests.get(url, stream=True)
             else:
                 ECHO(f"[{GRB}] Pass 2: No suitable link for {article.bibcode}. {link}")
@@ -264,11 +259,11 @@ def getArticle(articlelist, article, GRB, debug=False):
 
     # Check if the journal has given back forbidden HTML.
     try:
-        if q.content.contains("</html>", case=False) or not str(q.content):
+        if '</html>' in q.content.lower() or not str(q.content):
             ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
     except:
-        if q.text.contains("</html>", case=False) or not str(q.text):
+        if '</html>' in q.text.lower() or not str(q.text):
             ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
 
