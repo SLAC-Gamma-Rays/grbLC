@@ -16,9 +16,8 @@ adsgrb
 
 A simple way to scour the ADS for GRB data.
 
-
 * Free software: MIT license
-* Documentation: https://adsgrb.readthedocs.io.
+* Documentation: https://adsgrb.readthedocs.io. A work in progress...
 
 Credits
 -------
