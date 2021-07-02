@@ -26,7 +26,7 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 This package heavily relies on Andy Casey's `ads`_ Python package for dealing with search queries.
 
-
+:)
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
