@@ -6,7 +6,7 @@ adsgrb
 .. image:: https://img.shields.io/pypi/v/adsgrb.svg
         :target: https://pypi.python.org/pypi/adsgrb
 
-.. image:: https://img.shields.io/travis/youngsm/adsgrb.svg
+.. image:: https://travis-ci.com/youngsm/adsgrb.svg
         :target: https://travis-ci.com/youngsm/adsgrb
 
 .. image:: https://readthedocs.org/projects/adsgrb/badge/?version=latest
