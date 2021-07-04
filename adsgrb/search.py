@@ -176,7 +176,7 @@ def litSearch(GRB, keywords=None, printlength=True, debug=False):
     return {"GRB": GRB, "articlelist": finds}
 
 
-def getArticle(articlelist, article, GRB, debug=False):
+def getArticle(articlelist, article, GRB, firsttry=False, debug=False):
     """
     Download an article from arXiv or other sources.
     :param articlelist:
@@ -259,11 +259,15 @@ def getArticle(articlelist, article, GRB, debug=False):
 
     # Check if the journal has given back forbidden HTML.
     try:
-        if '</html>' in q.content.lower() or not str(q.content):
+        if "</html>" in q.content.lower() or not str(q.content):
             ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
-            return
+            if firsttry and "arxiv" in url:
+                ECHO(f"[{GRB}] Pass 2: Trying again for {article.bibcode}")
+                getArticle(articlelist, article, GRB, firsttry=False, debug=debug)
+            else:
+                return
     except:
-        if '</html>' in q.text.lower() or not str(q.text):
+        if "</html>" in q.text.lower() or not str(q.text):
             ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} (200): {url}")
             return
 
