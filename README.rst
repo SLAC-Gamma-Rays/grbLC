@@ -6,7 +6,7 @@ adsgrb
 .. image:: https://img.shields.io/pypi/v/adsgrb.svg
         :target: https://pypi.python.org/pypi/adsgrb
 
-.. image:: https://img.shields.io/travis/youngsm/adsgrb.svg
+.. image:: https://travis-ci.com/youngsm/adsgrb.svg
         :target: https://travis-ci.com/youngsm/adsgrb
 
 .. image:: https://readthedocs.org/projects/adsgrb/badge/?version=latest
@@ -26,7 +26,7 @@ This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypack
 
 This package heavily relies on Andy Casey's `ads`_ Python package for dealing with search queries.
 
-
+:)
 
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
 .. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
