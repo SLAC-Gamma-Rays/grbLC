@@ -4,6 +4,7 @@ from .ECHO import SynchronizedEcho
 import concurrent.futures, warnings
 from ads import SearchQuery
 import time
+from .__init__ import __version__
 
 
 def getArticles(finds, threading=True, debug=False):
@@ -176,7 +177,7 @@ def litSearch(GRB, keywords=None, printlength=True, debug=False):
     return {"GRB": GRB, "articlelist": finds}
 
 
-def getArticle(articlelist, article, GRB, firsttry=False, debug=False):
+def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
     """
     Download an article from arXiv or other sources.
     :param articlelist:
@@ -197,14 +198,14 @@ def getArticle(articlelist, article, GRB, firsttry=False, debug=False):
     isGCN = "GCN" in article.bibcode
     header = {"Authorization": f"Bearer {read_apikey()}"}
     # Ask ADS to redirect us to the journal article.
+    params = {"bibcode": article.bibcode}
     if isGCN:
-        params = {"bibcode": article.bibcode, "link_type": "EJOURNAL"}
+        params["link_type"] = "EJOURNAL"
     else:
-        params = {"bibcode": article.bibcode, "link_type": "ESOURCE"}
-
-    url = requests.get("http://adsabs.harvard.edu/cgi-bin/nph-data_query", params=params).url
+        params["link_type"] = "ESOURCE"
 
     if isGCN:
+        url = requests.get("http://adsabs.harvard.edu/cgi-bin/nph-data_query", params=params).url
         q = requests.get(url)
     else:
         url = f"https://api.adsabs.harvard.edu/v1/resolver/{article.bibcode}/esource"
@@ -225,33 +226,34 @@ def getArticle(articlelist, article, GRB, firsttry=False, debug=False):
 
         deserialized = q.json()
 
+        pdf_header = {"user-agent": f"adsgrb/{__version__}"}
         try:
             records = deserialized["links"]["records"]
             for record in records:
                 linktype = record["link_type"]
                 link = record["url"]
-                if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
-                    # switch any arxiv url to export.arxiv so we don't get locked out
+                if "PDF" in linktype and not "doi.org" in link and not "$" in link:
+                    # switch any arxiv url to export.arxiv.org so we don't get locked out
                     url = link.replace("arxiv.org", "export.arxiv.org")
-                    q = requests.get(url, stream=True)
+                    q = requests.get(url, stream=True, headers=pdf_header)
                     break
                 # record is guaranteed to be of length > 0
                 elif record == records[-1]:
                     ECHO(f"[{GRB}] Could not find suitable link for {article.bibcode}. {link}")
                     return
         except:
-            # switch any arxiv url to export.arxiv so we don't get locked out
             linktype = deserialized["link_type"]
-            if "PDF" in linktype and not "iop" in link and not "doi" in link and not "$" in link:
+            if "PDF" in linktype and not "doi.org" in link and not "$" in link:
+                # switch any arxiv url to export.arxiv.org so we don't get locked out
                 url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
-                q = requests.get(url, stream=True)
+                q = requests.get(url, stream=True, headers=pdf_header)
             else:
                 ECHO(f"[{GRB}] Pass 2: No suitable link for {article.bibcode}. {link}")
                 return
 
     if not q.ok:
+        ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} ({q.status_code}): {url}")
         if debug:
-            ECHO(f"[{GRB}] Pass 2: Error retrieving {article.bibcode} ({q.status_code}): {url}")
             q.raise_for_status()
             return
         else:

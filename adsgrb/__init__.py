@@ -2,7 +2,7 @@
 
 __author__ = """Sam Young"""
 __email__ = "youngsam@sas.upenn.edu"
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 from .search import gcnSearch, litSearch, getArticles
 from .output import savePDF
