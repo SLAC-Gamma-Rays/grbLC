@@ -1,10 +1,8 @@
-import requests
+import requests, re, os, sys
 from .config import read_apikey
 from .ECHO import SynchronizedEcho
 import concurrent.futures, warnings
 from ads import SearchQuery
-import time
-from .__init__ import __version__
 
 
 def getArticles(finds, threading=True, debug=False):
@@ -280,3 +278,16 @@ def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
 
 
 ECHO = SynchronizedEcho()
+major, minor1, minor2, release, serial = sys.version_info
+readfile_kwargs = {"encoding": "utf-8"} if major >= 3 else {}
+
+
+def readfile(filename):
+    with open(filename, **readfile_kwargs) as fp:
+        contents = fp.read()
+    return contents
+
+
+version_regex = re.compile('__version__ = "(.*?)"')
+contents = readfile(os.path.join(os.path.dirname(os.path.abspath(__file__)), "__init__.py"))
+__version__ = version_regex.findall(contents)[0]
