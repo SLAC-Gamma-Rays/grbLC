@@ -5,6 +5,7 @@ import glob2
 import shutil
 import tarfile
 import requests
+<<<<<<< HEAD:gcn_crawler/gcncc/scraper.py
 from .parser import (
     check_table,
     check_sentence,
@@ -15,6 +16,11 @@ from .parser import (
     final_sentences_to_csv,
 )
 
+=======
+from parser.table import check_table, get_final_tables_txt, final_tables_to_csv
+from parser.sentence import check_sentence, get_final_sentences_txt, final_sentences_to_csv
+from parser.combine import get_final_txt
+>>>>>>> 76a4e79365465a0ac61d6b9e4805efedd0932c39:gcn_crawler/scraper.py
 
 class Scraper:
 
