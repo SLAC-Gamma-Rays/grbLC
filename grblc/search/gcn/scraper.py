@@ -32,15 +32,15 @@ class Scraper:
         # Set up new_output_path and there are three cases.
         # If no path is passed, we assume the output path will be the folder in the gcn_crawler
         if not path:
-            new_output_path = "output/"
+            new_output_path = "gcncc/output/"
 
         # If the path ends with a path separator.
         elif path.endswith(os.path.sep):
-            new_output_path = path + "output/"
+            new_output_path = path + "gcncc/output/"
 
         # If the path does not end with a path separator.
         else:
-            new_output_path = path + os.path.sep + "output/"
+            new_output_path = path + os.path.sep + "gcncc/output/"
 
         # Move the old output folder to the new location.
         # Skip this part if there is no old output path.
@@ -62,15 +62,15 @@ class Scraper:
         # Set up new_data_path and there are three cases.
         # If no path is passed, we assume the data path will be the folder in the gcn_crawler
         if not path:
-            new_data_path = "data/"
+            new_data_path = "gcncc/data/"
 
         # If the path ends with a path separator.
         elif path.endswith(os.path.sep):
-            new_data_path = path + "data/"
+            new_data_path = path + "gcncc/data/"
 
         # If the path does not end with a path separator.
         else:
-            new_data_path = path + os.path.sep + "data/"
+            new_data_path = path + os.path.sep + "gcncc/data/"
 
         # Move the old output folder to the new location.
         # Skip this part if there is no old output path.
@@ -230,7 +230,11 @@ class Scraper:
 
         # Get the *_final.txt
         get_final_txt(grb, allData_tables, allData_sentences, self.__output_path__)
+        return 
 
-        # Parse the final txt files into csv files.
-        # final_sentences_to_csv(grb, output_path=self.__output_path__)
-        # final_tables_to_csv(grb, allData_tables, self.__output_path__)
+    # We will move these functions back to grb_lookup after they are finished.
+    def final_tables_to_csv(self, grb):
+        final_tables_to_csv(grb, output_path=self.__output_path__)
+
+    def final_sentences_to_csv(self, grb):
+        final_sentences_to_csv(grb, output_path=self.__output_path__)
