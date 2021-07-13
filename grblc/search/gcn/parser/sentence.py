@@ -1,5 +1,5 @@
 import os
-from .constants import sentence_check
+from .constants import sentence_check, mag_check
 
 
 def check_sentence(grb_listing):
@@ -24,6 +24,10 @@ def get_final_sentences_txt(grb, output_path):
     # we now have a list of GCNs, where each GCN is a list of paragraphs.
     all_data = []
     data = {}
+    
+    mag_data = {}
+    
+ 
 
     # PHASE 1: Loop through the paragraphs and store the sentences with data points that we are interested in to all_data.
     for GCN_paragraphs in GCNs:
@@ -51,6 +55,21 @@ def get_final_sentences_txt(grb, output_path):
                 if match:
                     data["sentences"] += paragraph + "\n"
                     break
+                    
+          
+            magMatch = mag_check.findall(paragraph)
+            #match2 = sentenceMag_check.search(paragraph)
+           
+            if magMatch:
+                mag_data[data['number']] = magMatch[0]
+     
+    
+    
+    print(mag_data[0])
+    
+   
+  
+
 
     # PHASE 2: Write the data into *_final_sentences.txt.
     file = open(f"{output_path}{grb}/{grb}_final_sentences.txt", 'w')
