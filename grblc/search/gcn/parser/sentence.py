@@ -14,10 +14,15 @@ def get_final_sentences_txt(grb, output_path):
     Fetch the data from [grb]_sentences.txt and select only the paragraphs
     with the possible data points identified by the regex, sentence_check.
     """
-
+    
     # Get the lines of the text file.
-    lines = open(f"{output_path}{grb}/{grb}_sentences.txt", 'r').read()
+    
+    # Look through only sentence GCN  ### Doesn't always catch sentences - Nicole, July 13
+    #lines = open(f"{output_path}{grb}/{grb}_sentences.txt", 'r').read()
 
+    # Look through all GCNs
+    lines = open(f"{output_path}{grb}/{grb}_all_gcn.txt", 'r').read()
+   
     GCNs = lines.split('=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=')
     GCNs = [GCN.split('\n\n') for GCN in GCNs]
 
@@ -56,20 +61,45 @@ def get_final_sentences_txt(grb, output_path):
                     data["sentences"] += paragraph + "\n"
                     break
                     
-          
+                       
+                        
+        # Matches magnitudes in sentences              
+        for paragraph in GCN_paragraphs:
+            
             magMatch = mag_check.findall(paragraph)
-            #match2 = sentenceMag_check.search(paragraph)
+            
            
             if magMatch:
-                mag_data[data['number']] = magMatch[0]
-     
+                
+                for entry in magMatch:
+                    
+                    # Append matches to dictionary w/ gcn as key
+                    if data['number'] in mag_data:
+                        mag_data[data['number']].append(entry)
+                    else: 
+                        mag_data[data['number']] = [entry]
+                
+      
+    # Take the information from mag_data dictionary and append to a .txt file
+    datMag = []
+    mag_data_sort = []
+    mag_from_sentences = open(f'{output_path}{grb}/{grb}_sentences_mag.txt','w+')
+    mag_from_sentences.write(str('gcn')+str('\t')+str('mag')+str('\t')+str('mag_err')+str('\t')+str('band')+str('\n'))
     
-    
-    print(mag_data[0])
-    
-   
-  
+    for key in mag_data:
+       
+        gcnNum = key
+        
+        for sublst in mag_data[key]:
 
+            band = sublst[4]
+            mag = sublst[5]
+            mag_err = sublst[7]
+            
+            mag_from_sentences.write(str(gcnNum)+str('\t')+str(mag)+str('\t')+str(mag_err)+str('\t')+str(band)+str('\n'))
+        
+    mag_from_sentences.close()
+  
 
     # PHASE 2: Write the data into *_final_sentences.txt.
     file = open(f"{output_path}{grb}/{grb}_final_sentences.txt", 'w')
