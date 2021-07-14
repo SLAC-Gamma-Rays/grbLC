@@ -2,6 +2,7 @@
 Test script that will read automatically read through GCNs and allow the user to accept or reject a data point given the point and paragraph/table
 
 '''
+import os
 
 ## Work in progrress
 
@@ -17,13 +18,28 @@ def manual_sort(filepath, grb):
     
     lines = flagged_data.readlines()[1:]
     
+    
+    
     for point in lines:
+        
+        file = 'C:\\Users\\nicol\\Desktop\\GitHub\\grb\\gcn_crawler\\gcncc\\data\\gcn3\\'
+        gcn = point.split('\t')[0]
+        print(gcn)
+        
+        file = file+str(gcn)+str('.gcn3')
+        print(file)
+        
+        
         
         loopVal = True
         print('==========================\n')
         print(point)
         
+        
+        
         while loopVal:
+            
+            os.system(file)
             
             userInput = input('Accept the above point? y/n \n')
             
