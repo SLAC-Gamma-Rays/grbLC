@@ -11,7 +11,7 @@ Test script that will read automatically read through GCNs and allow the user to
 def manual_sort(filepath, grb):
     
     flagged_data = open(filepath+str(grb)+'_sentences_mag.txt','r')
-    accepted_data = open(filepath+str(grb)+'_acceped_mag.txt', 'a')
+    accepted_data = open(filepath+str(grb)+'_acceped_mag.txt', 'w')
     
     accepted_data.write(str('gcn')+str('\t')+str('mag')+str('\t')+str('mag_err')+str('\t')+str('band')+str('\n'))
     
@@ -39,6 +39,7 @@ def manual_sort(filepath, grb):
                 loopVal = False
 
             else:
+                print('Please input a valid response: (y or n)')
                 pass
     flagged_data.close()
     accepted_data.close()
