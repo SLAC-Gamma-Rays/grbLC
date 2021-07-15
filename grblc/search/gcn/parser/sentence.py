@@ -67,7 +67,7 @@ def get_final_sentences_txt(grb, output_path):
         for paragraph in GCN_paragraphs:
             
             magMatch = mag_check.findall(paragraph)
-            
+            fluxMatch = flux_check.finall(paragraph
            
             if magMatch:
                 
@@ -78,7 +78,7 @@ def get_final_sentences_txt(grb, output_path):
                         mag_data[data['number']].append(entry)
                     else: 
                         mag_data[data['number']] = [entry]
-                
+            print(fluxMatch)
       
     # Take the information from mag_data dictionary and append to a .txt file
     datMag = []
