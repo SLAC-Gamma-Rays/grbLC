@@ -1,5 +1,9 @@
 from astropy import units as u, constants as const
+from astropy.time import Time
+from numpy.lib.index_tricks import IndexExpression
+import pandas as pd
 import numpy as np
+from .constants import flux_densities
 
 """ TO USE:
 Import this file into a directory to be used in your command line interfance (e.g., terminal on mac, cmd.exe on windows)
@@ -58,90 +62,20 @@ def angstromToHz(ang):
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
-flux_densities = {
-    # from Bessell et al. (1998) // http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
-    # * in angstrom (Å) | erg cm-2 s-1 Hz-1
-    "U": [3600, 1.79e-20],
-    "B": [4380, 4.063e-20],
-    "V": [5450, 3.636e-20],
-    "R": [6410, 3.064e-20],
-    "I": [7980, 2.416e-20],
-    "J": [12200, 1.589e-20],
-    "H": [16300, 1.021e-20],
-    "K": [21900, 0.64e-20],
-    # SDSS filters on the AB system
-    # from Fukugita et al. (1996) // http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
-    # * in angstrom (Å) | erg- cm-2 s-1 Hz-1
-    "u": [3560, 3631e-23],
-    "g": [4830, 3631e-23],
-    "r": [6260, 3631e-23],
-    "i": [7670, 3631e-23],
-    "z": [9100, 3631e-23],
-    # Swift UVOT filters
-    # from Poole et al. (2008) // https://academic.oup.com/mnras/article/383/2/627/993537
-    # * in angstrom | erg cm-2 s-1 Å-1
-    "uvw1": [2634, 4.00e-16],
-    "uvw2": [2030, 6.2e-16],
-    "uvm2": [2231, 8.5e-16],
-    "white": [3471, 3.7e-17],
-    # Additional various bands
-    # from https://coolwiki.ipac.caltech.edu/index.php/Central_wavelengths_and_zero_points
-    # * in angstrom (Å) | erg cm-2 s-1 Hz-1
-    "Rc": [6550, 3080e-23],  # Cousins R, not Johnson R!
-    "Ic": [7996, 2432.84e-23],  # Cousins R, not Johnson R!
-    "Ks": [16620, 666.7e-23],  # K sharp, not Johnson K!
-    "Z": [8817, 2232e-23],
-    "Y": [10305, 2026e-23],
-}
-
-
-# def magToFlux(mag, band, spectral_index=None):
-#     # convert u', g', r', i', z' to u, g, r, i, z
-#     # if spectral_index:
-#     #     print("using spectral index of", spectral_index)
-#     band = band.strip("'") if any(band in bandprime for bandprime in ["u", "g", "r", "i", "z"]) else band
-#     band = "V" if band == "v" else band
-#     try:
-#         lam, f_lam_or_nu = flux_densities[band]
-#     except KeyError:
-#         raise Exception(f"Band '{band}' not supported.")
-#     if any(band == swift_band for swift_band in ["uvw1", "uvw2", "uvm2", "white"]):
-#         # If flux density is given as f_lambda (erg / cm2 / s / Å)
-#         lam_or_nu = lam * (u.angstrom)
-#         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
-#     else:
-#         # If flux density is given as f_nu (erg / cm2 / s / Hz)
-#         lam_or_nu = angstromToHz(lam) * (u.Hz)
-#         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
-
-#     if spectral_index:
-#         finalflux = ((lam_or_nu ** (-spectral_index)) * f_lam_or_nu * 10 ** (mag / -2.5)).value
-#     else:
-#         finalflux = (lam_or_nu * f_lam_or_nu * 10 ** (mag / -2.5)).value
-
-#     return finalflux
-
-
-def magToFlux(mag, band, spectral_index=1):
+def magToFlux(mag, band, spectral_index=0):
     band = "V" if band == "v" else band
-    # Const
-    c = 3e8
-    h = 6.626e-34
-    lambda_R = 6410  # lambda_R in angstrom
 
-    lambda_x, F_x = flux_densities[band]
+    try:
+        lambda_R, _ = flux_densities["R"]  # lambda_R in angstrom
+        lambda_x, F_x = flux_densities[band]
+    except KeyError:
+        raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Sam!")
 
-    # lambda to keV
-    # keV_R = (h * c / lambda_R) * 6.242e15  # convert wavelength to keV
-    # keV_x = (h * c / lambda_x) * 6.242e15
     # Conversion
     F_R = F_x * (lambda_x / lambda_R) ** (-spectral_index)
 
-    # return F_R
-
     f_lam_or_nu = F_R
     lam = lambda_x
-    # lam, f_lam_or_nu = flux_densities[band]
 
     if any(band == swift_band for swift_band in ["uvw1", "uvw2", "uvm2", "white"]):
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
@@ -162,3 +96,85 @@ def magErrToFluxErr(mag, magerr, band):
     fluxerr = magerr * flux * np.log(10 ** (2.0 / 5))
     assert fluxerr > 0, "Error computing flux error."
     return fluxerr
+
+
+def getFlux(magnitude, magerr, band, spectral_index):
+    return magToFlux(magnitude, band, spectral_index=spectral_index), magErrToFluxErr(magnitude, magerr, band)
+
+
+def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False, verbose=False):
+    global directory
+
+    names = ["date", "time", "exp", "mag", "mag_err", "band"]
+    dtype = "U10,U12,U6,f8,f8,U5"
+    if use_nick:
+        names.insert(0, "nickname")  # add nickname column
+        dtype = "U10," + dtype  # add nickname type
+
+    """ will import data using the following headers
+    | date | time | exp | mag | mag_err | band |
+    IF: use_nick = False
+    OR
+    | nickname | date | time | exp | mag | mag_err | band |
+    IF: use_nick = True
+    """
+    Input_Data = pd.read_csv(directory + GRB + ".txt", delimiter="\t+|\s+", names=names, skiprows=1, engine="python")
+
+    # setting band
+    band_ID = Input_Data["band"][0].strip()
+    print(directory + GRB)
+    f = open(directory + GRB + "_" + "flux.txt", "w")
+    f.write(str("time_sec") + str("\t") + str("flux") + str("\t") + str("flux_err") + str("\t") + str("band") + "\n")
+    f.close()
+
+    # VERBOSE -- use if debugging odd datapoints from Mathematica plots
+    if verbose:
+        f = open(directory + GRB + "_" + "VERBOSE_flux.txt", "w")
+        f.write("\t".join(["nickname", "time_sec", "flux", "flux_err", "band", "logF", "logTime"] + "\n"))
+        f.close()
+
+    starttime = Time(battime)
+
+    for idx, row in Input_Data.iterrows():
+        # strip band string of any whitespaces
+        band = row["band"].strip()
+
+        magnitude = row["mag"]
+        mag_err = row["mag_err"]
+
+        try:
+            Flux, Flux_err = getFlux(magnitude, mag_err, band, spectral_index=spectral_index)
+        except KeyError as e:
+            print(e)
+            continue
+
+        date_UT = row["date"]
+        time_UT = row["time"]
+        time_UT = date_UT + " " + time_UT
+        astrotime = Time(time_UT)  # using astropy Time package
+        dt = astrotime - starttime  # for all other times, subtract start time
+        time_sec = round(dt.sec, 5)  # convert delta time to seconds
+
+        logF = np.log10(Flux)
+        logTime = np.log10(time_sec)
+
+        f = open(directory + GRB + "_" + "flux.txt", "a")
+        f.write(
+            str(time_sec) + str("\t") + str(Flux) + str("\t") + str(Flux_err) + str("\t") + str(row["band"]) + "\n"
+        )
+        f.close()
+
+        # VERBOSE
+        if verbose:
+            f = open(directory + GRB + "_" + "VERBOSE_flux_" + band_ID + ".txt", "a")
+            f.write("\t".join([row["nickname"], time_sec, Flux, Flux_err, row["band"], logF, logTime]) + "\n")
+
+            f.close()
+
+
+def set_dir(dir):
+    global directory
+    directory = dir
+
+
+directory = "./"
