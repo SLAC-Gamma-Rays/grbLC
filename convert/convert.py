@@ -69,7 +69,7 @@ def magToFlux(mag, band, spectral_index=0):
         lambda_R, _ = flux_densities["R"]  # lambda_R in angstrom
         lambda_x, F_x = flux_densities[band]
     except KeyError:
-        raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Sam!")
+        raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
 
     # Conversion
     F_R = F_x * (lambda_x / lambda_R) ** (-spectral_index)
@@ -122,7 +122,7 @@ def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False
 
     # setting band
     band_ID = Input_Data["band"][0].strip()
-    print(directory + GRB)
+
     f = open(directory + GRB + "_" + "flux.txt", "w")
     f.write(str("time_sec") + str("\t") + str("flux") + str("\t") + str("flux_err") + str("\t") + str("band") + "\n")
     f.close()
