@@ -102,7 +102,7 @@ def getFlux(magnitude, magerr, band, spectral_index):
     return magToFlux(magnitude, band, spectral_index=spectral_index), magErrToFluxErr(magnitude, magerr, band)
 
 
-def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False, verbose=False):
+def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False, debug=False):
     global directory
 
     names = ["date", "time", "exp", "mag", "mag_err", "band"]
@@ -128,8 +128,8 @@ def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False
     f.close()
 
     # VERBOSE -- use if debugging odd datapoints from Mathematica plots
-    if verbose:
-        f = open(directory + GRB + "_" + "VERBOSE_flux.txt", "w")
+    if debug:
+        f = open(directory + GRB + "_" + "DEBUG_flux.txt", "w")
         f.write("\t".join(["nickname", "time_sec", "flux", "flux_err", "band", "logF", "logTime"] + "\n"))
         f.close()
 
@@ -165,7 +165,7 @@ def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False
         f.close()
 
         # VERBOSE
-        if verbose:
+        if debug:
             f = open(directory + GRB + "_" + "VERBOSE_flux_" + band_ID + ".txt", "a")
             f.write("\t".join([row["nickname"], time_sec, Flux, Flux_err, row["band"], logF, logTime]) + "\n")
 
