@@ -155,9 +155,6 @@ def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False
         dt = astrotime - starttime  # for all other times, subtract start time
         time_sec = round(dt.sec, 5)  # convert delta time to seconds
 
-        logF = np.log10(Flux)
-        logTime = np.log10(time_sec)
-
         f = open(directory + GRB + "_" + "flux.txt", "a")
         f.write(
             str(time_sec) + str("\t") + str(Flux) + str("\t") + str(Flux_err) + str("\t") + str(row["band"]) + "\n"
@@ -166,6 +163,8 @@ def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False
 
         # VERBOSE
         if debug:
+            logF = np.log10(Flux)
+            logTime = np.log10(time_sec)
             f = open(directory + GRB + "_" + "VERBOSE_flux_" + band_ID + ".txt", "a")
             f.write("\t".join([row["nickname"], time_sec, Flux, Flux_err, row["band"], logF, logTime]) + "\n")
 
