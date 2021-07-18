@@ -1,83 +1,47 @@
 from astropy import units as u, constants as const
 from astropy.time import Time
-from numpy.lib.index_tricks import IndexExpression
 import pandas as pd
 import numpy as np
 from .constants import flux_densities
-
-""" TO USE:
-Import this file into a directory to be used in your command line interfance (e.g., terminal on mac, cmd.exe on windows)
-Make sure you are in the directory, and then start Jupyter notebook or Jupyter lab / any other Python instance from there
-and import as any other module.
-"""
+from .time import grb_to_date
+import os.path
+import requests, re, glob2
+from functools import reduce
 
 
-def dec_to_UT(decimal: float) -> str:
-
-    assert isinstance(decimal, float) or isinstance(decimal, int), "decimal must be of type float or int!"
-
-    decimal -= int(decimal)
-
-    hours = decimal * 24
-    hours_decimal = hours - int(hours)
-    hours = int(hours)
-
-    minutes = hours_decimal * 60
-    minutes_decimal = minutes - int(minutes)
-    minutes = int(minutes)
-
-    seconds = minutes_decimal * 60
-    seconds_str = "{:.3f}".format(seconds)
-
-    leading_hours = f"{hours}".zfill(2)
-    leading_minutes = f"{minutes}".zfill(2)
-
-    # hardcoding leading zero for seconds because of the need for 3 decimal places
-    if len(seconds_str) == 5:
-        leading_seconds = "0" + seconds_str
-    elif len(seconds_str) == 6:
-        leading_seconds = seconds_str
-    else:
-        raise Exception("Error with converting seconds string!")
-
-    return f"{leading_hours}:{leading_minutes}:{leading_seconds}"
-
-
-def UT_to_dec(yr_time: str) -> str:
-    # format: YYYY-MM-DD ##:##:##.### #
-    try:
-        float(yr_time.split(" ")[1].split(":")[0])
-    except:
-        raise Exception("Input string must be in the format: YYYY-MM-DD ##:##:##.###")
-
-    (date, time) = yr_time.split(" ")
-    (year, month, day) = date.split("-")
-    (hours, minutes, seconds) = [float(num) for num in time.split(":")]
-    day = str(int(day) + (((hours * 60 * 60) + (minutes * 60) + seconds) / (24 * 60 * 60)))
-
-    return f"{year}:{month.zfill(2)}:{day}"
-
-
-def angstromToHz(ang):
+def angstromToHz(ang: float):
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
-def magToFlux(mag, band, spectral_index=0):
-    band = "V" if band == "v" else band
+def toFlux(
+    mag: float,
+    band: str,
+    magerr: float = 0,
+    index: float = 0,
+    index_type: str = "spectral",
+):
+    band = band.strip("'").strip("_")
+    band = band if band != "v" else "V"
+
+    # determine index type for conversion of f_nu to R band
+    if index_type in ["spectral", "gamma"]:
+        power = index - 1
+    elif index_type in ["photon", "alpha"]:
+        power = index
 
     try:
         lambda_R, _ = flux_densities["R"]  # lambda_R in angstrom
-        lambda_x, F_x = flux_densities[band]
+        lambda_x, f_x = flux_densities[band]
     except KeyError:
         raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
 
-    # Conversion
-    F_R = F_x * (lambda_x / lambda_R) ** (-spectral_index)
+    # convert from flux density in another band to R!
+    f_R = f_x * (lambda_x / lambda_R) ** (-power)
 
-    f_lam_or_nu = F_R
+    f_lam_or_nu = f_R
     lam = lambda_x
 
-    if any(band == swift_band for swift_band in ["uvw1", "uvw2", "uvm2", "white"]):
+    if band in ["uvw1", "uvw2", "uvm2", "white"]:
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
         lam_or_nu = lam * (u.angstrom)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
@@ -86,94 +50,171 @@ def magToFlux(mag, band, spectral_index=0):
         lam_or_nu = angstromToHz(lam) * (u.Hz)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
-    return (lam_or_nu * f_lam_or_nu * 10 ** (mag / -2.5)).value
-
-
-def magErrToFluxErr(mag, magerr, band):
-
-    flux = magToFlux(mag, band)
+    flux = (lam_or_nu * f_lam_or_nu * 10 ** (mag / -2.5)).value
 
     fluxerr = magerr * flux * np.log(10 ** (2.0 / 5))
-    assert fluxerr > 0, "Error computing flux error."
-    return fluxerr
+
+    assert flux >= 0, "Error computing flux."
+    assert fluxerr >= 0, "Error computing flux error."
+    return flux, fluxerr
 
 
-def getFlux(magnitude, magerr, band, spectral_index):
-    return magToFlux(magnitude, band, spectral_index=spectral_index), magErrToFluxErr(magnitude, magerr, band)
-
-
-def convertGRB(GRB: str, battime: str, spectral_index: float = 0, use_nick=False, debug=False):
-    global directory
-
-    names = ["date", "time", "exp", "mag", "mag_err", "band"]
-    dtype = "U10,U12,U6,f8,f8,U5"
+# main conversion function to call
+def convertGRB(GRB: str, battime: str = "2000-08-17 04:14:00", index: float = 0, use_nick: bool = False, debug: bool = False):
+    # assign column names and datatypes before importing
+    dtype = {
+        "date": str,
+        "time": str,
+        "exp": str,
+        "mag": np.float64,
+        "mag_err": np.float64,
+        "band": str,
+    }
+    names = list(dtype.keys())
     if use_nick:
         names.insert(0, "nickname")  # add nickname column
-        dtype = "U10," + dtype  # add nickname type
+        dtype["nickname"] = str  # add nickname type
 
     """ will import data using the following headers
-    | date | time | exp | mag | mag_err | band |
     IF: use_nick = False
+    | date | time | exp | mag | mag_err | band |
     OR
-    | nickname | date | time | exp | mag | mag_err | band |
     IF: use_nick = True
+    | nickname | date | time | exp | mag | mag_err | band |
     """
-    Input_Data = pd.read_csv(directory + GRB + ".txt", delimiter="\t+|\s+", names=names, skiprows=1, engine="python")
-
-    # setting band
-    band_ID = Input_Data["band"][0].strip()
-
-    f = open(directory + GRB + "_" + "flux.txt", "w")
-    f.write(str("time_sec") + str("\t") + str("flux") + str("\t") + str("flux_err") + str("\t") + str("band") + "\n")
-    f.close()
-
-    # VERBOSE -- use if debugging odd datapoints from Mathematica plots
-    if debug:
-        f = open(directory + GRB + "_" + "DEBUG_flux.txt", "w")
-        f.write("\t".join(["nickname", "time_sec", "flux", "flux_err", "band", "logF", "logTime"] + "\n"))
-        f.close()
-
     starttime = Time(battime)
 
-    for idx, row in Input_Data.iterrows():
-        # strip band string of any whitespaces
-        band = row["band"].strip()
+    # try to import mag_table to convert
+    try:
+        global directory
+        print(reduce(os.path.join, (directory, "**", f"{GRB}.txt")))
+        filename = glob2.glob(reduce(os.path.join, (directory, "**", f"{GRB}.txt")))[0]
+        mag_table = pd.read_csv(
+            filename,
+            delimiter=r"\t+|\s+",
+            names=names,
+            dtype=dtype,
+            skiprows=1,
+            engine="python",
+        )
+    except ValueError as error:
+        print(filename)
+        raise error
+    except IndexError as error:
+        raise ImportError(f"Couldn't find GRB table at {filename}.")
 
+    converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
+    if debug:
+        converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT")}
+
+    for idx, row in mag_table.iterrows():
+        # strip band string of any whitespaces
+        band = row["band"]
         magnitude = row["mag"]
         mag_err = row["mag_err"]
 
+        # attempt to convert a single mag to flux given band, mag_err, and spectral index
         try:
-            Flux, Flux_err = getFlux(magnitude, mag_err, band, spectral_index=spectral_index)
+            flux, flux_err = toFlux(magnitude, band, mag_err, index=index)
         except KeyError as e:
             print(e)
             continue
 
         date_UT = row["date"]
         time_UT = row["time"]
-        time_UT = date_UT + " " + time_UT
+        time_UT = f"{date_UT} {time_UT}"
+
         astrotime = Time(time_UT)  # using astropy Time package
         dt = astrotime - starttime  # for all other times, subtract start time
         time_sec = round(dt.sec, 5)  # convert delta time to seconds
 
-        f = open(directory + GRB + "_" + "flux.txt", "a")
-        f.write(
-            str(time_sec) + str("\t") + str(Flux) + str("\t") + str(Flux_err) + str("\t") + str(row["band"]) + "\n"
-        )
-        f.close()
+        converted["time_sec"].append(time_sec)
+        converted["flux"].append(flux)
+        converted["flux_err"].append(flux_err)
+        converted["band"].append(band)
 
         # VERBOSE
         if debug:
-            logF = np.log10(Flux)
-            logTime = np.log10(time_sec)
-            f = open(directory + GRB + "_" + "VERBOSE_flux_" + band_ID + ".txt", "a")
-            f.write("\t".join([row["nickname"], time_sec, Flux, Flux_err, row["band"], logF, logTime]) + "\n")
+            logF = np.log10(flux)
+            logT = np.log10(time_sec)
+            converted["time_sec"].append(time_sec)
+            converted["flux"].append(flux)
+            converted["flux_err"].append(flux_err)
+            converted["band"].append(band)
+            converted["logF"].append(logF)
+            converted["logT"].append(logT)
 
-            f.close()
+    # after converting everything, go from dictionary -> DataFrame -> csv!
+    save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux.txt")
+    print(save_path)
+    pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
+    if debug:
+        save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux_DEBUG.txt")
+        pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
+
+    return
 
 
+# Saves GRB spectral and photon indices to a text file from the Swift website to a file called
+# trigs_and_specs.txt in `directory`. If `directory` hasn't been set it'll save to the current
+# working directory (e.g., the folder in which your notebook is)
+def save_convert_params(save_dir=None, return_df=False):
+    if not save_dir:
+        global directory
+        save_dir = directory
+
+    # requests a table link from the Swift website. this html can be huge as the entire formatted
+    # table is returned here, so we'll request it as byte stream and parse it by line to save
+    # the user and the NASA site bandwith.
+    q = requests.get(
+        "https://swift.gsfc.nasa.gov/archive/grb_table/table.php?obs=All+Observatories&year=All+Years&restrict=none&grb_time=1&bat_photon_index=1&xrt_gamma=1",
+        stream=True,
+    )
+    lines = q.iter_lines(decode_unicode=True)
+    regsearch = re.compile(r"(?<=\/)(?:grb_table_\d+\.txt)")
+    filename = None
+    while not filename:
+        filename = regsearch.search(next(lines))
+
+    # grab the actual plaintext table
+    df = pd.read_csv(
+        f"https://swift.gsfc.nasa.gov/archive/grb_table/tmp/{filename[0]}",
+        header=0,
+        index_col=0,
+        delimiter="\t",
+        engine="c",
+        names=["GRB", "trigger_time", "photon_index", "spectral_index"],
+        na_values="n/a",
+    )
+    # clean photon index columns from extra information
+    df["photon_index"] = df["photon_index"].str.strip(",()~ CPL \n\t")
+    df["photon_index"] = df["photon_index"].str.rstrip(".")
+    df["photon_index"] = df["photon_index"].str.replace(r"(?<=\d)[^.0-9\n]+(?=\d{0,7})", ".", regex=True)
+    df["photon_index"] = df["photon_index"].astype(np.float64)
+
+    # delete columns where we have NaN for both photon_index & spectral_index
+    df.dropna(axis=0, how="all", subset=["photon_index", "spectral_index"], inplace=True)
+
+    # insert a new column containing dates for each grb trigger date
+    df.insert(0, "trigger_date", list(map(grb_to_date, df.index)))
+
+    # save!
+    df.to_csv(os.path.join(save_dir, "trigs_and_specs.txt"), sep="\t", na_rep="n/a")
+
+    if return_df:
+        return df
+
+
+# small setter to set the main conversion directory
 def set_dir(dir):
     global directory
-    directory = dir
+    directory = os.path.abspath(dir)
 
 
-directory = "./"
+def get_dir():
+    global directory
+    return directory
+
+
+# sets directory to the current working directory, or whatever folder you're currently in
+directory = os.getcwd()
