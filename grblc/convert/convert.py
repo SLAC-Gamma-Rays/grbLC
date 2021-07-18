@@ -113,8 +113,8 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
 
         # if theres any NaN, we'll pick the non-NaN
         if sum(na_indices) > 0:
-            index = indices[~na_indices]
-            index_type = np.array(["photon", "spectral"])[~na_indices]
+            index, *__ = indices[~na_indices]
+            index_type, *__ = np.array(["photon", "spectral"])[~na_indices]
         else:
             # otherwise, default to spectral index
             index = indices[1]
@@ -124,14 +124,11 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
         battime = " ".join(battime)
         starttime = Time(battime)
 
-        print(battime)
-        print(index_type, index)
-
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
         converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT")}
 
-    for idx, row in mag_table.iterrows():
+    for __, row in mag_table.iterrows():
         # strip band string of any whitespaces
         band = row["band"]
         magnitude = row["mag"]
@@ -147,7 +144,6 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
         date_UT = row["date"]
         time_UT = row["time"]
         time_UT = f"{date_UT} {time_UT}"
-
         astrotime = Time(time_UT)  # using astropy Time package
         dt = astrotime - starttime  # for all other times, subtract start time
         time_sec = round(dt.sec, 5)  # convert delta time to seconds
