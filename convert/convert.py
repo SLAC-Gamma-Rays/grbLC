@@ -60,7 +60,7 @@ def toFlux(
 
 
 # main conversion function to call
-def convertGRB(GRB: str, battime: str = "2000-08-17 04:14:00", index: float = 0, use_nick: bool = False, debug: bool = False):
+def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = "", use_nick: bool = False, debug: bool = False):
     # assign column names and datatypes before importing
     dtype = {
         "date": str,
@@ -82,13 +82,11 @@ def convertGRB(GRB: str, battime: str = "2000-08-17 04:14:00", index: float = 0,
     IF: use_nick = True
     | nickname | date | time | exp | mag | mag_err | band |
     """
-    starttime = Time(battime)
 
     # try to import mag_table to convert
     try:
         global directory
-        print(reduce(os.path.join, (directory, "**", f"{GRB}.txt")))
-        filename = glob2.glob(reduce(os.path.join, (directory, "**", f"{GRB}.txt")))[0]
+        filename, *__ = glob2.glob(reduce(os.path.join, (directory, "**", f"{GRB}.txt")))
         mag_table = pd.read_csv(
             filename,
             delimiter=r"\t+|\s+",
@@ -103,6 +101,32 @@ def convertGRB(GRB: str, battime: str = "2000-08-17 04:14:00", index: float = 0,
     except IndexError as error:
         raise ImportError(f"Couldn't find GRB table at {filename}.")
 
+    # grab index and trigger time
+    if battime and index:
+        starttime = Time(battime)
+        index = index
+        index_type = "spectral"
+    else:
+        bat_spec_df = pd.read_csv(os.path.join(directory, "trigs_and_specs.txt"), delimiter="\t", index_col=0, header=0, engine="c")
+        indices = bat_spec_df.loc[GRB, ["photon_index", "spectral_index"]]
+        na_indices = indices.isna()
+
+        # if theres any NaN, we'll pick the non-NaN
+        if sum(na_indices) > 0:
+            index = indices[~na_indices]
+            index_type = np.array(["photon", "spectral"])[~na_indices]
+        else:
+            # otherwise, default to spectral index
+            index = indices[1]
+            index_type = "spectral"
+
+        battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
+        battime = " ".join(battime)
+        starttime = Time(battime)
+
+        print(battime)
+        print(index_type, index)
+
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
         converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT")}
@@ -115,7 +139,7 @@ def convertGRB(GRB: str, battime: str = "2000-08-17 04:14:00", index: float = 0,
 
         # attempt to convert a single mag to flux given band, mag_err, and spectral index
         try:
-            flux, flux_err = toFlux(magnitude, band, mag_err, index=index)
+            flux, flux_err = toFlux(magnitude, band, mag_err, index=index, index_type=index_type)
         except KeyError as e:
             print(e)
             continue
