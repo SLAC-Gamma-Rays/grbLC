@@ -166,7 +166,6 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux.txt")
-    print(save_path)
     pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
     if debug:
         save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux_DEBUG.txt")
