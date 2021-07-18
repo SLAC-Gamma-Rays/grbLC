@@ -214,9 +214,7 @@ def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
         )
         if not q.ok:
             if debug:
-                ECHO(
-                    f"[{GRB}] Pass 1: Error retrieving {article.bibcode} ({q.status_code}): https://ui.adsabs.harvard.edu/abs/{article.bibcode}/abstract."
-                )
+                ECHO(f"[{GRB}] Pass 1: Error retrieving {article.bibcode} ({q.status_code}): https://ui.adsabs.harvard.edu/abs/{article.bibcode}/abstract.")
                 q.raise_for_status()
                 return
             else:

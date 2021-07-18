@@ -1,7 +1,7 @@
 import os
 
 
-def savePDF(articlelist, output="./",debug=False):
+def savePDF(articlelist, output=os.getcwd(), debug=False):
     if isinstance(articlelist, str):
         return
     os.makedirs(os.path.dirname(output), exist_ok=True)
@@ -11,7 +11,7 @@ def savePDF(articlelist, output="./",debug=False):
             with open(output + f"{year}_{title[0][:30].replace(' ','_').replace('/','-')}.pdf", "wb") as f:
                 f.write(txt)
             if debug:
-                with open(output + f"{year}_{title[0][:30].replace(' ','_').replace('/','-')}.txt",'w') as dbg:
+                with open(output + f"{year}_{title[0][:30].replace(' ','_').replace('/','-')}.txt", "w") as dbg:
                     dbg.write("URL: " + url)
         else:
             continue
