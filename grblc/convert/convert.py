@@ -13,13 +13,8 @@ def angstromToHz(ang: float):
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
-def toFlux(
-    mag: float,
-    band: str,
-    magerr: float = 0,
-    index: float = 0,
-    index_type: str = "spectral",
-):
+def toFlux(mag: float, band: str, magerr: float = 0, index: float = 0, index_type: str = "spectral"):
+
     band = band.strip("'").strip("_")
     band = band if band != "v" else "V"
 
@@ -50,9 +45,9 @@ def toFlux(
         lam_or_nu = angstromToHz(lam) * (u.Hz)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
-    flux = (lam_or_nu * f_lam_or_nu * 10 ** (mag / -2.5)).value
+    flux = (lam_or_nu * f_lam_or_nu * 10 ** (-mag / 2.5)).value
 
-    fluxerr = magerr * flux * np.log(10 ** (2.0 / 5))
+    fluxerr = magerr * flux * np.log(10 ** (1 / 2.5))
 
     assert flux >= 0, "Error computing flux."
     assert fluxerr >= 0, "Error computing flux error."
@@ -86,7 +81,8 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
     # try to import mag_table to convert
     try:
         global directory
-        filename, *__ = glob2.glob(reduce(os.path.join, (directory, "**", f"{GRB}.txt")))
+        glob_path = reduce(os.path.join, (directory, "**", f"{GRB}.txt"))
+        filename, *__ = glob2.glob(glob_path)
         mag_table = pd.read_csv(
             filename,
             delimiter=r"\t+|\s+",
@@ -95,7 +91,9 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
             skiprows=1,
             engine="python",
         )
+
     except ValueError as error:
+        print(glob_path)
         print(filename)
         raise error
     except IndexError as error:
@@ -107,22 +105,25 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
         index = index
         index_type = "spectral"
     else:
-        bat_spec_df = pd.read_csv(os.path.join(directory, "trigs_and_specs.txt"), delimiter="\t", index_col=0, header=0, engine="c")
-        indices = bat_spec_df.loc[GRB, ["photon_index", "spectral_index"]]
-        na_indices = indices.isna()
+        try:
+            bat_spec_df = pd.read_csv(os.path.join(directory, "trigs_and_specs.txt"), delimiter="\t", index_col=0, header=0, engine="c")
+            indices = bat_spec_df.loc[GRB, ["photon_index", "spectral_index"]]
+            na_indices = indices.isna()
 
-        # if theres any NaN, we'll pick the non-NaN
-        if sum(na_indices) > 0:
-            index, *__ = indices[~na_indices]
-            index_type, *__ = np.array(["photon", "spectral"])[~na_indices]
-        else:
-            # otherwise, default to spectral index
-            index = indices[1]
-            index_type = "spectral"
+            # if theres any NaN, we'll pick the non-NaN
+            if sum(na_indices) > 0:
+                index, *__ = indices[~na_indices]
+                index_type, *__ = np.array(["photon", "spectral"])[~na_indices]
+            else:
+                # otherwise, default to spectral index
+                index = indices[1]
+                index_type = "spectral"
 
-        battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
-        battime = " ".join(battime)
-        starttime = Time(battime)
+            battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
+            battime = " ".join(battime)
+            starttime = Time(battime)
+        except KeyError as e:
+            raise ImportError(f"{GRB} isn't currently supported and it's trigger time and spectral/photon index must be manually provided. :(")
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
@@ -157,12 +158,12 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
         if debug:
             logF = np.log10(flux)
             logT = np.log10(time_sec)
-            converted["time_sec"].append(time_sec)
-            converted["flux"].append(flux)
-            converted["flux_err"].append(flux_err)
-            converted["band"].append(band)
-            converted["logF"].append(logF)
-            converted["logT"].append(logT)
+            converted_debug["time_sec"].append(time_sec)
+            converted_debug["flux"].append(flux)
+            converted_debug["flux_err"].append(flux_err)
+            converted_debug["band"].append(band)
+            converted_debug["logF"].append(logF)
+            converted_debug["logT"].append(logT)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux.txt")
@@ -228,6 +229,7 @@ def save_convert_params(save_dir=None, return_df=False):
 def set_dir(dir):
     global directory
     directory = os.path.abspath(dir)
+    return directory
 
 
 def get_dir():
