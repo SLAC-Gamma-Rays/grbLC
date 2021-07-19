@@ -15,11 +15,12 @@ def angstromToHz(ang: float):
 
 def toFlux(mag: float, band: str, magerr: float = 0, index: float = 0, index_type: str = "spectral"):
 
-    band = band.strip("'").strip("_")
+    band = band.strip("'").strip("_").strip("\\")  # TODO: regex substitute instead of a bunch of strips
     band = band if band != "v" else "V"
 
     # determine index type for conversion of f_nu to R band
     if index_type in ["spectral", "gamma"]:
+        # transformation from gamma to alpha (alpha = Gamma - 1)
         power = index - 1
     elif index_type in ["photon", "alpha"]:
         power = index
@@ -28,15 +29,16 @@ def toFlux(mag: float, band: str, magerr: float = 0, index: float = 0, index_typ
         lambda_R, _ = flux_densities["R"]  # lambda_R in angstrom
         lambda_x, f_x = flux_densities[band]
     except KeyError:
+        # TODO: fix the weird ""'s being printed when the error is raised.
         raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
 
     # convert from flux density in another band to R!
     f_R = f_x * (lambda_x / lambda_R) ** (-power)
 
     f_lam_or_nu = f_R
-    lam = lambda_x
+    lam = lambda_R
 
-    if band in ["uvw1", "uvw2", "uvm2", "white"]:
+    if band.lower() in ["uvw1", "uvw2", "uvm2", "white"]:
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
         lam_or_nu = lam * (u.angstrom)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
@@ -93,11 +95,9 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
         )
 
     except ValueError as error:
-        print(glob_path)
-        print(filename)
         raise error
     except IndexError as error:
-        raise ImportError(f"Couldn't find GRB table at {filename}.")
+        raise ImportError(message=f"Couldn't find GRB table at {filename}.")
 
     # grab index and trigger time
     if battime and index:
@@ -122,6 +122,7 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
             battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
             battime = " ".join(battime)
             starttime = Time(battime)
+
         except KeyError as e:
             raise ImportError(f"{GRB} isn't currently supported and it's trigger time and spectral/photon index must be manually provided. :(")
 
@@ -138,8 +139,8 @@ def convertGRB(GRB: str, battime: str = "", index: float = 0, index_type: str = 
         # attempt to convert a single mag to flux given band, mag_err, and spectral index
         try:
             flux, flux_err = toFlux(magnitude, band, mag_err, index=index, index_type=index_type)
-        except KeyError as e:
-            print(e)
+        except KeyError as error:
+            print(error)
             continue
 
         date_UT = row["date"]
