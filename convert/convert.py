@@ -35,8 +35,7 @@ def toFlux(
         raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
 
     # convert from flux density in another band to R!
-    nu_x, nu_R = angstromToHz(lambda_x), angstromToHz(lambda_R)
-    f_R = f_x * (nu_x / nu_R) ** (-power)
+    f_R = f_x * (lambda_x / lambda_R) ** (-power)
 
     f_lam_or_nu = f_R
     lam = lambda_R
@@ -53,7 +52,7 @@ def toFlux(
     flux = (lam_or_nu * f_lam_or_nu * 10 ** (-mag / 2.5)).value
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
-    fluxerr = abs(flux) * np.sqrt((magerr * np.log(10 ** (0.4))) ** 2 + (index_err * np.log(nu_x / nu_R)) ** 2)
+    fluxerr = abs(flux) * np.sqrt((magerr * np.log(10 ** (0.4))) ** 2 + (index_err * np.log(lambda_x / lambda_R)) ** 2)
 
     assert flux >= 0, "Error computing flux."
     assert fluxerr >= 0, "Error computing flux error."
