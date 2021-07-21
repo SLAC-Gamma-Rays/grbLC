@@ -12,4 +12,11 @@ grb
 |   |   time.py
 |
 |-- fitting
+|	|	__init.py
+|	|	constants.py
+|	|	fitting.py
+|	|	io.py
+|	|	models.py
+|	|	outliers.py
+|	|
 ```
