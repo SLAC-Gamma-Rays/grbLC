@@ -33,6 +33,7 @@ def fit_w07(logT, logF, logTerr=None, logFerr=None, p0=[None, None, 1.5, 0], bou
         sigma = None
 
     # run the fit
+    print(logT, logF, p0, sigma)
     p, cov = curve_fit(
         w07,
         logT,
@@ -70,6 +71,8 @@ def plot_w07_fit(logT, logF, p, logTerr=None, logFerr=None, guess=None):
     ax.legend(framealpha=0.0)
     plt.show()
     plt.close()
+    print(p)
+    print(guess)
     fig, ax = None, None
 
 

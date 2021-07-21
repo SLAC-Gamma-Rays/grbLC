@@ -3,13 +3,9 @@ import numpy as np
 
 # The famous Willingale et. al 2007 model
 def w07(x, T, F, alpha, t):
-    #before = lambda x: np.log10(10 ** F * np.exp(alpha - alpha * (10 ** x / 10 ** T)) * np.exp(-t / 10 ** x))
-    #after = lambda x: np.log10(10 ** F * (10 ** x / 10 ** T) ** (-alpha) * np.exp(-t / 10 ** x))
-    
-    before = lambda x: np.log10(np.power(10, F) * np.exp(alpha - alpha * (np.power(10,x) /np.power(10,T)) * np.exp(-t /np.power(10,x))))
-    after = lambda x: np.log10(np.power(10,F) * np.power((np.power(10,x)/ np.power(10,T)),(-alpha)) * np.exp(-t / np.power(10,x)))
-    
-    vals = np.piecewise(x, [np.power(10,x) < np.power(10,T), np.power(10,x) >= np.power(10,T)], [before, after])
+    before = lambda x: np.log10(10 ** F * np.exp(alpha - alpha * (10 ** x / 10 ** T)) * np.exp(-t / 10 ** x))
+    after = lambda x: np.log10(10 ** F * (10 ** x / 10 ** T) ** (-alpha) * np.exp(-t / 10 ** x))
+    vals = np.piecewise(x, [10 ** x < 10 ** T, 10 ** x >= 10 ** T], [before, after])
     return vals
 
 
