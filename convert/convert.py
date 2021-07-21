@@ -38,15 +38,14 @@ def toFlux(
     f_R = f_x * (lambda_x / lambda_R) ** (-power)
 
     f_lam_or_nu = f_R
-    lam = lambda_R
 
     if band.lower() in ["uvw1", "uvw2", "uvm2", "white"]:
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
-        lam_or_nu = lam * (u.angstrom)
+        lam_or_nu = lambda_R * (u.angstrom)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
     else:
         # If flux density is given as f_nu (erg / cm2 / s / Hz)
-        lam_or_nu = angstromToHz(lam) * (u.Hz)
+        lam_or_nu = angstromToHz(lambda_R) * (u.Hz)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
     flux = (lam_or_nu * f_lam_or_nu * 10 ** (-mag / 2.5)).value
