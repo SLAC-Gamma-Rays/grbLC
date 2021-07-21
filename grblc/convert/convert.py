@@ -35,25 +35,23 @@ def toFlux(
         raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
 
     # convert from flux density in another band to R!
-    nu_x, nu_R = angstromToHz(lambda_x), angstromToHz(lambda_R)
-    f_R = f_x * (nu_x / nu_R) ** (-power)
+    f_R = f_x * (lambda_x / lambda_R) ** (-power)
 
     f_lam_or_nu = f_R
-    lam = lambda_R
 
     if band.lower() in ["uvw1", "uvw2", "uvm2", "white"]:
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
-        lam_or_nu = lam * (u.angstrom)
+        lam_or_nu = lambda_R * (u.angstrom)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
     else:
         # If flux density is given as f_nu (erg / cm2 / s / Hz)
-        lam_or_nu = angstromToHz(lam) * (u.Hz)
+        lam_or_nu = angstromToHz(lambda_R) * (u.Hz)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
     flux = (lam_or_nu * f_lam_or_nu * 10 ** (-mag / 2.5)).value
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
-    fluxerr = abs(flux) * np.sqrt((magerr * np.log(10 ** (0.4))) ** 2 + (index_err * np.log(nu_x / nu_R)) ** 2)
+    fluxerr = abs(flux) * np.sqrt((magerr * np.log(10 ** (0.4))) ** 2 + (index_err * np.log(lambda_x / lambda_R)) ** 2)
 
     assert flux >= 0, "Error computing flux."
     assert fluxerr >= 0, "Error computing flux error."
