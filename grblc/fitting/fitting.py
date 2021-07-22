@@ -5,7 +5,12 @@ from .constants import plabels
 from .models import w07, chisq
 
 
-def fit_w07(logT, logF, logTerr=None, logFerr=None, p0=[None, None, 1.5, 0], bounds=None, return_guess=False, **kwargs):
+def fit_w07(
+    logT, logF, logTerr=None, logFerr=None, p0=[None, None, 1.5, 0], tt=0, bounds=None, return_guess=False, **kwargs
+):
+    mask = np.asarray(logT) >= tt
+    logT = np.asarray(logT)[mask]
+    logF = np.asarray(logF)[mask]
 
     # handle automatic guessing if no guess is given
     Tguess, Fguess, alphaguess, tguess = p0
@@ -22,18 +27,22 @@ def fit_w07(logT, logF, logTerr=None, logFerr=None, p0=[None, None, 1.5, 0], bou
     # reasonable curve_fit bounds
     if bounds is None:
         Tmin, Fmin, amin, tmin = 0.1, -50, 0, 0
-        Tmax, Fmax, amax, tmax = 10, -1, 5, 50_000
+        Tmax, Fmax, amax, tmax = 10, -1, 5, 200
     else:
         (Tmin, Fmin, amin, tmin), (Tmax, Fmax, amax, tmax) = bounds
 
     # deal with sigma.
     # sigma = yerr(xerr) if xerr(yerr) is None. otherwise, it's (xerr**2 + yerr**2)**(0.5)
+    if logTerr is not None:
+        logTerr = np.asarray(logTerr)[mask]
+    if logFerr is not None:
+        logFerr = np.asarray(logFerr)[mask]
+
     sigma = np.sqrt(np.sum([err ** 2 for err in [logTerr, logFerr] if err is not None], axis=0))
     if isinstance(sigma, int):
         sigma = None
 
     # run the fit
-    print(logT, logF, p0, sigma)
     p, cov = curve_fit(
         w07,
         logT,
@@ -52,8 +61,16 @@ def fit_w07(logT, logF, logTerr=None, logFerr=None, p0=[None, None, 1.5, 0], bou
         return p, cov
 
 
-def plot_w07_fit(logT, logF, p, logTerr=None, logFerr=None, guess=None):
+def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, guess=None):
     fig, ax = plt.subplots(1)
+    mask = np.asarray(logT) > tt
+    logT = np.asarray(logT)[mask]
+    logF = np.asarray(logF)[mask]
+    if logTerr is not None:
+        logTerr = np.asarray(logTerr)[mask]
+    if logFerr is not None:
+        logFerr = np.asarray(logFerr)[mask]
+
     plotx = np.linspace(logT[0], logT[-1], 100)
     ax.errorbar(logT, logF, xerr=logTerr, yerr=logFerr, fmt=".", zorder=0)
     ax.plot(
@@ -71,8 +88,6 @@ def plot_w07_fit(logT, logF, p, logTerr=None, logFerr=None, guess=None):
     ax.legend(framealpha=0.0)
     plt.show()
     plt.close()
-    print(p)
-    print(guess)
     fig, ax = None, None
 
 

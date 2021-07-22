@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 
-
 def LC_summary(filepaths):
     lc_data = {}
     fig, ax = None, None
@@ -15,14 +14,11 @@ def LC_summary(filepaths):
             grb = os.path.split(filepath)[-1].rstrip("_flux_cleaned.txt")
         except:
             grb = os.path.split(filepath)[-1].rstrip("_flux.txt")
-        df = pd.read_csv(filepath,
-                            delimiter=r"\t+|\s+",
-                            engine='python',
-                            header=0)
+        df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         num_rows = len(df.index)
-        bands = ",".join(list(df["band"])) # because lists aren't hashable >:(
+        bands = ",".join(list(df["band"]))  # because lists aren't hashable >:(
         lc_data[grb] = [num_rows, bands]
-    '''
+    """
     fig, ax = plt.subplots(1,2, figsize=(15,7))
     num_datapoints = [r for (r, _) in lc_data.values()]
     all_bands = [b for (_, b) in lc_data.values() if b]
@@ -35,40 +31,38 @@ def LC_summary(filepaths):
     ax[0].set_title("Num. Datapoints Distribution")
     plt.show()
     plt.clf()
-    '''
-    
+    """
+
     return {grb: l for grb, (l, _) in lc_data.items()}
 
 
-
 def loop_thru_pts(filepath):
-	try:
-		clear_output(wait=True)
-		op = OutlierPlot(filepath, plot=True)
-		while True:
-			try:
-				clear_output(wait=True)
-				key = op.prompt()
-				op.update(key)
-			except StopIteration:
-				break
-	except ImportError as e:
-		print(e)
-		pass
-	
-	
-    
+    try:
+        clear_output(wait=True)
+        op = OutlierPlot(filepath, plot=True)
+        while True:
+            try:
+                clear_output(wait=True)
+                key = op.prompt()
+                op.update(key)
+            except StopIteration:
+                break
+    except ImportError as e:
+        print(e)
+        pass
+
+
 def check_all_(filepaths, main_dir):
-	num_points = LC_summary(filepaths)
-	for filepath in filepaths:
-		try:
-			grb = os.path.split(filepath)[-1].rstrip("_flux_cleaned.txt")
-		except:
-			grb = os.path.split(filepath)[-1].rstrip("_flux.txt")
-		print('LOOKING AT GRB: '+str(grb))
-		if num_points[grb] >= 5:
-			loop_thru_pts(filepath)
-            
+    num_points = LC_summary(filepaths)
+    for filepath in filepaths:
+        try:
+            grb = os.path.split(filepath)[-1].rstrip("_flux_cleaned.txt")
+        except:
+            grb = os.path.split(filepath)[-1].rstrip("_flux.txt")
+        print("LOOKING AT GRB: " + str(grb))
+        if num_points[grb] > 0:
+            loop_thru_pts(filepath)
+
 
 class OutlierPlot:
     def __init__(self, filepath, plot=True):
