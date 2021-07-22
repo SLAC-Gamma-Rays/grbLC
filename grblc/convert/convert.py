@@ -245,6 +245,37 @@ def get_dir():
     global directory
     return directory
 
+# called in the notebook to run the convert code
+def run_convert():
+    # grab all filepaths for LCs in magnitude
+    filepaths = glob2.glob(reduce(os.path.join,(get_dir(),'*_flux','*.txt')))
+    grbs = [os.path.split(f)[-1].rstrip(".txt") for f in filepaths if os.path.split(f)[1].count('flux') == 0 and 'trigger' not in f and 'spectral_index' not in f]
 
+    converted = []
+    unsupported = 0
+    pts_skipped = 0
+    for GRB in grbs:
+        try:
+            convertGRB(GRB)
+            converted.append(GRB)
+        except ImportError as error:
+            unsupported += 1
+            print(error)
+            pass
+        except KeyError as error:
+            pts_skipped += 1
+            print(str(error).strip('"'))
+            pass
+        except Exception as error:
+            print(GRB)
+            raise error
+            
+    print("\n"+"="*30 + '\nStats\nUnsupported:',unsupported, \
+      '\nTotal:',len(grbs),'\nSuccessfully Converted:',len(converted),"\npts skipped",pts_skipped)
+
+
+
+    
 # sets directory to the current working directory, or whatever folder you're currently in
 directory = os.getcwd()
+
