@@ -23,7 +23,7 @@ def toFlux(
     # determine index type for conversion of f_nu to R band
     if index_type in ["spectral", "gamma"]:
         # transformation from gamma to alpha (alpha = Gamma - 1)
-        power = index - 1
+        power = index + 1
     elif index_type in ["photon", "alpha"]:
         power = index
 
