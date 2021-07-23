@@ -61,9 +61,9 @@ def fit_w07(
         return p, cov
 
 
-def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, guess=None):
+def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None):
     fig, ax = plt.subplots(1)
-    mask = np.asarray(logT) > tt
+    mask = np.asarray(logT) >= tt
     logT = np.asarray(logT)[mask]
     logF = np.asarray(logF)[mask]
     if logTerr is not None:
@@ -82,8 +82,8 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, guess=None):
     )
     T, F, *__ = p
     ax.scatter(T, F, c="tab:red", zorder=200, s=200, label="Fitted")
-    if guess is not None:
-        Tguess, Fguess, *__ = guess
+    if p0 is not None:
+        Tguess, Fguess, *__ = p0
         ax.scatter(Tguess, Fguess, c="tab:grey", zorder=200, s=200, label="Guess")
     ax.legend(framealpha=0.0)
     plt.show()

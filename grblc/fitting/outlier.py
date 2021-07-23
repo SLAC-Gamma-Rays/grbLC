@@ -11,9 +11,9 @@ def LC_summary(filepaths):
     fig, ax = None, None
     for filepath in filepaths:
         try:
-            grb = os.path.split(filepath)[-1].rstrip("_flux_cleaned.txt")
+            grb = os.path.split(filepath)[-1].rstrip("_converted_flux_cleaned.txt")
         except:
-            grb = os.path.split(filepath)[-1].rstrip("_flux.txt")
+            grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
         df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         num_rows = len(df.index)
         bands = ",".join(list(df["band"]))  # because lists aren't hashable >:(
@@ -36,9 +36,8 @@ def LC_summary(filepaths):
     return {grb: l for grb, (l, _) in lc_data.items()}
 
 
-def loop_thru_pts(filepath):
+def outlier_check_(filepath):
     try:
-        clear_output(wait=True)
         op = OutlierPlot(filepath, plot=True)
         while True:
             try:
@@ -52,25 +51,28 @@ def loop_thru_pts(filepath):
         pass
 
 
-def check_all_(filepaths, main_dir):
+def check_all_(filepaths):
     num_points = LC_summary(filepaths)
     for filepath in filepaths:
         try:
-            grb = os.path.split(filepath)[-1].rstrip("_flux_cleaned.txt")
+            grb = os.path.split(filepath)[-1].rstrip("_converted_flux_cleaned.txt")
         except:
-            grb = os.path.split(filepath)[-1].rstrip("_flux.txt")
+            grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
         print("LOOKING AT GRB: " + str(grb))
-        if num_points[grb] > 0:
-            loop_thru_pts(filepath)
+        try:
+            if num_points[grb] > 0:
+                outlier_check_(filepath)
+        except KeyboardInterrupt:
+            break
 
 
 class OutlierPlot:
     def __init__(self, filepath, plot=True):
         self.main_path = os.path.split(filepath)[0]
         try:
-            self.grb = os.path.split(filepath)[1].rstrip("_flux_cleaned.txt")
+            self.grb = os.path.split(filepath)[1].rstrip("_converted_flux_cleaned.txt")
         except:
-            self.grb = os.path.split(filepath)[1].rstrip("_flux.txt")
+            self.grb = os.path.split(filepath)[1].rstrip("_converted_flux.txt")
         self.df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         self.df = self.df.sort_values(by=["time_sec"]).reset_index(drop=True)
         self.numpts = len(self.df.index)
@@ -193,7 +195,7 @@ class OutlierPlot:
             return {}
 
     def _save(self):
-        acceptedpath = os.path.join(self.main_path, f"{self.grb}_flux_accepted.txt")
+        acceptedpath = os.path.join(self.main_path, f"{self.grb}_converted_flux_accepted.txt")
         if len(self.accepted) > 0:
             accepted_df = pd.concat(list(self.accepted.values()), axis=0, join="inner")
             accepted_df.to_csv(acceptedpath, sep="\t", index=0)
@@ -203,7 +205,7 @@ class OutlierPlot:
             except:
                 pass
 
-        rejectedpath = os.path.join(self.main_path, f"{self.grb}_flux_rejected.txt")
+        rejectedpath = os.path.join(self.main_path, f"{self.grb}_converted_flux_rejected.txt")
         if len(self.rejected) > 0:
             rejected_df = pd.concat(list(self.rejected.values()), axis=0, join="inner")
             rejected_df.to_csv(rejectedpath, sep="\t", index=0)

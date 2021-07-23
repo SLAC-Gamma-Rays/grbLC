@@ -13,19 +13,13 @@ def angstromToHz(ang: float):
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
-def toFlux(
-    mag: float, band: str, magerr: float = 0, index: float = 0, index_type: str = "spectral", index_err: float = 0
-):
+def toFlux(mag: float, band: str, magerr: float = 0, photon_index: float = 0, photon_index_err: float = 0):
 
     band = band.strip("'").strip("_").strip("\\")  # TODO: regex substitute instead of a bunch of strips
     band = band if band != "v" else "V"
 
     # determine index type for conversion of f_nu to R band
-    if index_type in ["spectral", "gamma"]:
-        # transformation from gamma to alpha (alpha = Gamma - 1)
-        power = index + 1
-    elif index_type in ["photon", "alpha"]:
-        power = index
+    beta = photon_index - 1
 
     try:
         lambda_R, _ = flux_densities["R"]  # lambda_R in angstrom
@@ -35,7 +29,7 @@ def toFlux(
         raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
 
     # convert from flux density in another band to R!
-    f_R = f_x * (lambda_x / lambda_R) ** (-power)
+    f_R = f_x * (lambda_x / lambda_R) ** (-beta)
 
     f_lam_or_nu = f_R
 
@@ -51,7 +45,9 @@ def toFlux(
     flux = (lam_or_nu * f_lam_or_nu * 10 ** (-mag / 2.5)).value
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
-    fluxerr = abs(flux) * np.sqrt((magerr * np.log(10 ** (0.4))) ** 2 + (index_err * np.log(lambda_x / lambda_R)) ** 2)
+    fluxerr = abs(flux) * np.sqrt(
+        (magerr * np.log(10 ** (0.4))) ** 2 + (photon_index_err * np.log(lambda_x / lambda_R)) ** 2
+    )
 
     assert flux >= 0, "Error computing flux."
     assert fluxerr >= 0, "Error computing flux error."
@@ -106,25 +102,12 @@ def convertGRB(
     # grab index and trigger time
     if battime and index:
         starttime = Time(battime)
-        index = index
-        index_type = "spectral"
     else:
         try:
             bat_spec_df = pd.read_csv(
                 os.path.join(directory, "trigs_and_specs.txt"), delimiter="\t", index_col=0, header=0, engine="c"
             )
-            indices = bat_spec_df.loc[GRB, ["photon_index", "spectral_index"]]
-            na_indices = indices.isna()
-
-            # if theres any NaN, we'll pick the non-NaN
-            if sum(na_indices) > 0:
-                index, *__ = indices[~na_indices]
-                index_type, *__ = np.array(["photon", "spectral"])[~na_indices]
-            else:
-                # otherwise, default to spectral index
-                index = indices[1]
-                index_type = "spectral"
-
+            photon_index, photon_index_err = list(bat_spec_df.loc[GRB, ["photon_index", "photon_index_err"]])
             battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
             battime = " ".join(battime)
             starttime = Time(battime)
@@ -146,7 +129,9 @@ def convertGRB(
 
         # attempt to convert a single mag to flux given band, mag_err, and spectral index
         try:
-            flux, flux_err = toFlux(magnitude, band, mag_err, index=index, index_type=index_type)
+            flux, flux_err = toFlux(
+                magnitude, band, mag_err, photon_index=photon_index, photon_index_err=photon_index_err
+            )
         except KeyError as error:
             print(error)
             continue
@@ -175,10 +160,10 @@ def convertGRB(
             converted_debug["logT"].append(logT)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
-    save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux.txt")
+    save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux.txt")
     pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
     if debug:
-        save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_flux_DEBUG.txt")
+        save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux_DEBUG.txt")
         pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
 
     return
@@ -188,6 +173,8 @@ def convertGRB(
 # trigs_and_specs.txt in `directory`. If `directory` hasn't been set it'll save to the current
 # working directory (e.g., the folder in which your notebook is)
 def save_convert_params(save_dir=None, return_df=False):
+    from swifttools.xrt_prods import XRTProductRequest
+
     if not save_dir:
         global directory
         save_dir = directory
@@ -212,20 +199,18 @@ def save_convert_params(save_dir=None, return_df=False):
         index_col=0,
         delimiter="\t",
         engine="c",
-        names=["GRB", "trigger_time", "photon_index", "spectral_index"],
+        names=["GRB", "trigger_time", "spectral_index", "photon_index"],
         na_values="n/a",
     )
-    # clean photon index columns from extra information
-    df["photon_index"] = df["photon_index"].str.strip(",()~ CPL \n\t")
-    df["photon_index"] = df["photon_index"].str.rstrip(".")
-    df["photon_index"] = df["photon_index"].str.replace(r"(?<=\d)[^.0-9\n]+(?=\d{0,7})", ".", regex=True)
-    df["photon_index"] = df["photon_index"].astype(np.float64)
 
     # delete columns where we have NaN for both photon_index & spectral_index
-    df.dropna(axis=0, how="all", subset=["photon_index", "spectral_index"], inplace=True)
+    df.dropna(axis=0, how="all", subset=["photon_index"], inplace=True)
 
     # insert a new column containing dates for each grb trigger date
     df.insert(0, "trigger_date", list(map(grb_to_date, df.index)))
+
+    # drop photon_index
+    df.drop("photon_index", axis=1, inplace=True)
 
     # save!
     df.to_csv(os.path.join(save_dir, "trigs_and_specs.txt"), sep="\t", na_rep="n/a")
@@ -247,7 +232,7 @@ def get_dir():
 
 
 # called in the notebook to run the convert code
-def run_convert():
+def convert_all():
     # grab all filepaths for LCs in magnitude
     filepaths = glob2.glob(reduce(os.path.join, (get_dir(), "*_flux", "*.txt")))
     grbs = [
