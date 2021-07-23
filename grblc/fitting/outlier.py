@@ -177,7 +177,7 @@ class OutlierPlot:
 
     def _try_import_prev_data(self, pile: str):
         try:
-            filepath = os.path.join(self.main_path, f"{self.grb}_flux_{pile}.txt")
+            filepath = os.path.join(self.main_path, f"{self.grb}_converted_flux_{pile}.txt")
             data = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
             if len(data.index) > 0:
                 return {idx: data.loc[data.index == idx] for idx in data.index}
