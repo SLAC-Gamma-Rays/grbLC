@@ -217,7 +217,7 @@ class OutlierPlot:
         self.curr_mag_err = self.df.at[self.currpt, "flux_err"]
         self.curr_band = self.df.at[self.currpt, "band"]
 
-    # delete a row from the main sample and move it to accepted or rejected pile
+    # pop a row from the main sample and move it to accepted or rejected pile
     def _pop(self, index, pile, pilename):
         popped = self.df.loc[self.df.index == index]
         pile[index] = popped
@@ -244,12 +244,16 @@ class OutlierPlot:
     def _accept(self):
         if self.currpt not in self.accepted:
             self._pop(self.currpt, self.accepted, "accepted")
+        if self.currpt in self.rejected:
+            del self.rejected[self.currpt]
         self._inc()
 
     # reject current point
     def _reject(self):
         if self.currpt not in self.rejected:
             self._pop(self.currpt, self.rejected, "rejected")
+        if self.currpt in self.accepted:
+            del self.accepted[self.currpt]
         self._inc()
 
     # do the opposite of what the last action ("job") did
@@ -302,4 +306,4 @@ class OutlierPlot:
         self.plot()
 
     def prompt(self):
-        return input("a:accept r:reject f:forward b:backward d:done with GRB q:quit")
+        return input("a:accept r:reject u:undo f:forward b:backward d:done with GRB q:quit")
