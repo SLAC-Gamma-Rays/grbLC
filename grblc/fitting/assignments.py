@@ -160,13 +160,13 @@ assignments = {
 
 
 def get_assignment(n):
-    if n in assignments.keys():
+    if n in assignments:
         # Look at LCs and go through outliers BEFORE cleaning
         assignment = assignments[n]
-        glob_path = glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", "*_flux.txt"]))
+        glob_path = glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", "*_converted_flux.txt"]))
         finals = []
         for filepath in glob_path:
-            grb = os.path.split(filepath)[-1].rstrip("_flux.txt")
+            grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
             if grb in assignment:
                 finals.append(filepath)
         return finals

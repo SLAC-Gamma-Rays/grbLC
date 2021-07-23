@@ -243,6 +243,7 @@ def convert_all():
 
     converted = []
     unsupported = 0
+    unsupported_names = []
     pts_skipped = 0
     for GRB in grbs:
         try:
@@ -250,6 +251,7 @@ def convert_all():
             converted.append(GRB)
         except ImportError as error:
             unsupported += 1
+            unsupported_names.append(GRB)
             print(error)
             pass
         except KeyError as error:
@@ -270,6 +272,9 @@ def convert_all():
         "\npts skipped",
         pts_skipped,
     )
+
+    with open(os.path.join(get_dir(), "unsupported.txt"), "w") as f:
+        f.write("\n".join(unsupported_names))
 
 
 # sets directory to the current working directory, or whatever folder you're currently in

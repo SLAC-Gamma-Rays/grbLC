@@ -1,4 +1,5 @@
 import pandas as pd
+import pandas.errors
 import plotly.express as px
 import plotly.graph_objects as go
 from IPython.display import clear_output
@@ -159,9 +160,7 @@ def _try_import_fit_data():
             return {idx: list(data.loc[data.index == idx]) for idx in data.index}
         else:
             return empty_dict
-    except:
+    except FileNotFoundError:
         return empty_dict
-
-
-filepath = os.path.join(get_dir(), f"fit_vals.txt")
-data = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
+    except pandas.errors.EmptyDataError:
+        return empty_dict

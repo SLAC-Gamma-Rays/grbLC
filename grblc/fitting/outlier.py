@@ -10,10 +10,7 @@ def LC_summary(filepaths):
     lc_data = {}
     fig, ax = None, None
     for filepath in filepaths:
-        try:
-            grb = os.path.split(filepath)[-1].rstrip("_converted_flux_cleaned.txt")
-        except:
-            grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
+        grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
         df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         num_rows = len(df.index)
         bands = ",".join(list(df["band"]))  # because lists aren't hashable >:(
@@ -54,10 +51,8 @@ def outlier_check_(filepath):
 def check_all_(filepaths):
     num_points = LC_summary(filepaths)
     for filepath in filepaths:
-        try:
-            grb = os.path.split(filepath)[-1].rstrip("_converted_flux_cleaned.txt")
-        except:
-            grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
+        print(filepath)
+        grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
         print("LOOKING AT GRB: " + str(grb))
         try:
             if num_points[grb] > 0:
@@ -69,10 +64,7 @@ def check_all_(filepaths):
 class OutlierPlot:
     def __init__(self, filepath, plot=True):
         self.main_path = os.path.split(filepath)[0]
-        try:
-            self.grb = os.path.split(filepath)[1].rstrip("_converted_flux_cleaned.txt")
-        except:
-            self.grb = os.path.split(filepath)[1].rstrip("_converted_flux.txt")
+        self.grb = os.path.split(filepath)[1].rstrip("_converted_flux.txt")
         self.df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         self.df = self.df.sort_values(by=["time_sec"]).reset_index(drop=True)
         self.numpts = len(self.df.index)
