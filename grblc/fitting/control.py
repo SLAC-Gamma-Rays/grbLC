@@ -24,7 +24,7 @@ def run_fit(filepaths):
                 print("File not found:", filepath)
                 continue
 
-            auto_guess = input("Do you want to choose the inputs? ([y]/n)")
+            auto_guess = input("Do you want to fit? ([y]/n)")
             if auto_guess in ["", "y"]:
                 tt = float(input("tt : "))
                 T = float(input("T : "))
@@ -38,9 +38,12 @@ def run_fit(filepaths):
                     T, F, alpha, t = p
                     T_err, F_err, alpha_err, t_err = np.sqrt(np.diag(pcov))
                     if str(input("save? ([y]/n): ")) in ["", "y"]:
-                        fit_data_dict = _try_import_fit_data()
-                        fit_df = pd.DataFrame(fit_data_dict, columns=list(fit_data_dict.keys()))
-                        fit_df.set_index("GRB", inplace=True)
+                        fit_data = _try_import_fit_data()
+                        if isinstance(fit_data, type(dict())):
+                            fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
+                            fit_df.set_index("GRB", inplace=True)
+                        else:
+                            fit_df = fit_data
                         fit_df.loc[grb] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *fit_vals[:-1]]
                         savepath = os.path.join(get_dir(), "fit_vals.txt")
                         fit_df.to_csv(savepath, sep="\t", index=True)
@@ -49,7 +52,12 @@ def run_fit(filepaths):
                     raise e
 
             elif auto_guess in "n":
+                clear_output()
                 continue
+
+            elif auto_guess in "q":
+                clear_output()
+                return
 
 
 def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
@@ -157,7 +165,7 @@ def _try_import_fit_data():
         filepath = os.path.join(get_dir(), f"fit_vals.txt")
         data = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0, index_col="GRB")
         if len(data.index) > 0:
-            return {idx: list(data.loc[data.index == idx]) for idx in data.index}
+            return data
         else:
             return empty_dict
     except FileNotFoundError:
