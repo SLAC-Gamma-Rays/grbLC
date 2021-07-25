@@ -15,7 +15,8 @@ def angstromToHz(ang: float):
 
 def toFlux(mag: float, band: str, magerr: float = 0, photon_index: float = 0, photon_index_err: float = 0):
 
-    band = band.strip("'").strip("_").strip("\\")  # TODO: regex substitute instead of a bunch of strips
+    band = re.sub(r"(\'|_|\\|\(.+\))", "", band)
+    band = re.sub(r"(?<![A-Za-z])([mw]\d{1})", r"uv\1", band)
     band = band if band != "v" else "V"
 
     # determine index type for conversion of f_nu to R band
@@ -105,17 +106,26 @@ def convertGRB(
     else:
         try:
             bat_spec_df = pd.read_csv(
-                os.path.join(directory, "trigs_and_specs.txt"), delimiter="\t", index_col=0, header=0, engine="c"
+                os.path.join(directory, "trigs_and_specs.txt"),
+                delimiter="\t+|\s+",
+                index_col=0,
+                header=0,
+                engine="python",
             )
+            bat_spec_df["photon_index"] = bat_spec_df["photon_index"].astype(np.float64)
+            bat_spec_df["photon_index_err"] = bat_spec_df["photon_index_err"].astype(np.float64)
+            bat_spec_df.dropna(how="any", subset=["photon_index", "photon_index_err"], inplace=True)
             photon_index, photon_index_err = list(bat_spec_df.loc[GRB, ["photon_index", "photon_index_err"]])
             battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
             battime = " ".join(battime)
             starttime = Time(battime)
 
-        except KeyError as e:
+        except KeyError:
             raise ImportError(
                 f"{GRB} isn't currently supported and it's trigger time and spectral/photon index must be manually provided. :("
             )
+        except AssertionError:
+            raise AssertionError(f"{GRB}: Failed converting flux or flux_err")
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
@@ -139,7 +149,7 @@ def convertGRB(
         date_UT = row["date"]
         time_UT = row["time"]
         time_UT = f"{date_UT} {time_UT}"
-        astrotime = Time(time_UT)  # using astropy Time package
+        astrotime = Time(time_UT, format="iso")  # using astropy Time package
         dt = astrotime - starttime  # for all other times, subtract start time
         time_sec = round(dt.sec, 5)  # convert delta time to seconds
 
@@ -200,20 +210,23 @@ def save_convert_params(save_dir=None, return_df=False):
         delimiter="\t",
         engine="c",
         names=["GRB", "trigger_time", "spectral_index", "photon_index"],
-        na_values="n/a",
+        # na_values="n/a",
     )
 
     # delete columns where we have NaN for both photon_index & spectral_index
-    df.dropna(axis=0, how="all", subset=["photon_index"], inplace=True)
+    # df.dropna(axis=0, how="all", subset=["photon_index"], inplace=True)
+    df.dropna(axis=0, how="any", subset=["trigger_time"], inplace=True)
 
     # insert a new column containing dates for each grb trigger date
     df.insert(0, "trigger_date", list(map(grb_to_date, df.index)))
 
     # drop photon_index
     df.drop("photon_index", axis=1, inplace=True)
+    # drop spectral index
+    df.drop("spectral_index", axis=1, inplace=True)
 
     # save!
-    df.to_csv(os.path.join(save_dir, "trigs_and_specs.txt"), sep="\t", na_rep="n/a")
+    df.to_csv(os.path.join(save_dir, "triggers.txt"), sep="\t", na_rep="n/a")
 
     if return_df:
         return df

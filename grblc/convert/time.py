@@ -4,9 +4,7 @@ import datetime
 # Ex: 0.25 to 06:00:00.000, which is a quarter of a day
 def dec_to_UT(decimal: float) -> str:
 
-    assert isinstance(decimal, float) or isinstance(
-        decimal, int
-    ), "decimal must be of type float or int!"
+    assert isinstance(decimal, float) or isinstance(decimal, int), "decimal must be of type float or int!"
 
     decimal -= int(decimal)
 
@@ -47,9 +45,7 @@ def UT_to_dec(yr_time: str) -> str:
     (date, time) = yr_time.split(" ")
     (year, month, day) = date.split("-")
     (hours, minutes, seconds) = [float(num) for num in time.split(":")]
-    day = str(
-        int(day) + (((hours * 60 * 60) + (minutes * 60) + seconds) / (24 * 60 * 60))
-    )
+    day = str(int(day) + (((hours * 60 * 60) + (minutes * 60) + seconds) / (24 * 60 * 60)))
 
     return f"{year}:{month.zfill(2)}:{day}"
 
@@ -59,9 +55,7 @@ def UT_to_dec(yr_time: str) -> str:
 def grb_to_date(GRB: str):
     if not GRB.isnumeric():
         GRB = GRB[:-1]
-    assert (
-        len(GRB) == 6 and GRB.isnumeric()
-    ), "Incorrect GRB format; should be in format YYMMDD(X)."
+    assert len(GRB) == 6 and GRB.isnumeric(), "Incorrect GRB format; should be in format YYMMDD(X)."
 
     dt = datetime.datetime.strptime(GRB, "%y%m%d")
     return dt.strftime("%Y-%m-%d")
