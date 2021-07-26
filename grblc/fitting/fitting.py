@@ -27,8 +27,8 @@ def fit_w07(
 
     # reasonable curve_fit bounds
     if bounds is None:
-        Tmin, Fmin, amin, tmin = 0.1, -50, 0, 0
-        Tmax, Fmax, amax, tmax = 10, -1, 5, 200
+        Tmin, Fmin, amin, tmin = 0.1, -50, 0, None
+        Tmax, Fmax, amax, tmax = 10, -1, 5, None
     else:
         (Tmin, Fmin, amin, tmin), (Tmax, Fmax, amax, tmax) = bounds
 
@@ -55,6 +55,20 @@ def fit_w07(
         method="trf",
         **kwargs,
     )
+
+    if p[-1] < 0:
+        p, cov = curve_fit(
+            lambda x, T, F, alpha: w07(x, T, F, alpha, 0),
+            logT,
+            logF,
+            p0=[Tguess, Fguess, alphaguess],
+            bounds=((Tmin, Fmin, amin), (Tmax, Fmax, amax)),
+            sigma=sigma,
+            absolute_sigma=True if sigma is not None else False,
+            method="trf",
+            **kwargs,
+        )
+        p += [0]
 
     if return_guess:
         return p, cov, [Tguess, Fguess, alphaguess, tguess]
@@ -90,6 +104,7 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=No
         yerr=logFerr[~mask],
         color="grey",
         fmt=".",
+        alpha=0.4,
         zorder=0,
     )
     ax.plot(

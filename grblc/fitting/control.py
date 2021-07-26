@@ -3,7 +3,7 @@ import pandas.errors
 import numpy as np
 import os, re
 from fitting.fitting import fit_w07, plot_w07_fit, plot_chisq
-from fitting.models import chisq, reduced_chisq, probability, w07
+from fitting.models import chisq, probability, w07
 from convert import get_dir, set_dir
 import glob2
 import matplotlib.pyplot as plt
@@ -94,13 +94,17 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
             )
             plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
             plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
+            chisquared = chisq(xdata, ydata, yerr, w07, guess[-1], *p)
+            reduced = chisquared / (len(xdata[xdata >= guess[-1]]) - 3)
+            nu = len(xdata[xdata >= guess[-1]])
+            prob = probability(xdata, reduced, nu, tt=guess[-1])
 
             print("GUESS:         ", guess[:-1])
             print("FIT:           ", p)
             print("FIT ERR:       ", np.sqrt(np.diag(pcov)))
-            print("CHISQ:         ", chisq(xdata, ydata, yerr, w07, guess[-1], *p))
-            print("REDUCED CHISQ: ", reduced_chisq(xdata, ydata, yerr, w07, p, tt=guess[-1], correction=1))
-            print("PROBABILITY α: ", probability(xdata, ydata, yerr, w07, p, tt=guess[-1], correction=1))
+            print("CHISQ:         ", chisquared)
+            print("REDUCED CHISQ: ", reduced)
+            print("PROBABILITY α: ", prob)
 
             if return_fit:
                 return p, pcov
@@ -229,8 +233,11 @@ def check_fits(save=True):
         plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
 
         chisquared = chisq(xdata, ydata, yerr, w07, tt, *p)
-        reduced = reduced_chisq(xdata, ydata, yerr, w07, p, tt=tt, correction=1)
-        prob = probability(xdata, ydata, yerr, w07, p, tt=tt, correction=1)
+        reduced_nu = len(xdata[xdata >= tt]) - 3
+        reduced_nu = 1 if reduced_nu == 0 else reduced_nu
+        reduced = chisquared / reduced_nu
+        nu = len(xdata[xdata >= tt])
+        prob = probability(xdata, reduced, nu, tt=tt)
 
         plt.figtext(
             x=0.63,
@@ -242,7 +249,7 @@ def check_fits(save=True):
             
             $\\chi_{\\nu}^2$: %.3f
             
-            $\\alpha$ : %.3f
+            $\\alpha$ : %.3e
             """
             % (GRB, chisquared, reduced, prob),
             size=18,

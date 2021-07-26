@@ -25,30 +25,18 @@ def chisq(x, y, yerr, model, tt=0, *p):
     mask = x >= tt
     y = np.asarray(y)
     yerr = np.asarray(yerr)
+    if any(yerr == 0):
+        print("Y_err of 0 provided. This is not gonna end well...")
+
     return np.sum(np.square(y[mask] - model(x[mask], *p)) / np.power(yerr[mask], 2))
 
 
-def reduced_chisq(x, y, yerr, model, p, tt=0, correction=0):
-    """reduced_chisq
-    chi squared per degree of freedom
-    """
-    return chisq(x, y, yerr, model, tt, *p) / dof(x, p, tt, correction)
-
-
-def dof(x, p, tt=0, correction=0):
-    x = np.asarray(x)
-    return len(x[x >= tt]) - len(p) + correction
-
-
-def probability(x, y, yerr, model, p, tt=0, correction=0):
+def probability(x, reduced_chisq, nu, tt=0):
     import scipy.integrate as si
     from scipy.special import gamma
 
-    reducedChiSquared = reduced_chisq(x, y, yerr, model, p, tt, correction)
-    nu = dof(x, p, tt, correction)
-
     integrand = lambda x: (2 ** (-nu / 2) / gamma(nu / 2)) * np.exp(-x / 2) * x ** (-1 + nu / 2)
 
-    y, yerr = si.quad(integrand, reducedChiSquared * nu, np.inf)
+    y, yerr = si.quad(integrand, reduced_chisq * nu, np.inf)
 
     return y
