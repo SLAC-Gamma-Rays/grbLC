@@ -36,7 +36,7 @@ def clean_grbs(main_dir):
             continue
 
         num_successful += 1
-        df.to_csv(os.path.join(os.path.split(filepath)[0], f"{grb}_converted_flux_cleaned.txt"), sep="\t", index=None)
+        # df.to_csv(os.path.join(os.path.split(filepath)[0], f"{grb}_converted_flux_cleaned.txt"), sep="\t", index=None)
 
     unphysical_df = pd.DataFrame.from_dict(unphysical_times)
     unphysical_path = os.path.join(main_dir, "unphysical_times.txt")
