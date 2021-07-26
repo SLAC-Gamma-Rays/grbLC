@@ -1,6 +1,7 @@
 from convert import get_dir
 from functools import reduce
 import os, glob2
+import numpy as np
 
 assignments = {
     1: ["210411C", "210321A", "210210A", "210204A", "201024A", "201021C", "201020A", "201015A"],
@@ -170,3 +171,18 @@ def get_assignment(n):
             if grb in assignment:
                 finals.append(filepath)
         return finals
+
+
+def locate(grb):
+    if isinstance(grb, (list, tuple)):
+        paths = np.concatenate(
+            [glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", f"{name}_converted_flux.txt"])) for name in grb]
+        )
+
+    else:
+        paths = glob2.glob(os.path.join, [get_dir(), "*_flux", f"{grb}_converted_flux.txt"])
+
+    if isinstance(paths, list):
+        return paths  # we want to return a list!
+    else:
+        raise ImportError(f"GRB {grb} not found.")
