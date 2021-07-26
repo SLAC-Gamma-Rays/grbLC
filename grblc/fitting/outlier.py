@@ -13,20 +13,6 @@ def LC_summary(filepaths):
         num_rows = len(df.index)
         bands = ",".join(list(df["band"]))  # because lists aren't hashable >:(
         lc_data[grb] = [num_rows, bands]
-    """
-    fig, ax = plt.subplots(1,2, figsize=(15,7))
-    num_datapoints = [r for (r, _) in lc_data.values()]
-    all_bands = [b for (_, b) in lc_data.values() if b]
-    all_bands = ",".join(all_bands)
-    band_list = all_bands.split(",")
-    band_df = pd.DataFrame.from_dict({"bands":band_list})
-    band_df.groupby("bands").bands.hist(bins=1, xlabelsize=8, grid=False, ax=ax[1], xrot=45)
-    ax[1].set_title("Band Distribution")
-    ax[0].hist(num_datapoints,bins=np.linspace(0,150, 80))
-    ax[0].set_title("Num. Datapoints Distribution")
-    plt.show()
-    plt.clf()
-    """
 
     return {grb: l for grb, (l, _) in lc_data.items()}
 
