@@ -79,7 +79,6 @@ def fit_w07(
 def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=None, show=True):
     if ax is None:
         fig, ax = plt.subplots(1)
-    mask = np.asarray(logT) >= tt
     ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
     logT = np.asarray(logT)
     logF = np.asarray(logF)
@@ -88,6 +87,7 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=No
     if logFerr is not None:
         logFerr = np.asarray(logFerr)
 
+    mask = logT >= tt
     plotx = np.linspace(logT[0] - 0.2, logT[-1] + 0.2, 100)
     ax.errorbar(
         logT[mask],
