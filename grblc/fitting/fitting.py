@@ -3,6 +3,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 from .constants import plabels
 from .models import w07, chisq
+from convert.convert import get_dir, set_dir
 
 
 def fit_w07(
@@ -61,23 +62,41 @@ def fit_w07(
         return p, cov
 
 
-def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None):
-    fig, ax = plt.subplots(1)
+def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=None, show=True):
+    if ax is None:
+        fig, ax = plt.subplots(1)
     mask = np.asarray(logT) >= tt
-    logT = np.asarray(logT)[mask]
-    logF = np.asarray(logF)[mask]
+    ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
+    logT = np.asarray(logT)
+    logF = np.asarray(logF)
     if logTerr is not None:
-        logTerr = np.asarray(logTerr)[mask]
+        logTerr = np.asarray(logTerr)
     if logFerr is not None:
-        logFerr = np.asarray(logFerr)[mask]
+        logFerr = np.asarray(logFerr)
 
-    plotx = np.linspace(logT[0], logT[-1], 100)
-    ax.errorbar(logT, logF, xerr=logTerr, yerr=logFerr, fmt=".", zorder=0)
+    plotx = np.linspace(logT[0] - 0.2, logT[-1] + 0.2, 100)
+    ax.errorbar(
+        logT[mask],
+        logF[mask],
+        xerr=logTerr[mask] if logTerr is not None else logTerr,
+        yerr=logFerr[mask],
+        fmt=".",
+        zorder=0,
+    )
+    ax.errorbar(
+        logT[~mask],
+        logF[~mask],
+        xerr=logTerr[~mask] if logTerr is not None else logTerr,
+        yerr=logFerr[~mask],
+        color="grey",
+        fmt=".",
+        zorder=0,
+    )
     ax.plot(
         plotx,
         w07(plotx, *p),
         c="k",
-        label="\n".join([f"{c} = {a:.1f}" for c, a in zip(plabels, p)]),
+        label="Fit",
         zorder=-10,
     )
     T, F, *__ = p
@@ -86,13 +105,16 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None):
         Tguess, Fguess, *__ = p0
         ax.scatter(Tguess, Fguess, c="tab:grey", zorder=200, s=200, label="Guess")
     ax.legend(framealpha=0.0)
-    plt.show()
-    plt.close()
-    fig, ax = None, None
+    ax.set_xlim(logT[0] - 0.2, logT[-1] + 0.2)
+
+    if show:
+        plt.show()
+        plt.close()
 
 
-def plot_w07_toy_fit(logT, logF, pfit, ptrue, logTerr=None, logFerr=None):
-    fig, ax = plt.subplots(1, figsize=(8, 5))
+def plot_w07_toy_fit(logT, logF, pfit, ptrue, logTerr=None, logFerr=None, ax=None):
+    if not ax:
+        fig, ax = plt.subplots(1, figsize=(8, 5))
     plotT = np.linspace(logT[0], logT[-1], 100)
     ax.errorbar(logT, logF, xerr=logTerr, yerr=logFerr, c="k", fmt="x", label="data", zorder=0)
     ax.plot(plotT, w07(plotT, *pfit), c="tab:red", label="fit", zorder=-10)
@@ -107,25 +129,49 @@ def plot_w07_toy_fit(logT, logF, pfit, ptrue, logTerr=None, logFerr=None):
     fig, ax = None, None
 
 
-def plot_chisq(x, y, p, pcov, fineness=0.1):
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-
-    T, F, alpha, t = p
-    perr = np.sqrt(np.diag(pcov))
+def plot_chisq(x, y, yerr, p, perr, tt, fineness=0.1, ax=None, show=True):
+    if ax is None:
+        fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
     multiplier = np.arange(-4, 4, fineness)
     paramspace = np.array([p + m * perr for m in multiplier])  # shape is (len(multiplier), 4)
-    for idx in range(3):
+    for idx, ax_ in enumerate(list(ax)):
         chisq_params = np.tile(p, (len(multiplier), 1))
         chisq_params[:, idx] = paramspace[:, idx]
-        delta_chisq = [chisq(x, y, perr[idx], w07, *chisq_param) for chisq_param in chisq_params]
-        ax[idx].plot(chisq_params[:, idx], delta_chisq, label=plabels[idx] + f"={p[idx]:.3f}")
-        ax[idx].legend(framealpha=0.0)
-        ax[idx].set_xlabel(r"$\sigma$ multiplier")
-        ax[idx].set_ylabel(r"$\Delta\chi^2$")
-        ax[idx].set_title(plabels[idx])
+        delta_chisq = [chisq(x, y, yerr, w07, tt, *chisq_param) for chisq_param in chisq_params]
+
+        ax_.plot(multiplier, delta_chisq, label=plabels[idx] + f"={p[idx]:.3f} $\pm$ {perr[idx]:.3f}")
+        ax_.legend(framealpha=0.0)
+        ax_.set_xlabel(r"$\sigma$ multiplier")
+        ax_.set_ylabel(r"$\Delta\chi^2$")
+        ax_.set_title(plabels[idx])
+
+    if show:
+        plt.show()
+        plt.close()
+
+
+def plot_2d_chisq(x, y, yerr, p, pcov, fineness=0.1, xlabel="X", ylabel="Y", **kwargs):
+    plt.figure(figsize=(7, 5))
+    _, _, *other_ps = p
+    perr = np.sqrt(np.diag(pcov))
+
+    multiplier = np.arange(-6, 6, fineness)
+    p1_, p2_ = np.array([p[:2] + m * perr[:2] for m in multiplier]).T
+    p1, p2 = np.meshgrid(p1_, p2_)
+
+    res = []
+    for pp1, pp2 in zip(p1, p2):
+        res.append([chisq(x, y, yerr, w07, a, b, *other_ps) for a, b in zip(pp1, pp2)])
+
+    plt.xlabel(xlabel)
+    plt.ylabel(xlabel)
+    plt.contour(p1, p2, res, 50, **kwargs)
+    plt.scatter(*p[:2], color="r", label="Best fit")
+    plt.title("$\Chi^2$")
+    plt.legend()
+    plt.colorbar()
     plt.show()
-    plt.close()
 
 
 def correlation2D(X, Y, xlabel=None, ylabel=None):
