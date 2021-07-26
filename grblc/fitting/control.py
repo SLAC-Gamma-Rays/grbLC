@@ -1,45 +1,37 @@
 import pandas as pd
 import pandas.errors
-import plotly.express as px
-import plotly.graph_objects as go
-from IPython.display import clear_output
 import numpy as np
 import os, re
-from fitting import *
+from fitting import fit_w07, plot_w07_fit, plot_chisq
 from convert import get_dir
 
 
 def run_fit(filepaths):
-    num_points = LC_summary(filepaths)
+    from IPython.display import clear_output
 
     for filepath in filepaths:
 
         grb = re.search("(\d{6}[A-Z]?)", filepath)[0]
         filepath = os.path.join(os.path.split(filepath)[0], f"{grb}_converted_flux_accepted.txt")
 
-        if num_points[grb] > 0:
-            try:
+        try:
+            if len(pd.read_csv(filepath, header=0).index) > 0:
                 plot_data(filepath)
-            except FileNotFoundError:
-                print("File not found:", filepath)
-                continue
+                auto_guess = input("Do you want to fit? (y/[n])")
+                if auto_guess in ["y"]:
+                    tt = float(input("tt : "))
+                    T = float(input("T : "))
+                    F = float(input("F : "))
+                    alpha = float(input("alpha : "))
+                    t = float(input("t : "))
+                    fit_vals = [T, F, alpha, t, tt]
 
-            auto_guess = input("Do you want to fit? ([y]/n)")
-            if auto_guess in ["", "y"]:
-                tt = float(input("tt : "))
-                T = float(input("T : "))
-                F = float(input("F : "))
-                alpha = float(input("alpha : "))
-                t = float(input("t : "))
-                fit_vals = [T, F, alpha, t, tt]
-
-                try:
                     p, pcov = fit_routine(filepath, guess=fit_vals, return_fit=True)
                     T, F, alpha, t = p
                     T_err, F_err, alpha_err, t_err = np.sqrt(np.diag(pcov))
                     if str(input("save? ([y]/n): ")) in ["", "y"]:
                         fit_data = _try_import_fit_data()
-                        if isinstance(fit_data, type(dict())):
+                        if isinstance(fit_data, dict):
                             fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
                             fit_df.set_index("GRB", inplace=True)
                         else:
@@ -48,16 +40,17 @@ def run_fit(filepaths):
                         savepath = os.path.join(get_dir(), "fit_vals.txt")
                         fit_df.to_csv(savepath, sep="\t", index=True)
                         clear_output()
-                except Exception as e:
-                    raise e
 
-            elif auto_guess in "n":
-                clear_output()
-                continue
+                elif auto_guess in ["", "n"]:
+                    clear_output()
+                    continue
 
-            elif auto_guess in "q":
-                clear_output()
-                return
+                elif auto_guess in "q":
+                    clear_output()
+                    return
+        except FileNotFoundError as e:
+            print(e)
+            continue
 
 
 def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
@@ -100,8 +93,18 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
 
 def plot_data(filepath):
 
+    import plotly.express as px
+
     grb = re.search("(\d{6}[A-Z]?)", filepath)[0]
     df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
+
+    t_dupes = set(
+        (df["time_sec"][df["time_sec"].duplicated(keep=False)]).apply(lambda x: round(np.log(x), 4)).astype(str)
+    )
+
+    if len(t_dupes) > 0:
+        dupe_string = ", ".join(t_dupes)
+        print(f"Some duplicate times found at T = [{dupe_string}]. Did you correctly go through Stage 2?")
 
     fig = px.scatter(
         df,
@@ -109,8 +112,8 @@ def plot_data(filepath):
         y=np.log10(df["flux"]),
         error_y=df["flux_err"] / (df["flux"] * np.log(10)),
         color="band",
-        width=800,
-        height=500,
+        width=700,
+        height=400,
     )
 
     fig.update_layout(

@@ -1,16 +1,14 @@
-import matplotlib.pyplot as plt
-import plotly.express as px, os
-import plotly.graph_objects as go
 from IPython.display import display, clear_output
 import numpy as np
 import pandas as pd
+import re, os
 
 
 def LC_summary(filepaths):
     lc_data = {}
     fig, ax = None, None
     for filepath in filepaths:
-        grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
+        grb = re.search("(\d{6}[A-Z]?)", filepath)[0]
         df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         num_rows = len(df.index)
         bands = ",".join(list(df["band"]))  # because lists aren't hashable >:(
@@ -64,7 +62,8 @@ def check_all_(filepaths):
 class OutlierPlot:
     def __init__(self, filepath, plot=True):
         self.main_path = os.path.split(filepath)[0]
-        self.grb = os.path.split(filepath)[1].rstrip("_converted_flux.txt")
+        self.grb = re.search("(\d{6}[A-Z]?)", filepath)[0]
+
         self.df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
         self.df = self.df.sort_values(by=["time_sec"]).reset_index(drop=True)
         self.numpts = len(self.df.index)
@@ -87,6 +86,12 @@ class OutlierPlot:
             print("imported", self.numpts, "pts")
 
     def plot(self, return_display=False):
+        import plotly.express as px
+        import plotly.graph_objects as go
+        import plotly.io as pio
+
+        pio.renderers.default = "plotly_mimetype"
+
         # plot main sample of points by band
         fig = px.scatter(
             self.df,
@@ -94,8 +99,8 @@ class OutlierPlot:
             y=np.log10(self.df["flux"]),
             error_y=self.df["flux_err"] / (self.df["flux"] * np.log(10)),
             color="band",
-            width=800,
-            height=500,
+            width=700,
+            height=400,
         )
 
         # update overall layout (x & y axis labels, etc.)
@@ -150,7 +155,7 @@ class OutlierPlot:
         if len(scatters) > 0:
             fig.add_traces(scatters)
 
-            # plot current point
+        # plot current point
         currpt = self.currpt
         x = np.log10(self.df["time_sec"][currpt])
         y = np.log10(self.df["flux"][currpt])
