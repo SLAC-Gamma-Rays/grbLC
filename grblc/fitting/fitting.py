@@ -27,8 +27,8 @@ def fit_w07(
 
     # reasonable curve_fit bounds
     if bounds is None:
-        Tmin, Fmin, amin, tmin = 0.1, -50, 0, None
-        Tmax, Fmax, amax, tmax = 10, -1, 5, None
+        Tmin, Fmin, amin, tmin = 0.1, -50, 0, -np.inf
+        Tmax, Fmax, amax, tmax = 10, -1, 5, np.inf
     else:
         (Tmin, Fmin, amin, tmin), (Tmax, Fmax, amax, tmax) = bounds
 
@@ -68,7 +68,7 @@ def fit_w07(
             method="trf",
             **kwargs,
         )
-        p += [0]
+        p = p.append(0)
 
     if return_guess:
         return p, cov, [Tguess, Fguess, alphaguess, tguess]

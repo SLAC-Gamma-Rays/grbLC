@@ -77,8 +77,8 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
         flux_err = df["flux_err"]
         time = df["time_sec"]
 
-        xdata = list(np.log10(time))
-        ydata = list(np.log10(flux))
+        xdata = np.array(np.log10(time))
+        ydata = np.array(np.log10(flux))
         yerr = flux_err / (flux * np.log(10))
 
         try:
@@ -265,13 +265,15 @@ def check_fits(save=True):
 def copy_accepted():
     from shutil import copyfile
 
-    fitted = pd.read_csv(os.path.join(get_dir(), "fit_vals.txt"), sep="\t", header=0, index_col=0)
-    accepted_filespaths = glob2.glob(reduce(os.path.join, [get_dir(), "*flux", "*accepted.txt"]))
-    accepted_dir = [reduce(os.path.join, [get_dir(), "accepted", os.path.split(f)[1]]) for f in accepted_filespaths]
+    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit-vals_*.txt"))
     copies = 0
-    for src, dst in zip(accepted_filespaths, accepted_dir):
-        if os.path.split(src)[1].rstrip("_converted_flux_accepted.txt") in fitted.index:
-            copies += 1
-            copyfile(src, dst)
+    for path in fitted_paths:
+        fitted = pd.read_csv(path, sep="\t", header=0, index_col=0)
+        accepted_filespaths = glob2.glob(reduce(os.path.join, [get_dir(), "*flux", "*accepted.txt"]))
+        accepted_dir = [reduce(os.path.join, [get_dir(), "accepted", os.path.split(f)[1]]) for f in accepted_filespaths]
+        for src, dst in zip(accepted_filespaths, accepted_dir):
+            if os.path.split(src)[1].rstrip("_converted_flux_accepted.txt") in fitted.index:
+                copies += 1
+                copyfile(src, dst)
 
     print("Copied", copies, "accepted and previously fitted GRBs")
