@@ -92,6 +92,7 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
                 return_guess=False,
                 maxfev=10000,
             )
+            print(np.shape(pcov))
             plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
             plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
             chisquared = chisq(xdata, ydata, yerr, w07, guess[-1], *p)

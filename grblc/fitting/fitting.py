@@ -68,7 +68,9 @@ def fit_w07(
             method="trf",
             **kwargs,
         )
-        p = p.append(0)
+        p = np.append(p, [0])
+        cov = np.pad(cov, ((0, 1), (0, 1)), "constant")
+        print(cov)
 
     if return_guess:
         return p, cov, [Tguess, Fguess, alphaguess, tguess]
