@@ -19,12 +19,12 @@ def run_fit(filepaths):
         filepath = os.path.join(os.path.split(filepath)[0], f"{grb}_converted_flux_accepted.txt")
 
         try:
-            data = pd.read_csv(filepath, header=0)
-            if (data["time_index"] < 0).sum() > 0:
+            data = pd.read_csv(filepath, sep="\t", header=0)
+            if (data["time_sec"] < 0).sum() > 0:
                 import warnings
 
                 warnings.warn("Warning: time values < 0 found. Removing...")
-                data.drop(data[data["time_index"] < 0], axis=0)
+                data.drop(data[data["time_sec"] < 0], axis=0)
 
             if len(data.index) > 0:
                 plot_data(filepath)
@@ -93,14 +93,15 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
                 maxfev=10000,
             )
             plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
-            plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)))
+            plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
 
             print("GUESS:         ", guess[:-1])
             print("FIT:           ", p)
             print("FIT ERR:       ", np.sqrt(np.diag(pcov)))
-            print("CHISQ:         ", chisq(xdata, ydata, yerr, w07, p))
-            print("REDUCED CHISQ: ", reduced_chisq(xdata, ydata, yerr, w07, p, correction=1))
-            print("PROBABILITY α: ", probability(xdata, ydata, yerr, w07, p, correction=1))
+            print("CHISQ:         ", chisq(xdata, ydata, yerr, w07, guess[-1], *p))
+            print("REDUCED CHISQ: ", reduced_chisq(xdata, ydata, yerr, w07, p, tt=guess[-1], correction=1))
+            print("PROBABILITY α: ", probability(xdata, ydata, yerr, w07, p, tt=guess[-1], correction=1))
+
             if return_fit:
                 return p, pcov
         except RuntimeError:

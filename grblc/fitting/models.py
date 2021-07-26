@@ -36,6 +36,7 @@ def reduced_chisq(x, y, yerr, model, p, tt=0, correction=0):
 
 
 def dof(x, p, tt=0, correction=0):
+    x = np.asarray(x)
     return len(x[x >= tt]) - len(p) + correction
 
 
@@ -44,7 +45,7 @@ def probability(x, y, yerr, model, p, tt=0, correction=0):
     from scipy.special import gamma
 
     reducedChiSquared = reduced_chisq(x, y, yerr, model, p, tt, correction)
-    nu = dof(x, p, correction)
+    nu = dof(x, p, tt, correction)
 
     integrand = lambda x: (2 ** (-nu / 2) / gamma(nu / 2)) * np.exp(-x / 2) * x ** (-1 + nu / 2)
 
