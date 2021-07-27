@@ -203,12 +203,13 @@ def _try_import_fit_data():
 def check_fits(save=True):
 
     main_dir = os.path.join(get_dir(), "accepted")
-    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*accepted.txt")))
+    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*.txt")))
     accepted = np.array([os.path.split(path)[1].rstrip("_converted_flux_accepted.txt") for path in accepted_paths])
 
     # import fit_vals.txt to cross-reference with accepted_grbs.
     # if we have a match in both, that means we can plot!
     fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
+    fits = 0
     for path in fitted_paths:
         fitted = pd.read_csv(path, sep="\t", header=0, index_col=0)
 
@@ -216,6 +217,7 @@ def check_fits(save=True):
         intersection = list(set(accepted) & set(fitted.index))
 
         for GRB in intersection:
+            fits += 1
             # set up figure
             ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
                 [["fit", "fit", "EMPTY"], ["T", "F", "alpha"]], empty_sentinel="EMPTY"
@@ -264,19 +266,34 @@ def check_fits(save=True):
             else:
                 plt.show()
 
+    print("Plotted", fits, "fits.")
+
 
 def copy_accepted():
     from shutil import copyfile
 
-    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
+    # fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
     copies = 0
-    for path in fitted_paths:
-        fitted = pd.read_csv(path, sep="\t", header=0, index_col=0)
-        accepted_filespaths = glob2.glob(reduce(os.path.join, [get_dir(), "*flux", "*accepted.txt"]))
-        accepted_dir = [reduce(os.path.join, [get_dir(), "accepted", os.path.split(f)[1]]) for f in accepted_filespaths]
-        for src, dst in zip(accepted_filespaths, accepted_dir):
-            if os.path.split(src)[1].rstrip("_converted_flux_accepted.txt") in fitted.index:
-                copies += 1
-                copyfile(src, dst)
+    # for path in fitted_paths:
+    # fitted = pd.read_csv(path, sep="\t", header=0, index_col=0)
+    accepted_filespaths = glob2.glob(reduce(os.path.join, [get_dir(), "*flux", "*accepted.txt"]))
+    accepted_dir = [reduce(os.path.join, [get_dir(), "accepted", os.path.split(f)[1]]) for f in accepted_filespaths]
+    for src, dst in zip(accepted_filespaths, accepted_dir):
+        # if os.path.split(src)[1].rstrip("_converted_flux_accepted.txt") in fitted.index:
+        copies += 1
+        copyfile(src, dst)
+
+    print("Copied", copies, "accepted and previously fitted GRBs")
+
+
+def copy_rejected():
+    from shutil import copyfile
+
+    copies = 0
+    rejected_filenames = glob2.glob(reduce(os.path.join, [get_dir(), "*flux", "*rejected.txt"]))
+    rejected_dir = [reduce(os.path.join, [get_dir(), "rejected", os.path.split(f)[1]]) for f in rejected_filenames]
+    for src, dst in zip(rejected_filenames, rejected_dir):
+        copies += 1
+        copyfile(src, dst)
 
     print("Copied", copies, "accepted and previously fitted GRBs")
