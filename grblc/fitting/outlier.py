@@ -110,10 +110,9 @@ class OutlierPlot:
                     y=np.log10(accepted_df["flux"]),
                     error_y=dict(array=accepted_df["flux_err"] / (accepted_df["flux"] * np.log(10))),
                     mode="markers",
-                    hoverinfo=["text+x+y"],
-                    text=f"band={band}",
+                    customdata=band,
+                    hovertemplate="band: %{customdata}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                     name="Accepted",
-                    marker_color="rgba(90,193,142)",
                 )
             )
 
@@ -130,10 +129,9 @@ class OutlierPlot:
                     y=np.log10(rejected_df["flux"]),
                     error_y=dict(array=rejected_df["flux_err"] / (rejected_df["flux"] * np.log(10))),
                     mode="markers",
-                    hoverinfo=["text+x+y"],
-                    text=f"band={band}",
+                    customdata=band,
+                    hovertemplate="band: %{customdata}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                     name="Rejected",
-                    marker_color="rgba(90,193,142)",
                 )
             )
 
@@ -154,7 +152,7 @@ class OutlierPlot:
                 mode="markers",
                 hoverinfo=["text+x+y"],
                 text=f"band={band}",
-                name="Outlier?",
+                name="Current Point",
                 marker_color="rgba(0,0,0, 0.5)",
             )
         )
@@ -212,7 +210,6 @@ class OutlierPlot:
     def _pop(self, index, pileto, pilefrom):
         pileto[index] = self.df.loc[self.df.index == index]
         if index in pilefrom:
-            print("Del'd index", index)
             del pilefrom[index]
 
     # "insert" a row from accepted or rejected back into the main sample
@@ -279,17 +276,23 @@ class OutlierPlot:
             self.queue.append(["r", self.currpt, self.prevpt])
             self._reject()
             self._save()
+        elif key in ["s", "strip"]:
+            self.queue.append(["s", self.currpt, self.prevpt])
+            self._insert(self.currpt, self.accepted)
+            self._insert(self.currpt, self.rejected)
+            self._inc()
+            self._save()
         elif key in ["u", "undo"]:
             self._undo()
             self._save()
         elif key in ["d", "done"]:
             clear_output()
             raise StopIteration
-        elif key in ["exit", "quit", "q"]:
+        elif key in ["q", "quit"]:
             clear_output()
             raise KeyboardInterrupt
 
         self.plot()
 
     def prompt(self):
-        return input("a:accept r:reject u:undo f:forward b:backward d:done with GRB q:quit")
+        return input("a:accept r:reject s:strip u:undo f:forward b:backward d:done with GRB q:quit")
