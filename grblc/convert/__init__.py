@@ -5,5 +5,5 @@ and import as any other module.
 """
 
 
-from .convert import convertGRB, save_convert_params, set_dir, get_dir, convert_all
+from .convert import convertGRB, save_convert_params, set_dir, get_dir
 from .time import dec_to_UT, UT_to_dec, grb_to_date

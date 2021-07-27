@@ -63,7 +63,6 @@ class OutlierPlot:
         self.prevpt = -1
         # values are tools that will undo the key
         # e.g., to undo a "f", you need to decrement
-        self._undo_ = {"f": self._dec, "b": self._inc, "accepted": self.rejected, "rejected": self.accepted}
 
         self._update_curr_help_vals()
         if plot:
@@ -203,22 +202,22 @@ class OutlierPlot:
         self.currpt = currpt % self.numpts
         self._update_curr_help_vals()
 
+    # currently unused
     def _update_curr_help_vals(self):
         self.curr_mag = self.df.at[self.currpt, "flux"]
         self.curr_mag_err = self.df.at[self.currpt, "flux_err"]
         self.curr_band = self.df.at[self.currpt, "band"]
 
     # pop a row from the main sample and move it to accepted or rejected pile
-    def _pop(self, index, pile, pilename):
-        popped = self.df.loc[self.df.index == index]
-        pile[index] = popped
-        if index in self._undo_[pilename]:
-            del self._undo_[pilename][index]
+    def _pop(self, index, pileto, pilefrom):
+        pileto[index] = self.df.loc[self.df.index == index]
+        if index in pilefrom:
+            print("Del'd index", index)
+            del pilefrom[index]
 
-    # insert a row from accepted or rejected back into the main sample
+    # "insert" a row from accepted or rejected back into the main sample
     def _insert(self, index, pile):
         if index in pile:
-            self.df.loc[self.df.index == index] = pile[index]
             del pile[index]
 
     # increment
@@ -233,18 +232,12 @@ class OutlierPlot:
 
     # accept current point
     def _accept(self):
-        if self.currpt not in self.accepted:
-            self._pop(self.currpt, self.accepted, "accepted")
-        if self.currpt in self.rejected:
-            del self.rejected[self.currpt]
+        self._pop(self.currpt, self.accepted, self.rejected)
         self._inc()
 
     # reject current point
     def _reject(self):
-        if self.currpt not in self.rejected:
-            self._pop(self.currpt, self.rejected, "rejected")
-        if self.currpt in self.accepted:
-            del self.accepted[self.currpt]
+        self._pop(self.currpt, self.rejected, self.accepted)
         self._inc()
 
     # do the opposite of what the last action ("job") did
@@ -254,19 +247,21 @@ class OutlierPlot:
             return
 
         last_job, __, old_prevpt = self.queue.pop(-1)
-        if last_job in ["f", "b"]:
-            self._undo_[last_job]()  # will decrement if "f" and increment if "b"
-            self.prevpt = old_prevpt
+        if last_job == "f":
+            self._dec()
+
+        elif last_job == "b":
+            self._inc()
 
         elif last_job == "a":
             self._insert(self.prevpt, self.accepted)
             self._dec()
-            self.prevpt = old_prevpt
 
         elif last_job == "r":
             self._insert(self.prevpt, self.rejected)
             self._dec()
-            self.prevpt = old_prevpt
+
+        self.prevpt = old_prevpt
 
     def update(self, key):
 
