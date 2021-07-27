@@ -180,7 +180,7 @@ def locate(grb):
         )
 
     else:
-        paths = glob2.glob(os.path.join, [get_dir(), "*_flux", f"{grb}_converted_flux.txt"])
+        paths = glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", f"{grb}_converted_flux.txt"]))
 
     if isinstance(paths, list):
         return paths  # we want to return a list!
