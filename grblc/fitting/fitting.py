@@ -122,6 +122,9 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=No
         ax.scatter(Tguess, Fguess, c="tab:grey", zorder=200, s=200, label="Guess")
     ax.legend(framealpha=0.0)
     ax.set_xlim(logT[0] - 0.2, logT[-1] + 0.2)
+    ax.set_xlabel("log T (sec)")
+    ax.set_ylabel("log F (erg cm$^{-2}$ s$^{-1}$)")
+    ax.set_title("Fitted Data")
 
     if show:
         plt.show()
