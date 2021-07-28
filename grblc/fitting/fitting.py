@@ -268,14 +268,14 @@ def plot_fit_and_chisq(filepath, p, pcov, p0, tt=0):
         x=0.63,
         y=0.6,
         s="""
-		GRB %s
-		
-		$\\chi^2$: %.3f
-		
-		$\\chi_{\\nu}^2$: %.3f
-		
-		$\\alpha$ : %.3e
-		"""
+        GRB %s
+
+        $\\chi^2$: %.3f
+        
+        $\\chi_{\\nu}^2$: %.3f
+        
+        $\\alpha$ : %.3e
+        """
         % (GRB, chisquared, reduced, prob),
         size=18,
     )
