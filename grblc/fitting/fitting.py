@@ -27,7 +27,7 @@ def fit_w07(
 
     # reasonable curve_fit bounds
     if bounds is None:
-        Tmin, Fmin, amin, tmin = 0.1, -50, 0, -np.inf
+        Tmin, Fmin, amin, tmin = tt, -50, 0, -np.inf
         Tmax, Fmax, amax, tmax = 10, -1, 5, np.inf
     else:
         (Tmin, Fmin, amin, tmin), (Tmax, Fmax, amax, tmax) = bounds
