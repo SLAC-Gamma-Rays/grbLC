@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from .constants import plabels
-from .models import w07, chisq
+from .models import w07, chisq, probability
 from convert.convert import get_dir, set_dir
 
 
@@ -236,5 +236,49 @@ def correlation2D(X, Y, xlabel=None, ylabel=None):
 
     # use the previously defined function
     scatter_hist(X, Y, ax, ax_histx, ax_histy, xlabel, ylabel)
+
+    plt.show()
+
+
+def plot_fit_and_chisq(filepath, p, pcov, p0, tt=0):
+    import os
+    import pandas as pd
+
+    ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
+        [["fit", "fit", "EMPTY"], ["T", "F", "alpha"]], empty_sentinel="EMPTY"
+    )
+
+    # read in fitted vals
+    acc = pd.read_csv(filepath, sep="\t", header=0)
+    GRB = os.path.split(filepath)[1].rstrip("_converted_flux_accepted.txt")
+    xdata = np.array(np.log10(acc.time_sec))
+    ydata = np.array(np.log10(acc.flux))
+    yerr = acc.flux_err / (acc.flux * np.log(10))
+    perr = np.sqrt(np.diag(pcov))
+    plot_w07_fit(xdata, ydata, p, tt=tt, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
+    plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
+
+    chisquared = chisq(xdata, ydata, yerr, w07, tt, *p)
+    reduced_nu = len(xdata[xdata >= tt]) - 3
+    reduced_nu = 1 if reduced_nu == 0 else reduced_nu
+    reduced = chisquared / reduced_nu
+    nu = len(xdata[xdata >= tt])
+    prob = probability(xdata, reduced, nu, tt=tt)
+
+    plt.figtext(
+        x=0.63,
+        y=0.6,
+        s="""
+        GRB %s
+
+        $\\chi^2$: %.3f
+        
+        $\\chi_{\\nu}^2$: %.3f
+        
+        $\\alpha$ : %.3e
+        """
+        % (GRB, chisquared, reduced, prob),
+        size=18,
+    )
 
     plt.show()

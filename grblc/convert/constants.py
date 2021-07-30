@@ -20,6 +20,12 @@ flux_densities = {
     # Swift UVOT filters
     # from Poole et al. (2008) // https://academic.oup.com/mnras/article/383/2/627/993537
     # * in angstrom | erg cm-2 s-1 Å-1
+    "u_swift": [3465, None],
+    "b_swift": [4392, None],
+    "v_swift": [5468, None],
+    "uvw1_swift": [2600, None],
+    "uvw2_swift": [1928, None],
+    "uvm2_swift": [2246, None],
     "uvw1": [2634, 4.00e-16],
     "uvw2": [2030, 6.2e-16],
     "uvm2": [2231, 8.5e-16],

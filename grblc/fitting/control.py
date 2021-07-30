@@ -2,7 +2,7 @@ import pandas as pd
 import pandas.errors
 import numpy as np
 import os, re
-from fitting.fitting import fit_w07, plot_w07_fit, plot_chisq
+from fitting.fitting import fit_w07, plot_w07_fit, plot_chisq, plot_fit_and_chisq
 from fitting.models import chisq, probability, w07
 from convert import get_dir, set_dir
 import glob2
@@ -92,20 +92,22 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
                 return_guess=False,
                 maxfev=10000,
             )
-            print(np.shape(pcov))
-            plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
-            plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
-            chisquared = chisq(xdata, ydata, yerr, w07, guess[-1], *p)
-            reduced = chisquared / (len(xdata[xdata >= guess[-1]]) - 3)
-            nu = len(xdata[xdata >= guess[-1]])
-            prob = probability(xdata, reduced, nu, tt=guess[-1])
+            tt = guess[-1]
+            p0 = guess[:-1]
+            plot_fit_and_chisq(filepath, p, pcov, p0, tt)
+            # plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
+            # plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
+            # chisquared = chisq(xdata, ydata, yerr, w07, guess[-1], *p)
+            # reduced = chisquared / (len(xdata[xdata >= guess[-1]]) - 3)
+            # nu = len(xdata[xdata >= guess[-1]])
+            # prob = probability(xdata, reduced, nu, tt=guess[-1])
 
-            print("GUESS:         ", guess[:-1])
-            print("FIT:           ", p)
-            print("FIT ERR:       ", np.sqrt(np.diag(pcov)))
-            print("CHISQ:         ", chisquared)
-            print("REDUCED CHISQ: ", reduced)
-            print("PROBABILITY α: ", prob)
+            # print("GUESS:         ", guess[:-1])
+            # print("FIT:           ", p)
+            # print("FIT ERR:       ", np.sqrt(np.diag(pcov)))
+            # print("CHISQ:         ", chisquared)
+            # print("REDUCED CHISQ: ", reduced)
+            # print("PROBABILITY α: ", prob)
 
             if return_fit:
                 return p, pcov
@@ -122,7 +124,7 @@ def plot_data(filepath):
     df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
 
     t_dupes = set(
-        (df["time_sec"][df["time_sec"].duplicated(keep=False)]).apply(lambda x: round(np.log(x), 4)).astype(str)
+        (df["time_sec"][df["time_sec"].duplicated(keep=False)]).apply(lambda x: round(np.log10(x), 4)).astype(str)
     )
 
     if len(t_dupes) > 0:
