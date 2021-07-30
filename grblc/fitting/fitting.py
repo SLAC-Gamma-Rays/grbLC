@@ -154,10 +154,11 @@ def plot_chisq(x, y, yerr, p, perr, tt, fineness=0.1, ax=None, show=True):
 
     multiplier = np.arange(-4, 4, fineness)
     paramspace = np.array([p + m * perr for m in multiplier])  # shape is (len(multiplier), 4)
+    best_chisq = chisq(x, y, yerr, w07, tt, *p)
     for idx, ax_ in enumerate(list(ax)):
         chisq_params = np.tile(p, (len(multiplier), 1))
         chisq_params[:, idx] = paramspace[:, idx]
-        delta_chisq = [chisq(x, y, yerr, w07, tt, *chisq_param) for chisq_param in chisq_params]
+        delta_chisq = [chisq(x, y, yerr, w07, tt, *chisq_param) - best_chisq for chisq_param in chisq_params]
 
         ax_.plot(multiplier, delta_chisq, label=plabels[idx] + f"={p[idx]:.3f} $\pm$ {perr[idx]:.3f}")
         ax_.legend(framealpha=0.0)
