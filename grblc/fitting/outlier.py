@@ -43,14 +43,15 @@ def check_all_(filepaths):
             break
 
 
-def check_one(grb):
+def check_one(grb, adjust=False):
+    if adjust:
+        # Version 1: check the grb and also accepting or rejecting data points
+        check_all_(locate(grb))
 
-    # Version 1: check the grb, but not accepting or rejecting any points
-    filepath = locate(grb)[0]
-    op = OutlierPlot(filepath, plot=True)
-
-    # Version 2: check the grb and also accepting or rejecting data points
-    # check_all_(locate(grb))
+    else:
+        # Version 2: check the grb, but not accepting or rejecting any points
+        filepath = locate(grb)[0]
+        op = OutlierPlot(filepath, plot=True)
 
 
 class OutlierPlot:
