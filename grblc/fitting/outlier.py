@@ -2,6 +2,7 @@ from IPython.display import display, clear_output
 import numpy as np
 import pandas as pd
 import re, os
+from .assignments import locate
 
 
 def LC_summary(filepaths):
@@ -40,6 +41,16 @@ def check_all_(filepaths):
                 outlier_check_(filepath)
         except KeyboardInterrupt:
             break
+
+
+def check_one(grb):
+
+    # Version 1: check the grb, but not accepting or rejecting any points
+    filepath = locate(grb)[0]
+    op = OutlierPlot(filepath, plot=True)
+
+    # Version 2: check the grb and also accepting or rejecting data points
+    # check_all_(locate(grb))
 
 
 class OutlierPlot:
