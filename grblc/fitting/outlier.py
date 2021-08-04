@@ -239,7 +239,7 @@ class OutlierPlot:
                     x=np.log10(accepted_df["time_sec"]),
                     y=np.log10(accepted_df["flux"]),
                     error_y=dict(array=accepted_df["flux_err"] / (accepted_df["flux"] * np.log(10))),
-                    customdata=band,
+                    customdata=customdata,
                     hovertemplate=addition + "band: %{customdata[0]}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                 )
                 self.figure.update_traces(patch=patch, selector=dict(name="Accepted"), overwrite=True)
