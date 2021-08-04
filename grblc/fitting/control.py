@@ -131,6 +131,12 @@ def plot_data(filepath):
         dupe_string = ", ".join(t_dupes)
         print(f"Some duplicate times found at T = [{dupe_string}]. Did you correctly go through Stage 2?")
 
+    try:
+        df["source"]
+        kwargs = {"hover_data": ["source"]}
+    except:
+        kwargs = {}
+
     fig = px.scatter(
         df,
         x=np.log10(df["time_sec"]),
@@ -139,6 +145,7 @@ def plot_data(filepath):
         color="band",
         width=700,
         height=400,
+        **kwargs,
     )
 
     fig.update_layout(
