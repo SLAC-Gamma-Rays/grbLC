@@ -89,6 +89,12 @@ class OutlierPlot:
 
         if return_display:
             # plot main sample of points by band
+            try:
+                self.df["source"]
+                kwargs = {"hover_data": ["source"]}
+            except:
+                kwargs = {}
+
             fig = px.scatter(
                 self.df,
                 x=np.log10(self.df["time_sec"]),
@@ -97,6 +103,7 @@ class OutlierPlot:
                 color="band",
                 width=700,
                 height=400,
+                **kwargs,
             )
 
             # update overall layout (x & y axis labels, etc.)
@@ -115,14 +122,22 @@ class OutlierPlot:
                     "float64"
                 )
                 band = accepted_df["band"]
+                # get source type if possible
+                try:
+                    source = accepted_df["source"]
+                except:
+                    source = None
+                customdata = [band, source] if source is not None else [band]
+                addition = "source: %{customdata[1]}<br>" if source is not None else ""
+
                 scatters.append(
                     go.Scatter(
                         x=np.log10(accepted_df["time_sec"]),
                         y=np.log10(accepted_df["flux"]),
                         error_y=dict(array=accepted_df["flux_err"] / (accepted_df["flux"] * np.log(10))),
                         mode="markers",
-                        customdata=band,
-                        hovertemplate="band: %{customdata}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
+                        customdata=customdata,
+                        hovertemplate=addition + "band: %{customdata[0]}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                         name="Accepted",
                     )
                 )
@@ -144,14 +159,22 @@ class OutlierPlot:
                     "float64"
                 )
                 band = rejected_df["band"]
+                # get source type if possible
+                try:
+                    source = rejected_df["source"]
+                except:
+                    source = None
+                customdata = [band, source] if source is not None else [band]
+                addition = "source: %{customdata[1]}<br>" if source is not None else ""
+
                 scatters.append(
                     go.Scatter(
                         x=np.log10(rejected_df["time_sec"]),
                         y=np.log10(rejected_df["flux"]),
                         error_y=dict(array=rejected_df["flux_err"] / (rejected_df["flux"] * np.log(10))),
                         mode="markers",
-                        customdata=band,
-                        hovertemplate="band: %{customdata}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
+                        customdata=customdata,
+                        hovertemplate=addition + "band: %{customdata[0]}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                         name="Rejected",
                     )
                 )
@@ -207,12 +230,20 @@ class OutlierPlot:
                     "float64"
                 )
                 band = accepted_df["band"]
+                # get source type if possible
+                try:
+                    source = accepted_df["source"]
+                except:
+                    source = None
+                customdata = [band, source] if source is not None else [band]
+                addition = "source: %{customdata[1]}<br>" if source is not None else ""
+
                 patch = dict(
                     x=np.log10(accepted_df["time_sec"]),
                     y=np.log10(accepted_df["flux"]),
                     error_y=dict(array=accepted_df["flux_err"] / (accepted_df["flux"] * np.log(10))),
                     customdata=band,
-                    hovertemplate="band: %{customdata}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
+                    hovertemplate=addition + "band: %{customdata[0]}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                 )
                 self.figure.update_traces(patch=patch, selector=dict(name="Accepted"), overwrite=True)
             else:
@@ -230,12 +261,20 @@ class OutlierPlot:
                     "float64"
                 )
                 band = rejected_df["band"]
+                # get source type if possible
+                try:
+                    source = rejected_df["source"]
+                except:
+                    source = None
+                customdata = [band, source] if source is not None else [band]
+                addition = "source: %{customdata[1]}<br>" if source is not None else ""
+
                 patch = dict(
                     x=np.log10(rejected_df["time_sec"]),
                     y=np.log10(rejected_df["flux"]),
                     error_y=dict(array=rejected_df["flux_err"] / (rejected_df["flux"] * np.log(10))),
-                    customdata=band,
-                    hovertemplate="band: %{customdata}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
+                    customdata=customdata,
+                    hovertemplate="band: %{customdata[0]}<br>" + "x: %{x}<br>" + "y: %{y}<br>",
                 )
                 self.figure.update_traces(patch=patch, selector=dict(name="Rejected"), overwrite=True)
             else:
