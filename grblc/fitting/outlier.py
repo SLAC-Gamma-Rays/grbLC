@@ -72,10 +72,7 @@ class OutlierPlot:
         self.queue = []
         self.currpt = 0
         self.prevpt = -1
-        # values are tools that will undo the key
-        # e.g., to undo a "f", you need to decrement
 
-        self._update_curr_help_vals()
         if plot:
             self.display = self.plot(return_display=True)
             self.figure = FigureWidget(self.display)
@@ -127,7 +124,7 @@ class OutlierPlot:
                     source = accepted_df["source"]
                 except:
                     source = None
-                customdata = [band, source] if source is not None else [band]
+                customdata = np.stack((band, source), axis=-1) if source is not None else np.stack((band), axis=-1)
                 addition = "source: %{customdata[1]}<br>" if source is not None else ""
 
                 scatters.append(
@@ -164,7 +161,7 @@ class OutlierPlot:
                     source = rejected_df["source"]
                 except:
                     source = None
-                customdata = [band, source] if source is not None else [band]
+                customdata = np.stack((band, source), axis=-1) if source is not None else np.stack((band), axis=-1)
                 addition = "source: %{customdata[1]}<br>" if source is not None else ""
 
                 scatters.append(
@@ -266,7 +263,7 @@ class OutlierPlot:
                     source = rejected_df["source"]
                 except:
                     source = None
-                customdata = [band, source] if source is not None else [band]
+                customdata = np.stack((band, source), axis=-1) if source is not None else np.stack((band), axis=-1)
                 addition = "source: %{customdata[1]}<br>" if source is not None else ""
 
                 patch = dict(
@@ -320,13 +317,6 @@ class OutlierPlot:
     # set current index & update current mag, mag_err, and band
     def _set_currpt(self, currpt):
         self.currpt = currpt % self.numpts
-        self._update_curr_help_vals()
-
-    # currently unused
-    def _update_curr_help_vals(self):
-        self.curr_mag = self.df.at[self.currpt, "flux"]
-        self.curr_mag_err = self.df.at[self.currpt, "flux_err"]
-        self.curr_band = self.df.at[self.currpt, "band"]
 
     # pop a row from the main sample and move it to accepted or rejected pile
     def _pop(self, index, pileto, pilefrom):
