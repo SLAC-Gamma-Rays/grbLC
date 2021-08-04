@@ -50,7 +50,11 @@ def check_one(grb, adjust=False):
 
     else:
         # Version 2: check the grb, but not accepting or rejecting any points
-        filepath = locate(grb)[0]
+        path = locate(grb)
+        if not path:
+            print(f"GRB {grb} not found")
+            return
+        filepath = path[0]
         op = OutlierPlot(filepath, plot=True)
 
 
