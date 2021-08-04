@@ -232,7 +232,7 @@ class OutlierPlot:
                     source = accepted_df["source"]
                 except:
                     source = None
-                customdata = [band, source] if source is not None else [band]
+                customdata = np.stack((band, source), axis=-1) if source is not None else np.stack((band), axis=-1)
                 addition = "source: %{customdata[1]}<br>" if source is not None else ""
 
                 patch = dict(
