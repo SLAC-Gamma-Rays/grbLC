@@ -60,7 +60,7 @@ def run_fit(filepaths):
                             t,
                             t_err,
                             *fit_vals[:-2],
-                            fit_vals[-1],
+                            tf,
                         ]
                         savepath = os.path.join(get_dir(), "fit_vals.txt")
                         fit_df.to_csv(savepath, sep="\t", index=True)
