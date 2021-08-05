@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import re, os
 from .assignments import locate
-from .control import plot_data, run_fit, fit_routine
+from .control import plot_data, run_fit, fit_routine, get_dir
 import glob2
 
 
@@ -44,6 +44,7 @@ def check_all_(filepaths, save=False):
         except KeyboardInterrupt:
             break
 
+
 def check_one(grb):
 
     purpose = input("What do you want to do? [a] Show everything [b] Checking outliers [c] Fitting")
@@ -53,17 +54,17 @@ def check_one(grb):
         print(f"There is no data for GRB {grb}")
         return
 
-    if purpose == 'a':
+    if purpose == "a":
         op = OutlierPlot(path[0], plot=True)
         name = input("What is the <name> of the source txt: ")
-        source = glob2.glob(f"../211_manual_gathering/fit_vals_{name}.txt")
+        source = glob2.glob(os.path.join(get_dir(), f"fit_vals_{name}.txt"))
 
         if not source:
             print("No txt file for the name")
             return
 
         plot_data(path[0])
-        with open(source[0], 'r') as file:
+        with open(source[0], "r") as file:
             df = pd.read_csv(file, delimiter=r"\t+|\s+", engine="python", header=0)
 
         df = df[df["GRB"] == grb]
@@ -72,16 +73,16 @@ def check_one(grb):
             return
 
         data = df.iloc[0].to_dict()
-        keys = ['T_guess', 'F_guess', 'alpha_guess', 't_guess','tt']
+        keys = ["T_guess", "F_guess", "alpha_guess", "t_guess", "tt", "tf"]
         guess = [float(data[k]) for k in keys]
         filepath = os.path.join(os.path.split(path[0])[0], f"{grb}_converted_flux_accepted.txt")
         fit_routine(filepath, guess=guess)
 
-    if purpose == 'b':
+    if purpose == "b":
         check_all_(path, save=True)
         run_fit(path)
 
-    if purpose == 'c':
+    if purpose == "c":
         op = OutlierPlot(path[0], plot=True)
         run_fit(path)
 
