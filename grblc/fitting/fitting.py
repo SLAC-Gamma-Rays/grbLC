@@ -7,9 +7,20 @@ from convert.convert import get_dir, set_dir
 
 
 def fit_w07(
-    logT, logF, logTerr=None, logFerr=None, p0=[None, None, 1.5, 0], tt=0, bounds=None, return_guess=False, **kwargs
+    logT,
+    logF,
+    logTerr=None,
+    logFerr=None,
+    p0=[None, None, 1.5, 0],
+    tt=0,
+    tf=np.inf,
+    bounds=None,
+    return_guess=False,
+    **kwargs,
 ):
-    mask = np.asarray(logT) >= tt
+    before = np.asarray(logT) >= tt
+    after = np.asarray(logT) <= tf
+    mask = np.logical_and(before, after)
     logT = np.asarray(logT)[mask]
     logF = np.asarray(logF)[mask]
 
@@ -28,7 +39,7 @@ def fit_w07(
     # reasonable curve_fit bounds
     if bounds is None:
         Tmin, Fmin, amin, tmin = tt, -50, 0, -np.inf
-        Tmax, Fmax, amax, tmax = 10, -1, 5, np.inf
+        Tmax, Fmax, amax, tmax = tf, -1, 5, np.inf
     else:
         (Tmin, Fmin, amin, tmin), (Tmax, Fmax, amax, tmax) = bounds
 
@@ -77,10 +88,11 @@ def fit_w07(
         return p, cov
 
 
-def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=None, show=True):
+def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=None, ax=None, show=True):
     if ax is None:
         fig, ax = plt.subplots(1)
     ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
+    ax.axvline(tf, c="k", ls=":", label=f"tf = {tf}", alpha=0.3, zorder=-999999)
     logT = np.asarray(logT)
     logF = np.asarray(logF)
     if logTerr is not None:
@@ -88,7 +100,7 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=No
     if logFerr is not None:
         logFerr = np.asarray(logFerr)
 
-    mask = logT >= tt
+    mask = (logT >= tt) & (logT <= tf)
     plotx = np.linspace(logT[0] - 0.2, logT[-1] + 0.2, 100)
     ax.errorbar(
         logT[mask],
@@ -122,7 +134,7 @@ def plot_w07_fit(logT, logF, p, tt=0, logTerr=None, logFerr=None, p0=None, ax=No
         ax.scatter(Tguess, Fguess, c="tab:grey", zorder=200, s=200, label="Guess")
     ax.legend(framealpha=0.0)
     ax.set_xlim(logT[0] - 0.2, logT[-1] + 0.2)
-    ax.set_ylim(np.min(logF) - 2, None)
+    ax.set_ylim(np.min(logF) - 1, None)
     ax.set_xlabel("log T (sec)")
     ax.set_ylabel("log F (erg cm$^{-2}$ s$^{-1}$)")
     ax.set_title("Fitted Data")
@@ -149,23 +161,30 @@ def plot_w07_toy_fit(logT, logF, pfit, ptrue, logTerr=None, logFerr=None, ax=Non
     fig, ax = None, None
 
 
-def plot_chisq(x, y, yerr, p, perr, tt, fineness=0.1, ax=None, show=True):
+def plot_chisq(x, y, yerr, p, perr, tt, tf, fineness=0.1, ax=None, show=True):
     if ax is None:
         fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
     multiplier = np.arange(-4, 4, fineness)
     paramspace = np.array([p + m * perr for m in multiplier])  # shape is (len(multiplier), 4)
-    best_chisq = chisq(x, y, yerr, w07, tt, *p)
+    best_chisq = chisq(x, y, yerr, w07, tt, tf, *p)
     for idx, ax_ in enumerate(list(ax)):
         chisq_params = np.tile(p, (len(multiplier), 1))
         chisq_params[:, idx] = paramspace[:, idx]
-        delta_chisq = [chisq(x, y, yerr, w07, tt, *chisq_param) - best_chisq for chisq_param in chisq_params]
+        delta_chisq = [chisq(x, y, yerr, w07, tt, tf, *chisq_param) - best_chisq for chisq_param in chisq_params]
+
+        # print(delta_chisq)
+        # print(chisq_params[:-5])
 
         ax_.plot(multiplier, delta_chisq, label=plabels[idx] + f"={p[idx]:.3f} $\pm$ {perr[idx]:.3f}")
         ax_.legend(framealpha=0.0)
         ax_.set_xlabel(r"$\sigma$ multiplier")
         ax_.set_ylabel(r"$\Delta\chi^2$")
         ax_.set_title(plabels[idx])
+        ax_.set_ylim(0, 100)
+        ax_.set_xlim(-2, 2)
+        ax_.axvline(x=-1, c="k", ls=":", alpha=0.3, zorder=-999999)
+        ax_.axvline(x=1, c="k", ls=":", alpha=0.3, zorder=-999999)
 
     if show:
         plt.show()
@@ -241,7 +260,7 @@ def correlation2D(X, Y, xlabel=None, ylabel=None):
     plt.show()
 
 
-def plot_fit_and_chisq(filepath, p, pcov, p0, tt=0):
+def plot_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf):
     import os
     import pandas as pd
 
@@ -256,10 +275,10 @@ def plot_fit_and_chisq(filepath, p, pcov, p0, tt=0):
     ydata = np.array(np.log10(acc.flux))
     yerr = acc.flux_err / (acc.flux * np.log(10))
     perr = np.sqrt(np.diag(pcov))
-    plot_w07_fit(xdata, ydata, p, tt=tt, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
-    plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
+    plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
+    plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, tf=tf, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
 
-    chisquared = chisq(xdata, ydata, yerr, w07, tt, *p)
+    chisquared = chisq(xdata, ydata, yerr, w07, tt, tf, *p)
     reduced_nu = len(xdata[xdata >= tt]) - 3
     reduced_nu = 1 if reduced_nu == 0 else reduced_nu
     reduced = chisquared / reduced_nu

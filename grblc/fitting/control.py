@@ -31,11 +31,12 @@ def run_fit(filepaths):
                 auto_guess = input("Do you want to fit? (y/[n])")
                 if auto_guess in ["y"]:
                     tt = float(input("tt : "))
+                    tf = float(input("tf : "))
                     T = float(input("T : "))
                     F = float(input("F : "))
                     alpha = float(input("α : "))
                     t = float(input("t : "))
-                    fit_vals = [T, F, alpha, t, tt]
+                    fit_vals = [T, F, alpha, t, tt, tf]
 
                     p, pcov = fit_routine(filepath, guess=fit_vals, return_fit=True)
                     T, F, alpha, t = p
@@ -47,7 +48,7 @@ def run_fit(filepaths):
                             fit_df.set_index("GRB", inplace=True)
                         else:
                             fit_df = fit_data
-                        fit_df.loc[grb] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *fit_vals[:-1]]
+                        fit_df.loc[grb] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *fit_vals[:-2]]
                         savepath = os.path.join(get_dir(), "fit_vals.txt")
                         fit_df.to_csv(savepath, sep="\t", index=True)
                         clear_output()
@@ -68,7 +69,7 @@ def run_fit(filepaths):
             continue
 
 
-def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
+def fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=False):
     failct = 0
     df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
 
@@ -85,16 +86,18 @@ def fit_routine(filepath, guess=[None, None, None, None, 0], return_fit=False):
             p, pcov = fit_w07(
                 xdata,
                 ydata,
-                p0=guess[:-1],
-                tt=guess[-1],
+                p0=guess[:-2],
+                tt=guess[-2],
+                tf=guess[-1],
                 logTerr=None,
                 logFerr=yerr,
                 return_guess=False,
                 maxfev=10000,
             )
-            tt = guess[-1]
-            p0 = guess[:-1]
-            plot_fit_and_chisq(filepath, p, pcov, p0, tt)
+            tt = guess[-2]
+            tf = guess[-1]
+            p0 = guess[:-2]
+            plot_fit_and_chisq(filepath, p, pcov, p0, tt, tf)
             # plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
             # plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
             # chisquared = chisq(xdata, ydata, yerr, w07, guess[-1], *p)
@@ -310,3 +313,131 @@ def copy_rejected():
         copyfile(src, dst)
 
     print("Copied", copies, "rejected and previously fitted GRBs")
+
+
+def prepare_fit_data():
+
+    """
+    1 - Name
+    2 - Redshift
+    3 - Fbest
+    4 - T_abest
+    5 - Alpha_best
+    6 - F_min
+    7 - F_max
+    8 - T_amin
+    9 - T_amax
+    10 - Alpha_min
+    11 - Alpha_max
+    12 - Beta
+    13 - beta_errp
+    14 - beta_errm
+    15 - chi sq
+    16 - tt
+    17 - tf
+    18 - class
+    19 - T90
+    """
+
+    fit_val_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
+    dataframes = [pd.read_csv(f, sep="\t+|\s+", header=0, engine="python") for f in fit_val_paths]
+    result = pd.concat(dataframes)
+    result.drop_duplicates(subset="GRB", keep="last", inplace=True)
+    result.set_index("GRB", inplace=True)
+    grbs = result.index
+    # GRB    tt     T   T_err    F  F_err     alpha     alpha_err t t_err   T_guess  F_guess  alpha_guess  t_guess    grbs = result.index
+    trigs_and_specs = pd.read_csv(
+        os.path.join(get_dir(), "trigs_and_specs.txt"), sep="\t+|\s+", header=0, engine="python"
+    )
+    # GRB         photon_index   photon_index_err     trigger_date   trigger_time   z              T90
+    trigs_and_specs["spectral_index"] = trigs_and_specs["photon_index"] - 1
+    trigs_and_specs["spectral_index_err"] = trigs_and_specs["photon_index_err"]
+    trigs_and_specs.set_index("GRB", inplace=True)
+
+    final = []
+    for GRB in grbs:
+        name = GRB
+        try:
+            z = trigs_and_specs.loc[GRB, "z"]
+        except:
+            print(f"grb {name} not found in trigs and specs. trying a different name")
+            if "A" in GRB:
+                GRB = GRB[:-1]
+            elif GRB.isnumeric():
+                GRB = GRB + "A"
+
+            try:
+                z = trigs_and_specs.loc[GRB, "z"]
+            except:
+                print(f"grb {name} is definitely not in trigs and specs :(")
+                return
+        F = result.loc[GRB, "F"]
+        T = result.loc[GRB, "T"]
+        alpha = result.loc[GRB, "alpha"]
+        F_err = result.loc[GRB, "F_err"]
+        F_min = F - F_err
+        F_max = F + F_err
+        T_err = result.loc[GRB, "T_err"]
+        T_min = T - T_err
+        T_max = T + T_err
+        alpha_err = result.loc[GRB, "alpha_err"]
+        alpha_min = alpha - alpha_err
+        alpha_max = alpha + alpha_err
+        beta = trigs_and_specs.loc[GRB, "spectral_index"]
+        beta_errp = beta_errm = trigs_and_specs.loc[GRB, "spectral_index_err"]
+        chisq = "n/a"  # unneeded
+        tt = result.loc[GRB, "tt"]
+        tf = "n/a"
+        cls = "n/a"  # needed dtl
+        T90 = trigs_and_specs.loc[GRB, "T90"]
+
+        final.append(
+            [
+                name,
+                z,
+                F,
+                T,
+                alpha,
+                F_min,
+                F_max,
+                T_min,
+                T_max,
+                alpha_min,
+                alpha_max,
+                beta,
+                beta_errp,
+                beta_errm,
+                chisq,
+                tt,
+                tf,
+                cls,
+                T90,
+            ]
+        )
+
+    final_df = pd.DataFrame(
+        final,
+        columns=[
+            "GRB",
+            "z",
+            "F",
+            "T",
+            "alpha",
+            "F_min",
+            "F_max",
+            "T_min",
+            "T_max",
+            "alpha_min",
+            "alpha_max",
+            "beta",
+            "beta_errp",
+            "beta_errm",
+            "chisq",
+            "tt",
+            "tf",
+            "class",
+            "T90",
+        ],
+    )
+    final_df.to_csv(os.path.join(get_dir(), "for_mathematica.txt"), sep="\t", index=False)
+    print(f"Successfully prepared {len(final_df.index)} GRBs for Mathematica")

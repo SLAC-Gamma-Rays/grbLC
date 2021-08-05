@@ -13,7 +13,7 @@ def w07(x, T, F, alpha, t):
     return vals
 
 
-def chisq(x, y, yerr, model, tt=0, *p):
+def chisq(x, y, yerr, model, tt=0, tf=np.inf, *p):
     """
     Calculate chisq for a given proposed solution
 
@@ -22,7 +22,7 @@ def chisq(x, y, yerr, model, tt=0, *p):
     """
 
     x = np.asarray(x)
-    mask = x >= tt
+    mask = (x >= tt) & (x <= tf)
     y = np.asarray(y)
     yerr = np.asarray(yerr)
     if any(yerr == 0):
