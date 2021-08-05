@@ -8,7 +8,8 @@ from convert import get_dir, set_dir
 import glob2
 import matplotlib.pyplot as plt
 from functools import reduce
-
+from . import outlier
+from PyPDF2 import PdfFileMerger
 
 def run_fit(filepaths):
     from IPython.display import clear_output
@@ -130,7 +131,7 @@ def fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=
             print("Fitting does not work :(")
 
 
-def plot_data(filepath):
+def plot_data(filepath, return_plot=False):
 
     import plotly.express as px
 
@@ -171,7 +172,10 @@ def plot_data(filepath):
         xaxis_zeroline=True,
     )
 
-    fig.show()
+    if not return_plot:
+        fig.show()
+    else:
+        return fig
 
 
 def LC_summary(filepaths):
@@ -222,6 +226,43 @@ def _try_import_fit_data():
         return empty_dict
     except pandas.errors.EmptyDataError:
         return empty_dict
+
+
+def check_lc(save=False):
+
+    main_dir = os.path.join(get_dir(), "accepted")
+    lc_dir = os.path.join(get_dir(), "lightcurve")
+    os.makedirs(lc_dir, exist_ok=True)
+    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*.txt")))
+    pdfs = []
+
+    for path in accepted_paths:
+        grb = re.search("(\d{6}[A-Z]?)", path)[0]
+        fig1 = outlier.OutlierPlot(path, plot=False).plot(return_display=True)
+        fig1.write_image('temp1.pdf')
+        fig2 = plot_data(path, return_plot=True)
+        fig2.write_image('temp2.pdf')
+        merger = PdfFileMerger()
+
+        temp_pdfs = ['temp1.pdf', 'temp2.pdf']
+        for pdf in temp_pdfs:
+            merger.append(pdf)
+
+        pdf_path = f"{lc_dir}{os.sep}{grb}.pdf"
+        merger.write(pdf_path)
+        pdfs.append(pdf_path)
+        merger.close()
+
+    os.remove("temp1.pdf")
+    os.remove("temp2.pdf")
+
+    merger = PdfFileMerger()
+    for pdf in pdfs:
+        merger.append(pdf)
+
+    pdf_path = f"{lc_dir}{os.sep}all.pdf"
+    merger.write(pdf_path)
+    merger.close()
 
 
 def check_fits(save=True):
