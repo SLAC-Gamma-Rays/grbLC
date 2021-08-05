@@ -18,11 +18,11 @@ def fit_w07(
     return_guess=False,
     **kwargs,
 ):
-    before = np.asarray(logT) >= tt
-    after = np.asarray(logT) <= tf
-    mask = np.logical_and(before, after)
-    logT = np.asarray(logT)[mask]
-    logF = np.asarray(logF)[mask]
+    logT = np.asarray(logT)
+    logF = np.asarray(logF)
+    mask = (logT >= tt) & (logT <= tf)
+    logT = logT[mask]
+    logF = logF[mask]
 
     # handle automatic guessing if no guess is given
     Tguess, Fguess, alphaguess, tguess = p0
@@ -66,8 +66,8 @@ def fit_w07(
         method="trf",
         **kwargs,
     )
-
-    if p[-1] < 0:
+    *__, t = p
+    if t < 0:
         p, cov = curve_fit(
             lambda x, T, F, alpha: w07(x, T, F, alpha, 0),
             logT,
@@ -103,7 +103,7 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
         logFerr = np.asarray(logFerr)
 
     mask = (logT >= tt) & (logT <= tf)
-    plotx = np.linspace(logT[0] - 0.2, logT[-1] + 0.2, 100)
+    plotx = np.linspace(logTmin - 0.2, logTmax + 0.2, 100)
     ax.errorbar(
         logT[mask],
         logF[mask],
