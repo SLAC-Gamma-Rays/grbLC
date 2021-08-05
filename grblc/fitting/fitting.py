@@ -95,6 +95,8 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
     ax.axvline(tf, c="k", ls=":", label=f"tf = {tf}", alpha=0.3, zorder=-999999)
     logT = np.asarray(logT)
     logF = np.asarray(logF)
+    logTmin, logTmax = min(logT), max(logT)
+    logFmin = min(logF)
     if logTerr is not None:
         logTerr = np.asarray(logTerr)
     if logFerr is not None:
@@ -133,8 +135,8 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
         Tguess, Fguess, *__ = p0
         ax.scatter(Tguess, Fguess, c="tab:grey", zorder=200, s=200, label="Guess")
     ax.legend(framealpha=0.0)
-    ax.set_xlim(logT[0] - 0.2, logT[-1] + 0.2)
-    ax.set_ylim(np.min(logF) - 1, None)
+    ax.set_xlim(logTmin - 0.2, logTmax + 0.2)
+    ax.set_ylim(logFmin - 1, None)
     ax.set_xlabel("log T (sec)")
     ax.set_ylabel("log F (erg cm$^{-2}$ s$^{-1}$)")
     ax.set_title("Fitted Data")

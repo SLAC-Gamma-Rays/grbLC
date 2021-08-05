@@ -82,21 +82,20 @@ def fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=
         ydata = np.array(np.log10(flux))
         yerr = flux_err / (flux * np.log(10))
 
+        *p0, tt, tf = guess
+
         try:
             p, pcov = fit_w07(
                 xdata,
                 ydata,
-                p0=guess[:-2],
-                tt=guess[-2],
-                tf=guess[-1],
+                p0=p0,
+                tt=tt,
+                tf=tf,
                 logTerr=None,
                 logFerr=yerr,
                 return_guess=False,
                 maxfev=10000,
             )
-            tt = guess[-2]
-            tf = guess[-1]
-            p0 = guess[:-2]
             plot_fit_and_chisq(filepath, p, pcov, p0, tt, tf)
             # plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
             # plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
