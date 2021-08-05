@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import re, os
 from .assignments import locate
+from .control import plot_data, run_fit, fit_routine
+import glob2
 
 
 def LC_summary(filepaths):
@@ -18,13 +20,13 @@ def LC_summary(filepaths):
     return {grb: l for grb, (l, _) in lc_data.items()}
 
 
-def outlier_check_(filepath):
+def outlier_check_(filepath, save=False):
     try:
         op = OutlierPlot(filepath, plot=True)
         while True:
             try:
                 key = op.prompt()
-                op.update(key)
+                op.update(key, save)
             except StopIteration:
                 break
     except ImportError as e:
@@ -32,30 +34,56 @@ def outlier_check_(filepath):
         pass
 
 
-def check_all_(filepaths):
+def check_all_(filepaths, save=False):
     num_points = LC_summary(filepaths)
     for filepath in filepaths:
         grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
         try:
             if num_points[grb] > 0:
-                outlier_check_(filepath)
+                outlier_check_(filepath, save)
         except KeyboardInterrupt:
             break
 
+def check_one(grb):
 
-def check_one(grb, adjust=False):
-    if adjust:
-        # Version 1: check the grb and also accepting or rejecting data points
-        check_all_(locate(grb))
+    purpose = input("What do you want to do? [a] Show everything [b] Checking outliers [c] Fitting")
+    path = locate(grb)
 
-    else:
-        # Version 2: check the grb, but not accepting or rejecting any points
-        path = locate(grb)
-        if not path:
-            print(f"GRB {grb} not found")
+    if not path:
+        print(f"There is no data for GRB {grb}")
+        return
+
+    if purpose == 'a':
+        op = OutlierPlot(path[0], plot=True)
+        name = input("What is the <name> of the source txt: ")
+        source = glob2.glob(f"../211_manual_gathering/fit_vals_{name}.txt")
+
+        if not source:
+            print("No txt file for the name")
             return
-        filepath = path[0]
-        op = OutlierPlot(filepath, plot=True)
+
+        plot_data(path[0])
+        with open(source[0], 'r') as file:
+            df = pd.read_csv(file, delimiter=r"\t+|\s+", engine="python", header=0)
+
+        df = df[df["GRB"] == grb]
+        if df.empty:
+            print("No GRB data found in the txt file.")
+            return
+
+        data = df.iloc[0].to_dict()
+        keys = ['T_guess', 'F_guess', 'alpha_guess', 't_guess','tt']
+        guess = [float(data[k]) for k in keys]
+        filepath = os.path.join(os.path.split(path[0])[0], f"{grb}_converted_flux_accepted.txt")
+        fit_routine(filepath, guess=guess)
+
+    if purpose == 'b':
+        check_all_(path, save=True)
+        run_fit(path)
+
+    if purpose == 'c':
+        op = OutlierPlot(path[0], plot=True)
+        run_fit(path)
 
 
 class OutlierPlot:
@@ -376,7 +404,7 @@ class OutlierPlot:
 
         self.prevpt = old_prevpt
 
-    def update(self, key):
+    def update(self, key, save=False):
         if key in ["f", "forward"]:
             self.queue.append(["f", self.currpt, self.prevpt])
             self._inc()
@@ -401,10 +429,12 @@ class OutlierPlot:
             self._undo()
             self._save()
         elif key in ["d", "done"]:
-            clear_output()
+            if not save:
+                clear_output()
             raise StopIteration
         elif key in ["q", "quit"]:
-            clear_output()
+            if not save:
+                clear_output()
             raise KeyboardInterrupt
 
         self.plot()
