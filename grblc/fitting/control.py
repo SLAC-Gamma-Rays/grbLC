@@ -48,7 +48,19 @@ def run_fit(filepaths):
                             fit_df.set_index("GRB", inplace=True)
                         else:
                             fit_df = fit_data
-                        fit_df.loc[grb] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *fit_vals[:-2]]
+                        fit_df.loc[grb] = [
+                            tt,
+                            T,
+                            T_err,
+                            F,
+                            F_err,
+                            alpha,
+                            alpha_err,
+                            t,
+                            t_err,
+                            *fit_vals[:-2],
+                            fit_vals[-1],
+                        ]
                         savepath = os.path.join(get_dir(), "fit_vals.txt")
                         fit_df.to_csv(savepath, sep="\t", index=True)
                         clear_output()
@@ -196,6 +208,7 @@ def _try_import_fit_data():
             "F_guess",
             "alpha_guess",
             "t_guess",
+            "tf",
         ]
     }
     try:
