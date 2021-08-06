@@ -129,7 +129,7 @@ def convertGRB(
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
-        converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT")}
+        converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT", "mag", "mag_err")}
 
     for __, row in mag_table.iterrows():
         # strip band string of any whitespaces
@@ -168,11 +168,14 @@ def convertGRB(
             converted_debug["band"].append(band)
             converted_debug["logF"].append(logF)
             converted_debug["logT"].append(logT)
+            converted_debug["mag"].append(magnitude)
+            converted_debug["mag_err"].append(mag_err)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
-    save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux.txt")
-    pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
-    if debug:
+    if not debug:
+        save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux.txt")
+        pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
+    else:
         save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux_DEBUG.txt")
         pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
 
@@ -245,7 +248,7 @@ def get_dir():
 
 
 # called in the notebook to run the convert code
-def convert_all():
+def convert_all(debug=False):
     # grab all filepaths for LCs in magnitude
     filepaths = glob2.glob(reduce(os.path.join, (get_dir(), "*_flux", "*.txt")))
     grbs = [
@@ -260,7 +263,7 @@ def convert_all():
     pts_skipped = 0
     for GRB in grbs:
         try:
-            convertGRB(GRB)
+            convertGRB(GRB, debug=debug)
             converted.append(GRB)
         except ImportError as error:
             unsupported += 1

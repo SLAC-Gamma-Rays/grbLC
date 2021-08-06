@@ -11,6 +11,7 @@ from functools import reduce
 from . import outlier
 from PyPDF2 import PdfFileMerger
 
+
 def run_fit(filepaths):
     from IPython.display import clear_output
 
@@ -239,12 +240,12 @@ def check_lc(save=False):
     for path in accepted_paths:
         grb = re.search("(\d{6}[A-Z]?)", path)[0]
         fig1 = outlier.OutlierPlot(path, plot=False).plot(return_display=True)
-        fig1.write_image('temp1.pdf')
+        fig1.write_image("temp1.pdf")
         fig2 = plot_data(path, return_plot=True)
-        fig2.write_image('temp2.pdf')
+        fig2.write_image("temp2.pdf")
         merger = PdfFileMerger()
 
-        temp_pdfs = ['temp1.pdf', 'temp2.pdf']
+        temp_pdfs = ["temp1.pdf", "temp2.pdf"]
         for pdf in temp_pdfs:
             merger.append(pdf)
 
@@ -276,7 +277,11 @@ def check_fits(save=True):
     fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
     fits = 0
     for path in fitted_paths:
-        fitted = pd.read_csv(path, sep="\t", header=0, index_col=0)
+        try:
+            fitted = pd.read_csv(path, sep=r"\t+|\s+", header=0, index_col=0, engine="python")
+        except Exception as e:
+            print(path)
+            raise e
 
         # find intersection between GRBs with accepted pts and fitted grbs
         intersection = list(set(accepted) & set(fitted.index))
@@ -299,11 +304,12 @@ def check_fits(save=True):
                 p = np.array([curr["T"], curr.F, curr.alpha, curr.t])
                 perr = np.array([curr.T_err, curr.F_err, curr.alpha_err, curr.t_err])
                 tt = curr.tt
+                tf = curr.tf
                 p0 = np.array([curr.T_guess, curr.F_guess, curr.alpha_guess, curr.t_guess])
-                plot_w07_fit(xdata, ydata, p, tt=tt, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
-                plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
+                plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
+                plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, tf=tf, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
 
-                chisquared = chisq(xdata, ydata, yerr, w07, tt, *p)
+                chisquared = chisq(xdata, ydata, yerr, w07, tt, tf, *p)
                 reduced_nu = len(xdata[xdata >= tt]) - 3
                 reduced_nu = 1 if reduced_nu == 0 else reduced_nu
                 reduced = chisquared / reduced_nu
