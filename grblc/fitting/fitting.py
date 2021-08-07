@@ -183,7 +183,7 @@ def plot_chisq(x, y, yerr, p, perr, tt, tf, fineness=0.1, ax=None, show=True):
         ax_.set_xlabel(r"$\sigma$ multiplier")
         ax_.set_ylabel(r"$\Delta\chi^2$")
         ax_.set_title(plabels[idx])
-        ax_.set_ylim(0, 200)
+        ax_.set_ylim(0, 20)
         ax_.set_xlim(-2, 2)
         ax_.axvline(x=-1, c="k", ls=":", alpha=0.3, zorder=-999999)
         ax_.axvline(x=1, c="k", ls=":", alpha=0.3, zorder=-999999)

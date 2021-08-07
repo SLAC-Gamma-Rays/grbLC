@@ -313,8 +313,8 @@ def check_fits(save=True):
                 reduced_nu = len(xdata[xdata >= tt]) - 3
                 reduced_nu = 1 if reduced_nu == 0 else reduced_nu
                 reduced = chisquared / reduced_nu
-                nu = len(xdata[xdata >= tt])
-                prob = probability(xdata, reduced, nu, tt=tt)
+                nu = len(xdata[(xdata >= tt) & (xdata <= tf)])
+                prob = probability(xdata[(xdata >= tt) & (xdata <= tf)], reduced, nu)
 
                 plt.figtext(
                     x=0.63,
@@ -333,8 +333,9 @@ def check_fits(save=True):
                 )
 
                 if save:
-                    plt.savefig(reduce(os.path.join, [get_dir(), "fits", f"{GRB}_fitted.pdf"]))
+                    plt.savefig(reduce(os.path.join, [get_dir(), "fits_approved", f"{GRB}_fitted_approved.pdf"]))
                     plt.close()
+                    print("saved to", reduce(os.path.join, [get_dir(), "fits_approved", f"{GRB}_fitted_approved.pdf"]))
                 else:
                     plt.show()
             except Exception as e:
@@ -398,7 +399,7 @@ def prepare_fit_data():
     19 - T90
     """
 
-    fit_val_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
+    fit_val_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_approved.txt"))
     dataframes = [pd.read_csv(f, sep="\t+|\s+", header=0, engine="python") for f in fit_val_paths]
     result = pd.concat(dataframes)
     result.drop_duplicates(subset="GRB", keep="last", inplace=True)
@@ -498,5 +499,70 @@ def prepare_fit_data():
             "T90",
         ],
     )
-    final_df.to_csv(os.path.join(get_dir(), "for_mathematica.txt"), sep="\t", index=False)
+
+    totaltable131 = pd.read_csv(
+        "/Users/youngsam/Code/SULI/Totaltable_131_14_06-2021.txt", sep="\t+|\s+", engine="python", header=0
+    )
+    totaltable131.columns = pd.Index(
+        [
+            "GRB",
+            "z",
+            "T90",
+            "class",
+            "F",
+            "F_err",
+            "T",
+            "T_err",
+            "alpha",
+            "alpha_err",
+            "beta",
+            "beta_err",
+            "ktotal",
+            "ktotal_err",
+            "T_rest",
+            "T_rest_err",
+            "L",
+            "L_err",
+            "source",
+            "tt",
+            "4pt",
+        ]
+    )
+    totaltable131["F_min"] = totaltable131["F"] - totaltable131["F_err"]
+    totaltable131["F_max"] = totaltable131["F"] + totaltable131["F_err"]
+    totaltable131["T_min"] = totaltable131["T"] - totaltable131["T_err"]
+    totaltable131["T_max"] = totaltable131["T"] + totaltable131["T_err"]
+    totaltable131["alpha_min"] = totaltable131["alpha"] - totaltable131["alpha_err"]
+    totaltable131["alpha_max"] = totaltable131["alpha"] + totaltable131["alpha_err"]
+    totaltable131["beta_errp"] = totaltable131["beta_errm"] = totaltable131["beta_err"]
+    totaltable131["chisq"] = np.nan
+    totaltable131["tf"] = np.nan
+    totaltable131.drop(
+        [
+            "ktotal",
+            "ktotal_err",
+            "T_rest",
+            "T_rest_err",
+            "L",
+            "L_err",
+            "beta_err",
+            "T_err",
+            "F_err",
+            "alpha_err",
+            "source",
+            "4pt",
+        ],
+        axis=1,
+        inplace=True,
+    )
+    final = pd.concat([final_df, totaltable131])
+
+    final_df.to_csv(
+        os.path.join(get_dir(), f"for_mathematica_{len(final_df.index)}.txt"), sep="\t", index=False, na_rep="n/a"
+    )
     print(f"Successfully prepared {len(final_df.index)} GRBs for Mathematica")
+
+    final.to_csv(
+        os.path.join(get_dir(), f"for_mathematica_{len(final.index)}.txt"), sep="\t", index=False, na_rep="n/a"
+    )
+    print(f"Successfully prepared {len(final.index)} GRBs for Mathematica")
