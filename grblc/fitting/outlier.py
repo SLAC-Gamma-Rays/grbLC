@@ -2,8 +2,6 @@ from IPython.display import display, clear_output
 import numpy as np
 import pandas as pd
 import re, os
-from .assignments import locate
-from .control import plot_data, run_fit, fit_routine, get_dir
 import glob2
 
 
@@ -43,48 +41,6 @@ def check_all_(filepaths, save=False):
                 outlier_check_(filepath, save)
         except KeyboardInterrupt:
             break
-
-
-def check_one(grb):
-
-    purpose = input("What do you want to do? [a] Show everything [b] Checking outliers [c] Fitting")
-    path = locate(grb)
-
-    if not path:
-        print(f"There is no data for GRB {grb}")
-        return
-
-    if purpose == "a":
-        op = OutlierPlot(path[0], plot=True)
-        name = input("What is the <name> of the source txt: ")
-        source = glob2.glob(os.path.join(get_dir(), f"fit_vals_{name}.txt"))
-
-        if not source:
-            print("No txt file for the name")
-            return
-
-        plot_data(path[0])
-        with open(source[0], "r") as file:
-            df = pd.read_csv(file, delimiter=r"\t+|\s+", engine="python", header=0)
-
-        df = df[df["GRB"] == grb]
-        if df.empty:
-            print("No GRB data found in the txt file.")
-            return
-
-        data = df.iloc[0].to_dict()
-        keys = ["T_guess", "F_guess", "alpha_guess", "t_guess", "tt", "tf"]
-        guess = [float(data[k]) for k in keys]
-        filepath = os.path.join(os.path.split(path[0])[0], f"{grb}_converted_flux_accepted.txt")
-        fit_routine(filepath, guess=guess)
-
-    if purpose == "b":
-        check_all_(path, save=True)
-        run_fit(path)
-
-    if purpose == "c":
-        op = OutlierPlot(path[0], plot=True)
-        run_fit(path)
 
 
 class OutlierPlot:

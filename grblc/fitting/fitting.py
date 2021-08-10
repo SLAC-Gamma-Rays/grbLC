@@ -96,7 +96,7 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
     logT = np.asarray(logT)
     logF = np.asarray(logF)
     logTmin, logTmax = min(logT), max(logT)
-    logFmin = min(logF)
+    logFmin, logFmax = min(logF), max(logF)
     if logTerr is not None:
         logTerr = np.asarray(logTerr)
     if logFerr is not None:
@@ -136,7 +136,7 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
         ax.scatter(Tguess, Fguess, c="tab:grey", zorder=200, s=200, label="Guess")
     ax.legend(framealpha=0.0)
     ax.set_xlim(logTmin - 0.2, logTmax + 0.2)
-    ax.set_ylim(logFmin - 1, None)
+    ax.set_ylim(logFmin - 0.2, logFmax + 0.2)
     ax.set_xlabel("log T (sec)")
     ax.set_ylabel("log F (erg cm$^{-2}$ s$^{-1}$)")
     ax.set_title("Fitted Data")
@@ -167,7 +167,7 @@ def plot_chisq(x, y, yerr, p, perr, tt, tf, fineness=0.1, ax=None, show=True):
     if ax is None:
         fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
-    multiplier = np.arange(-4, 4, fineness)
+    multiplier = np.arange(-2, 2, fineness)
     paramspace = np.array([p + m * perr for m in multiplier])  # shape is (len(multiplier), 4)
     best_chisq = chisq(x, y, yerr, w07, tt, tf, *p)
     for idx, ax_ in enumerate(list(ax)):
@@ -183,7 +183,7 @@ def plot_chisq(x, y, yerr, p, perr, tt, tf, fineness=0.1, ax=None, show=True):
         ax_.set_xlabel(r"$\sigma$ multiplier")
         ax_.set_ylabel(r"$\Delta\chi^2$")
         ax_.set_title(plabels[idx])
-        ax_.set_ylim(0, 20)
+        ax_.set_ylim(0, None)
         ax_.set_xlim(-2, 2)
         ax_.axvline(x=-1, c="k", ls=":", alpha=0.3, zorder=-999999)
         ax_.axvline(x=1, c="k", ls=":", alpha=0.3, zorder=-999999)

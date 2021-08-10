@@ -4,11 +4,12 @@ import numpy as np
 import os, re
 from fitting.fitting import fit_w07, plot_w07_fit, plot_chisq, plot_fit_and_chisq
 from fitting.models import chisq, probability, w07
+from .assignments import locate
 from convert import get_dir, set_dir
 import glob2
 import matplotlib.pyplot as plt
 from functools import reduce
-from . import outlier
+from .outlier import OutlierPlot, check_all_
 from PyPDF2 import PdfFileMerger
 
 
@@ -239,7 +240,7 @@ def check_lc(save=False):
 
     for path in accepted_paths:
         grb = re.search("(\d{6}[A-Z]?)", path)[0]
-        fig1 = outlier.OutlierPlot(path, plot=False).plot(return_display=True)
+        fig1 = OutlierPlot(path, plot=False).plot(return_display=True)
         fig1.write_image("temp1.pdf")
         fig2 = plot_data(path, return_plot=True)
         fig2.write_image("temp2.pdf")
@@ -566,3 +567,45 @@ def prepare_fit_data():
         os.path.join(get_dir(), f"for_mathematica_{len(final.index)}.txt"), sep="\t", index=False, na_rep="n/a"
     )
     print(f"Successfully prepared {len(final.index)} GRBs for Mathematica")
+
+
+def check_one(grb):
+
+    purpose = input("What do you want to do? [a] Show everything [b] Checking outliers [c] Fitting")
+    path = locate(grb)
+
+    if not path:
+        print(f"There is no data for GRB {grb}")
+        return
+
+    if purpose == "a":
+        op = OutlierPlot(path[0], plot=True)
+        name = input("What is the <name> of the source txt: ")
+        source = glob2.glob(os.path.join(get_dir(), f"fit_vals_{name}.txt"))
+
+        if not source:
+            print("No txt file for the name")
+            return
+
+        plot_data(path[0])
+        with open(source[0], "r") as file:
+            df = pd.read_csv(file, delimiter=r"\t+|\s+", engine="python", header=0)
+
+        df = df[df["GRB"] == grb]
+        if df.empty:
+            print("No GRB data found in the txt file.")
+            return
+
+        data = df.iloc[0].to_dict()
+        keys = ["T_guess", "F_guess", "alpha_guess", "t_guess", "tt", "tf"]
+        guess = [float(data[k]) for k in keys]
+        filepath = os.path.join(os.path.split(path[0])[0], f"{grb}_converted_flux_accepted.txt")
+        fit_routine(filepath, guess=guess)
+
+    if purpose == "b":
+        check_all_(path, save=True)
+        run_fit(path)
+
+    if purpose == "c":
+        op = OutlierPlot(path[0], plot=True)
+        run_fit(path)
