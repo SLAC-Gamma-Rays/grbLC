@@ -2,7 +2,6 @@ from IPython.display import display, clear_output
 import numpy as np
 import pandas as pd
 import re, os
-import glob2
 
 
 def LC_summary(filepaths):

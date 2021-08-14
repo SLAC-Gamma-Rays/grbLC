@@ -2,10 +2,9 @@ from astropy import units as u, constants as const
 from astropy.time import Time
 import pandas as pd
 import numpy as np
-from .constants import flux_densities
-from .time import grb_to_date
+from .constants import flux_densities, ebv2A_b_df
 import os.path
-import requests, re, glob2
+import re, glob2
 from functools import reduce
 
 
@@ -13,28 +12,91 @@ def angstromToHz(ang: float):
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
-def toFlux(mag: float, band: str, magerr: float = 0, photon_index: float = 0, photon_index_err: float = 0):
+def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
+    """ebv2A_b A function that returns the galactic extinction correction
+                       at a given position for a given band.
+
+                            This takes data from Schlegel, Finkbeiner & Davis (1998) in the form
+                            of the SFD dust map, and is queried using the dustmaps python package.
+                            Updated coefficient conversion values for the SFD is taken from Schlafly & Finkbeiner (2011)
+                            and is found in SF11_conversions.txt.
+    Args:
+            ra (str): Right ascension
+            dec (str): Declination
+            bandpass (str): One of the 94 bandpasses supported. See SF11_conversion.txt for these bandpasses.
+
+    Returns:
+            float: Galactic extinction correct in magnitude.
+    """
+
+    from astropy.coordinates import SkyCoord
+    from dustmaps.sfd import SFDQuery
+
+    sfd = SFDQuery()
+
+    if not (ra or dec):
+        import astroquery.exceptions
+        from astroquery.simbad import Simbad
+
+        try:
+            obj = Simbad.query_object(f"GRB {grb}")
+            skycoord = SkyCoord("%s %s" % (obj["RA"][0], obj["DEC"][0]), unit=(u.hourangle, u.deg))
+        except astroquery.exceptions.RemoteServiceError:
+            raise astroquery.exceptions.RemoteServiceError(
+                f"Couldn't find the position of GRB {grb}. Please supply in RA and DEC manually."
+            )
+    else:
+        skycoord = SkyCoord("%s %s" % (ra, dec), frame="icrs", unit=(u.hourangle, u.deg))
+
+    # this grabs the degree of reddening E(B-V) at the given position in the sky.
+    # see https://astronomy.swin.edu.au/cosmos/i/interstellar+reddening for an explanation of what this is
+    ebv = sfd(skycoord)
+
+    # this factor is A_b / E(B-V)
+    factor = ebv2A_b_df["3.1"][bandpass]
+
+    A_b = ebv * factor
+
+    return A_b  # [mag]
+
+
+def toFlux(
+    mag: float,
+    band: str,
+    grb: str,
+    magerr: float = 0,
+    photon_index: float = 0,
+    photon_index_err: float = 0,
+    A_b: float = 0,
+    source: str = "manual",
+    ra: str = "",
+    dec: str = "",
+):
 
     band = re.sub(r"(\'|_|\\|\(.+\))", "", band)
     band = re.sub(r"(?<![A-Za-z])([mw]\d{1})", r"uv\1", band)
+    if source == "uvot":
+        band += "_swift"
     band = band if band != "v" else "V"
 
     # determine index type for conversion of f_nu to R band
     beta = photon_index - 1
 
     try:
-        lambda_R, _ = flux_densities["R"]  # lambda_R in angstrom
-        lambda_x, f_x = flux_densities[band]
+        lambda_R, *__ = flux_densities["R"]  # lambda_R in angstrom
+        lambda_x, f_x, bandpass_for_ebv = flux_densities[band]
     except KeyError:
-        # TODO: fix the weird ""'s being printed when the error is raised.
-        raise KeyError(f"Band '{band}' is not currently supported. Please fix the band or contact Nicole/Sam!")
+        raise KeyError(f"Band '{band}' is not currently supported.")
+
+    # get correction for galactic extinction to be added to magnitude if not already supplied
+    if A_b == 0:
+        A_b = ebv2A_b(grb, bandpass_for_ebv, ra=ra, dec=dec)
 
     # convert from flux density in another band to R!
     f_R = f_x * (lambda_x / lambda_R) ** (-beta)
-
     f_lam_or_nu = f_R
 
-    if band.lower() in ["uvw1", "uvw2", "uvm2", "white"]:
+    if band.lower() in ["u_swift", "b_swift", "v_swift", "uvw1_swift", "uvw2_swift", "uvm2_swift", "white"]:
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
         lam_or_nu = lambda_R * (u.angstrom)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
@@ -43,7 +105,7 @@ def toFlux(mag: float, band: str, magerr: float = 0, photon_index: float = 0, ph
         lam_or_nu = angstromToHz(lambda_R) * (u.Hz)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
-    flux = (lam_or_nu * f_lam_or_nu * 10 ** (-mag / 2.5)).value
+    flux = (lam_or_nu * f_lam_or_nu * 10 ** (-(mag + A_b) / 2.5)).value
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
     fluxerr = abs(flux) * np.sqrt(
@@ -59,6 +121,9 @@ def toFlux(mag: float, band: str, magerr: float = 0, photon_index: float = 0, ph
 def convertGRB(
     GRB: str, battime: str = "", index: float = 0, index_type: str = "", use_nick: bool = False, debug: bool = False
 ):
+    # make sure we have dust maps downloaded for calculating galactic extinction
+    _check_dust_maps()
+
     # assign column names and datatypes before importing
     dtype = {
         "date": str,
@@ -81,7 +146,7 @@ def convertGRB(
     | nickname | date | time | exp | mag | mag_err | band |
     """
 
-    # try to import mag_table to convert
+    # try to import magnitude table to convert
     try:
         global directory
         glob_path = reduce(os.path.join, (directory, "**", f"{GRB}.txt"))
@@ -100,7 +165,7 @@ def convertGRB(
     except IndexError as error:
         raise ImportError(message=f"Couldn't find GRB table at {filename}.")
 
-    # grab index and trigger time
+    # grab photon index, trigger time, and position in sky of GRB
     if battime and index:
         starttime = Time(battime)
     else:
@@ -117,35 +182,34 @@ def convertGRB(
             bat_spec_df.dropna(how="any", subset=["photon_index", "photon_index_err"], inplace=True)
             photon_index, photon_index_err = list(bat_spec_df.loc[GRB, ["photon_index", "photon_index_err"]])
             battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
+            ra, dec = bat_spec_df.loc[GRB, ["ra", "dec"]]
             battime = " ".join(battime)
             starttime = Time(battime)
 
         except KeyError:
             raise ImportError(
-                f"{GRB} isn't currently supported and it's trigger time and spectral/photon index must be manually provided. :("
+                f"{GRB} isn't currently supported and it's trigger time, photon index, and position must be manually provided. :("
             )
-        except AssertionError:
-            raise AssertionError(f"{GRB}: Failed converting flux or flux_err")
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
         converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT", "mag", "mag_err")}
 
     for __, row in mag_table.iterrows():
-        # strip band string of any whitespaces
         band = row["band"]
         magnitude = row["mag"]
         mag_err = row["mag_err"]
 
-        # attempt to convert a single mag to flux given band, mag_err, and spectral index
+        # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
             flux, flux_err = toFlux(
-                magnitude, band, mag_err, photon_index=photon_index, photon_index_err=photon_index_err
+                magnitude, band, ra, dec, mag_err, photon_index=photon_index, photon_index_err=photon_index_err
             )
         except KeyError as error:
             print(error)
             continue
 
+        # convert UT to a time delta since trigger time
         date_UT = row["date"]
         time_UT = row["time"]
         time_UT = f"{date_UT} {time_UT}"
@@ -158,7 +222,7 @@ def convertGRB(
         converted["flux_err"].append(flux_err)
         converted["band"].append(band)
 
-        # VERBOSE
+        # verbosity if you want it
         if debug:
             logF = np.log10(flux)
             logT = np.log10(time_sec)
@@ -173,66 +237,13 @@ def convertGRB(
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
-        save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux.txt")
+        save_path = os.path.join(os.path.dirname(filename), f"{GRB}_converted_flux.txt")
         pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
     else:
-        save_path = os.path.join(os.path.split(filename)[0], f"{GRB}_converted_flux_DEBUG.txt")
+        save_path = os.path.join(os.path.dirname(filename), f"{GRB}_converted_flux_DEBUG.txt")
         pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
 
     return
-
-
-# Saves GRB spectral and photon indices to a text file from the Swift website to a file called
-# trigs_and_specs.txt in `directory`. If `directory` hasn't been set it'll save to the current
-# working directory (e.g., the folder in which your notebook is)
-def save_convert_params(save_dir=None, return_df=False):
-    from swifttools.xrt_prods import XRTProductRequest
-
-    if not save_dir:
-        global directory
-        save_dir = directory
-
-    # requests a table link from the Swift website. this html can be huge as the entire formatted
-    # table is returned here, so we'll request it as byte stream and parse it by line to save
-    # the user and the NASA site bandwith.
-    q = requests.get(
-        "https://swift.gsfc.nasa.gov/archive/grb_table/table.php?obs=All+Observatories&year=All+Years&restrict=none&grb_time=1&bat_photon_index=1&xrt_gamma=1",
-        stream=True,
-    )
-    lines = q.iter_lines(decode_unicode=True)
-    regsearch = re.compile(r"(?<=\/)(?:grb_table_\d+\.txt)")
-    filename = None
-    while not filename:
-        filename = regsearch.search(next(lines))
-
-    # grab the actual plaintext table
-    df = pd.read_csv(
-        f"https://swift.gsfc.nasa.gov/archive/grb_table/tmp/{filename[0]}",
-        header=0,
-        index_col=0,
-        delimiter="\t",
-        engine="c",
-        names=["GRB", "trigger_time", "spectral_index", "photon_index"],
-        # na_values="n/a",
-    )
-
-    # delete columns where we have NaN for both photon_index & spectral_index
-    # df.dropna(axis=0, how="all", subset=["photon_index"], inplace=True)
-    df.dropna(axis=0, how="any", subset=["trigger_time"], inplace=True)
-
-    # insert a new column containing dates for each grb trigger date
-    df.insert(0, "trigger_date", list(map(grb_to_date, df.index)))
-
-    # drop photon_index
-    df.drop("photon_index", axis=1, inplace=True)
-    # drop spectral index
-    df.drop("spectral_index", axis=1, inplace=True)
-
-    # save!
-    df.to_csv(os.path.join(save_dir, "triggers.txt"), sep="\t", na_rep="n/a")
-
-    if return_df:
-        return df
 
 
 # small setter to set the main conversion directory
@@ -242,17 +253,19 @@ def set_dir(dir):
     return directory
 
 
+# getter to return conversion directory
 def get_dir():
     global directory
     return directory
 
 
-# called in the notebook to run the convert code
+# Converts all magnitude tables that are in the path format of
+# get_dir()/*_flux/<GRB>.txt
 def convert_all(debug=False):
     # grab all filepaths for LCs in magnitude
     filepaths = glob2.glob(reduce(os.path.join, (get_dir(), "*_flux", "*.txt")))
     grbs = [
-        os.path.split(f)[-1].rstrip(".txt")
+        os.path.split(f)[1][:-4]
         for f in filepaths
         if os.path.split(f)[1].count("flux") == 0 and "trigger" not in f and "spectral_index" not in f
     ]
@@ -285,12 +298,23 @@ def convert_all(debug=False):
         len(grbs),
         "\nSuccessfully Converted:",
         len(converted),
-        "\npts skipped",
+        "\nPoints skipped",
         pts_skipped,
     )
 
     with open(os.path.join(get_dir(), "unsupported.txt"), "w") as f:
         f.write("\n".join(unsupported_names))
+
+
+# simple checker that downloads the SFD dust map if it's not already there
+def _check_dust_maps():
+    from dustmaps.config import config
+    import dustmaps.sfd
+
+    data_dir = os.path.join(os.path.dirname(__file__), "extinction_maps")
+    if not os.path.exists(os.path.join(data_dir, "sfd")):
+        config["data_dir"] = data_dir
+        dustmaps.sfd.fetch()
 
 
 # sets directory to the current working directory, or whatever folder you're currently in

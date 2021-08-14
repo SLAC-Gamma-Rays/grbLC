@@ -1,5 +1,4 @@
 import pandas as pd
-import pandas.errors
 import numpy as np
 import re, os
 
