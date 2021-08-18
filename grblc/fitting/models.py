@@ -13,7 +13,7 @@ def w07(x, T, F, alpha, t):
     return vals
 
 
-def chisq(x, y, yerr, model, tt=0, tf=np.inf, *p):
+def chisq(x, y, yerr, model, *p):
     """
     Calculate chisq for a given proposed solution
 
@@ -22,16 +22,15 @@ def chisq(x, y, yerr, model, tt=0, tf=np.inf, *p):
     """
 
     x = np.asarray(x)
-    mask = (x >= tt) & (x <= tf)
     y = np.asarray(y)
     yerr = np.asarray(yerr)
     if any(yerr == 0):
         print("Y_err of 0 provided. This is not gonna end well...")
 
-    return np.sum(np.square(y[mask] - model(x[mask], *p)) / np.power(yerr[mask], 2))
+    return np.sum(np.square(y - model(x, *p)) / np.power(yerr, 2))
 
 
-def probability(x, reduced_chisq, nu, tt=0):
+def probability(reduced_chisq, nu, tt=0):
     import scipy.integrate as si
     from scipy.special import gamma
 

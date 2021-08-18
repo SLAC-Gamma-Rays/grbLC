@@ -2,11 +2,12 @@ from functools import reduce
 import glob2
 import re
 import os
+from .convert import get_dir
 
 
-def fix_format(main_dir):
+def fix_format():
     ff = []
-    glob_path = reduce(os.path.join, (main_dir, "**/*.txt"))
+    glob_path = reduce(os.path.join, [get_dir(), "**","*.txt"])
     grbsearch = re.compile(r"\d{4,7}[A-Z]?")
     filepaths = [g for g in glob2.glob(glob_path) if "_converted_flux.txt" not in g and grbsearch.search(g)]
     for line in filepaths:
@@ -20,8 +21,6 @@ def fix_format(main_dir):
         print("The following files were renamed to add the leading zero: " + str(ff))
 
     # Correct \t
-    glob_path = reduce(os.path.join, (main_dir, "**/*.txt"))
-    grbsearch = re.compile(r"\d{4,7}[A-Z]?")
     filepaths = [g for g in glob2.glob(glob_path) if "_converted_flux.txt" not in g and grbsearch.search(g)]
     for line in filepaths:
         with open(line, "r") as f:

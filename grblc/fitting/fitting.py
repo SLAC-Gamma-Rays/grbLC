@@ -92,7 +92,8 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
     if ax is None:
         fig, ax = plt.subplots(1)
     ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
-    ax.axvline(tf, c="k", ls=":", label=f"tf = {tf}", alpha=0.3, zorder=-999999)
+    if tt != 999:
+        ax.axvline(tf, c="k", ls=":", label=f"tf = {tf}", alpha=0.3, zorder=-999999)
     logT = np.asarray(logT)
     logF = np.asarray(logF)
     logTmin, logTmax = min(logT), max(logT)
@@ -110,6 +111,7 @@ def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=
         xerr=logTerr[mask] if logTerr is not None else logTerr,
         yerr=logFerr[mask],
         fmt=".",
+        alpha=0.4,
         zorder=0,
     )
     ax.errorbar(
@@ -163,17 +165,17 @@ def plot_w07_toy_fit(logT, logF, pfit, ptrue, logTerr=None, logFerr=None, ax=Non
     fig, ax = None, None
 
 
-def plot_chisq(x, y, yerr, p, perr, tt, tf, fineness=0.1, ax=None, show=True):
+def plot_chisq(x, y, yerr, p, perr, fineness=0.1, ax=None, show=True):
     if ax is None:
         fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
     multiplier = np.arange(-2, 2, fineness)
     paramspace = np.array([p + m * perr for m in multiplier])  # shape is (len(multiplier), 4)
-    best_chisq = chisq(x, y, yerr, w07, tt, tf, *p)
+    best_chisq = chisq(x, y, yerr, w07, *p)
     for idx, ax_ in enumerate(list(ax)):
         chisq_params = np.tile(p, (len(multiplier), 1))
         chisq_params[:, idx] = paramspace[:, idx]
-        delta_chisq = [chisq(x, y, yerr, w07, tt, tf, *chisq_param) - best_chisq for chisq_param in chisq_params]
+        delta_chisq = [chisq(x, y, yerr, w07, *chisq_param) - best_chisq for chisq_param in chisq_params]
 
         # print(delta_chisq)
         # print(chisq_params[:-5])
@@ -277,15 +279,16 @@ def plot_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf):
     ydata = np.array(np.log10(acc.flux))
     yerr = acc.flux_err / (acc.flux * np.log(10))
     perr = np.sqrt(np.diag(pcov))
-    plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
-    plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, tf=tf, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
+    mask = (xdata >= tt) & (xdata <= tf)
+    plot_w07_fit(xdata[mask], ydata[mask], p, logTerr=None, logFerr=yerr[mask], p0=p0, ax=ax["fit"], show=False)
+    plot_chisq(xdata[mask], ydata[mask], yerr[mask], p, perr, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
 
-    chisquared = chisq(xdata, ydata, yerr, w07, tt, tf, *p)
-    reduced_nu = len(xdata[xdata >= tt]) - 3
+    chisquared = chisq(xdata[mask], ydata[mask], yerr[mask], w07, *p)
+    reduced_nu = len(xdata[mask]) - 3
     reduced_nu = 1 if reduced_nu == 0 else reduced_nu
     reduced = chisquared / reduced_nu
-    nu = len(xdata[xdata >= tt])
-    prob = probability(xdata, reduced, nu, tt=tt)
+    nu = len(xdata[mask])
+    prob = probability(reduced, nu)
 
     plt.figtext(
         x=0.63,

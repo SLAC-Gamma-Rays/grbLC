@@ -113,19 +113,6 @@ def fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=
             )
             if plot:
                 plot_fit_and_chisq(filepath, p, pcov, p0, tt, tf)
-            # plot_w07_fit(xdata, ydata, p, tt=guess[-1], logTerr=None, logFerr=yerr, p0=guess[:-1])
-            # plot_chisq(xdata, ydata, yerr, p, np.sqrt(np.diag(pcov)), tt=guess[-1])
-            # chisquared = chisq(xdata, ydata, yerr, w07, guess[-1], *p)
-            # reduced = chisquared / (len(xdata[xdata >= guess[-1]]) - 3)
-            # nu = len(xdata[xdata >= guess[-1]])
-            # prob = probability(xdata, reduced, nu, tt=guess[-1])
-
-            # print("GUESS:         ", guess[:-1])
-            # print("FIT:           ", p)
-            # print("FIT ERR:       ", np.sqrt(np.diag(pcov)))
-            # print("CHISQ:         ", chisquared)
-            # print("REDUCED CHISQ: ", reduced)
-            # print("PROBABILITY α: ", prob)
 
             if return_fit:
                 return p, pcov
@@ -196,7 +183,7 @@ def LC_summary(filepaths):
     return {grb: l for grb, (l, _) in lc_data.items()}
 
 
-def _try_import_fit_data():
+def _try_import_fit_data(filename="fit_vals.txt"):
     empty_dict = {
         k: []
         for k in [
@@ -215,10 +202,11 @@ def _try_import_fit_data():
             "alpha_guess",
             "t_guess",
             "tf",
+            "chisq",
         ]
     }
     try:
-        filepath = os.path.join(get_dir(), f"fit_vals.txt")
+        filepath = os.path.join(get_dir(), filename)
         data = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0, index_col="GRB")
         if len(data.index) > 0:
             return data
@@ -270,12 +258,14 @@ def check_lc(save=False):
 def check_fits(save=True):
 
     main_dir = os.path.join(get_dir(), "accepted")
-    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*.txt")))
-    accepted = np.array([os.path.split(path)[1].rstrip("_converted_flux_accepted.txt") for path in accepted_paths])
+    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*accepted_ext_corr*.txt")))
+    accepted = np.array(
+        [os.path.split(path)[1].rstrip("_converted_flux_accepted_ext_corr.txt") for path in accepted_paths]
+    )
 
     # import fit_vals.txt to cross-reference with accepted_grbs.
     # if we have a match in both, that means we can plot!
-    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
+    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_approved.txt"))
     fits = 0
     for path in fitted_paths:
         try:
@@ -308,14 +298,17 @@ def check_fits(save=True):
                 tf = curr.tf
                 p0 = np.array([curr.T_guess, curr.F_guess, curr.alpha_guess, curr.t_guess])
                 plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
-                plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, tf=tf, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
+                mask = (xdata >= tt) & (xdata <= tf)
+                plot_chisq(
+                    xdata[mask], ydata[mask], yerr[mask], p, perr, ax=[ax["T"], ax["F"], ax["alpha"]], show=False
+                )
 
-                chisquared = chisq(xdata, ydata, yerr, w07, tt, tf, *p)
+                chisquared = chisq(xdata[mask], ydata[mask], yerr[mask], w07, *p)
                 reduced_nu = len(xdata[xdata >= tt]) - 3
                 reduced_nu = 1 if reduced_nu == 0 else reduced_nu
                 reduced = chisquared / reduced_nu
-                nu = len(xdata[(xdata >= tt) & (xdata <= tf)])
-                prob = probability(xdata[(xdata >= tt) & (xdata <= tf)], reduced, nu)
+                nu = len(xdata[mask])
+                prob = probability(reduced, nu)
 
                 plt.figtext(
                     x=0.63,
@@ -446,9 +439,9 @@ def prepare_fit_data():
         alpha_max = alpha + alpha_err
         beta = trigs_and_specs.loc[GRB, "spectral_index"]
         beta_errp = beta_errm = trigs_and_specs.loc[GRB, "spectral_index_err"]
-        chisq = "n/a"  # unneeded
+        chisq = result.loc[GRB, "chisq"]  # unneeded
         tt = result.loc[GRB, "tt"]
-        tf = "n/a"
+        tf = result.loc[GRB, "tf"]
         cls = "n/a"  # needed dtl
         auth = "n/a"
         T90 = trigs_and_specs.loc[GRB, "T90"]
@@ -602,7 +595,7 @@ def check_one(grb):
         data = df.iloc[0].to_dict()
         keys = ["T_guess", "F_guess", "alpha_guess", "t_guess", "tt", "tf"]
         guess = [float(data[k]) for k in keys]
-        filepath = os.path.join(os.path.split(path[0])[0], f"{grb}_converted_flux_accepted.txt")
+        filepath = os.path.join(os.path.dirname(path), f"{grb}_converted_flux_accepted_ext_corr.txt")
         fit_routine(filepath, guess=guess)
 
     if purpose == "b":
@@ -624,15 +617,16 @@ def plot_for_gold_sample(filepath, grb, tt, tf, return_plot=True):
     fig.show()
 
 
-def refit_all(save=True):
+def refit_all(guess="original", save=True):
 
     main_dir = os.path.join(get_dir(), "accepted")
-    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*ext.txt")))
-    accepted = np.array([os.path.split(path)[1].rstrip("_converted_flux_accepted_ext.txt") for path in accepted_paths])
-
+    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*ext_corr.txt")))
+    accepted = np.array(
+        [os.path.split(path)[1].rstrip("_converted_flux_accepted_ext_corr.txt") for path in accepted_paths]
+    )
     # import fit_vals.txt to cross-reference with accepted_grbs.
     # if we have a match in both, that means we can plot!
-    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_*.txt"))
+    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_approved.txt"))
     fits = 0
     for path in fitted_paths:
         try:
@@ -646,7 +640,6 @@ def refit_all(save=True):
 
         for GRB in intersection:
             try:
-                fits += 1
                 # set up figure
                 ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
                     [["fit", "fit", "EMPTY"], ["T", "F", "alpha"]], empty_sentinel="EMPTY"
@@ -660,27 +653,34 @@ def refit_all(save=True):
                 xdata = np.array(np.log10(acc.time_sec))
                 ydata = np.array(np.log10(acc.flux))
                 yerr = acc.flux_err / (acc.flux * np.log(10))
-                # p0 = np.array([curr["T"], curr.F, curr.alpha, curr.t, curr.tt, curr.tf])
-                p0 = np.array(
-                    [curr["T_guess"], curr["F_guess"], curr["alpha_guess"], curr["t_guess"], curr.tt, curr.tf]
-                )
-                # print(p0)
+
+                if guess == "original":
+                    p0 = np.array(
+                        [curr["T_guess"], curr["F_guess"], curr["alpha_guess"], curr["t_guess"], curr.tt, curr.tf]
+                    )
+                elif guess == "fitted":
+                    p0 = np.array([curr["T"], curr.F, curr.alpha, curr.t, curr.tt, curr.tf])
+                else:
+                    p0 = [None, None, None, None, 0, np.inf]
 
                 # refit using the previously fitted values as our guess
                 p, pcov = fit_routine(accepted_path, guess=p0, return_fit=True, plot=False)
+                fits += 1
                 perr = np.sqrt(np.diag(pcov))
                 tt = curr.tt
                 tf = curr.tf
-
+                mask = (xdata >= tt) & (xdata <= tf)
                 plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
-                plot_chisq(xdata, ydata, yerr, p, perr, tt=tt, tf=tf, ax=[ax["T"], ax["F"], ax["alpha"]], show=False)
+                plot_chisq(
+                    xdata[mask], ydata[mask], yerr[mask], p, perr, ax=[ax["T"], ax["F"], ax["alpha"]], show=False
+                )
 
-                chisquared = chisq(xdata, ydata, yerr, w07, tt, tf, *p)
-                reduced_nu = len(xdata[xdata >= tt]) - 3
+                chisquared = chisq(xdata[mask], ydata[mask], yerr[mask], w07, *p)
+                reduced_nu = len(xdata[mask]) - 3
                 reduced_nu = 1 if reduced_nu == 0 else reduced_nu
                 reduced = chisquared / reduced_nu
-                nu = len(xdata[(xdata >= tt) & (xdata <= tf)])
-                prob = probability(xdata[(xdata >= tt) & (xdata <= tf)], reduced, nu)
+                nu = len(xdata[mask])
+                prob = probability(reduced, nu)
 
                 plt.figtext(
                     x=0.63,
@@ -698,19 +698,41 @@ def refit_all(save=True):
                     size=18,
                 )
 
+                FITS_NAME = "fit_vals_ext_corr_w_chisq.txt"
+                fit_data = _try_import_fit_data(FITS_NAME)
+                if isinstance(fit_data, dict):
+                    fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
+                    fit_df.set_index("GRB", inplace=True)
+                else:
+                    fit_df = fit_data
+
+                T, F, alpha, t = p
+                T_err, F_err, alpha_err, t_err = np.sqrt(np.diag(pcov))
+                fit_df.loc[GRB] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *p0[:-2], tf, reduced]
+                savepath = os.path.join(get_dir(), FITS_NAME)
+                fit_df.to_csv(savepath, sep="\t", index=True)
+
                 if save:
                     plt.savefig(
-                        reduce(os.path.join, [get_dir(), "fits_approved_ext", f"{GRB}_fitted_approved_ext.pdf"])
+                        reduce(
+                            os.path.join,
+                            [get_dir(), "fits_approved_ext_corr_old_guess", f"{GRB}_fitted_approved_ext_corr.pdf"],
+                        )
                     )
                     plt.close()
                     print(
                         "saved to",
-                        reduce(os.path.join, [get_dir(), "fits_approved_ext", f"{GRB}_fitted_approved_ext.pdf"]),
+                        reduce(
+                            os.path.join,
+                            [get_dir(), "fits_approved_ext_corr_old_guess", f"{GRB}_fitted_approved_ext_corr.pdf"],
+                        ),
                     )
+
                 else:
                     plt.show()
             except Exception as e:
-                print(GRB)
+                print(GRB, e)
+                # raise e
                 continue
 
     print("Plotted", fits, "new fits with extinction.")
