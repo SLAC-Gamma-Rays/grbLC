@@ -131,9 +131,9 @@ def plot_data(filepath, return_plot=False):
         (df["time_sec"][df["time_sec"].duplicated(keep=False)]).apply(lambda x: round(np.log10(x), 4)).astype(str)
     )
 
-    if len(t_dupes) > 0:
-        dupe_string = ", ".join(t_dupes)
-        print(f"Some duplicate times found at T = [{dupe_string}]. Did you correctly go through Stage 2?")
+    # if len(t_dupes) > 0:
+    #     dupe_string = ", ".join(t_dupes)
+    #     print(f"Some duplicate times found at T = [{dupe_string}]. Did you correctly go through Stage 2?")
 
     try:
         df["source"]
