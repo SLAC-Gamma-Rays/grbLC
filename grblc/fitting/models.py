@@ -2,6 +2,7 @@ import numpy as np
 
 
 # The famous Willingale et. al 2007 model
+@np.vectorize
 def w07(x, T, F, alpha, t):
     before = lambda x: np.log10(
         np.power(10, F) * np.exp(alpha - alpha * (np.power(10, x) / np.power(10, T))) * np.exp(-t / np.power(10, x))
@@ -13,11 +14,30 @@ def w07(x, T, F, alpha, t):
     return vals
 
 
+def sharp_bpl(x, T, F, alpha1, alpha2):
+
+    linT, linF = np.power(10, [T, F])
+    linX = np.power(10, x)
+
+    before = lambda x: linF * (x / linT) ** (-alpha1)
+    after = lambda x: linF * (x / linT) ** (-alpha2)
+    vals = np.piecewise(linX, [linX < linT, linX >= linT], [before, after])
+
+    return np.log10(vals)
+
+
+@np.vectorize
+def smooth_bpl(x, T, F, alpha1, alpha2, S):
+
+    linT, linF, linX = np.power(10, [T, F, x])
+    return np.log10(linF * ((x / linT) ** (alpha1 * S) + (linX / linT) ** (alpha2 * S)) ** (-1 / S))
+
+
 def chisq(x, y, yerr, model, *p):
     """
     Calculate chisq for a given proposed solution
 
-    chisq = Sum_i (Y_i - W07_fit(X_i, F, T, alpha, t))^2 / Y_err_i^2,
+    chisq = Sum_i (Y_i - model(X_i, F, T, alpha, t))^2 / Y_err_i^2,
 
     """
 

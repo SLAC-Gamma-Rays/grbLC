@@ -2,8 +2,9 @@ import pandas as pd
 import pandas.errors
 import numpy as np
 import os, re
-from fitting.fitting import fit_w07, plot_w07_fit, plot_chisq, plot_fit_and_chisq
+from fitting.fitting import fit_w07, plot_w07_fit, plot_chisq, plot_w07_fit_and_chisq, fit_bpl, plot_bpl_fit_and_chisq
 from fitting.models import chisq, probability, w07
+from fitting import io as fio
 from .assignments import locate
 from convert import get_dir, set_dir
 import glob2
@@ -13,7 +14,7 @@ from .outlier import OutlierPlot, check_all_
 from PyPDF2 import PdfFileMerger
 
 
-def run_fit(filepaths):
+def run_w07_fit(filepaths):
     from IPython.display import clear_output
 
     for filepath in filepaths:
@@ -27,7 +28,7 @@ def run_fit(filepaths):
                 import warnings
 
                 warnings.warn("Warning: Negative time values found. Removing...")
-                data.drop(data[data["time_sec"] < 0], axis=0)
+                data.drop(data[data["time_sec"] < 0], axis=0, inplace=True)
 
             if len(data.index) > 0:
                 plot_data(filepath)
@@ -41,11 +42,11 @@ def run_fit(filepaths):
                     t = float(input("t : "))
                     fit_vals = [T, F, alpha, t, tt, tf]
 
-                    p, pcov = fit_routine(filepath, guess=fit_vals, return_fit=True)
+                    p, pcov = w07_fit_routine(filepath, guess=fit_vals, return_fit=True)
                     T, F, alpha, t = p
                     T_err, F_err, alpha_err, t_err = np.sqrt(np.diag(pcov))
                     if str(input("save? ([y]/n): ")) in ["", "y"]:
-                        fit_data = _try_import_fit_data()
+                        fit_data = _try_import_w07_fit_data()
                         if isinstance(fit_data, dict):
                             fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
                             fit_df.set_index("GRB", inplace=True)
@@ -84,7 +85,80 @@ def run_fit(filepaths):
             continue
 
 
-def fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=False, plot=True):
+def run_bpl_fit(filepaths):
+    from IPython.display import clear_output
+
+    if not isinstance(filepaths, (np.ndarray, tuple, list)):
+        filepaths = [filepaths]
+
+    for filepath in filepaths:
+
+        grb = re.search("(\d{6}[A-Z]?)", filepath)[0]
+
+        try:
+            data = fio.read_data(filepath)
+            if (data["time_sec"] < 0).sum() > 0:
+                import warnings
+
+                warnings.warn("Warning: Negative time values found. Removing...")
+                data.drop(data[data["time_sec"] < 0], axis=0, inplace=True)
+
+            if len(data.index) > 0:
+                plot_data(filepath, df=data)
+                auto_guess = input("Do you want to fit? (y/[n])")
+                if auto_guess in ["y"]:
+                    tt = float(input("tt : "))
+                    tf = float(input("tf : "))
+                    T = float(input("T : "))
+                    F = float(input("F : "))
+                    alpha1 = float(input("α1 : "))
+                    alpha2 = float(input("α2 : "))
+                    fit_vals = [T, F, alpha1, alpha2, tt, tf]
+
+                    p, pcov = bpl_fit_routine(filepath, guess=fit_vals, return_fit=True)
+                    T, F, alpha1, alpha2 = p
+                    T_err, F_err, alpha1_err, alpha2_err = np.sqrt(np.diag(pcov))
+                    if str(input("save? ([y]/n): ")) in ["", "y"]:
+                        fit_data = _try_import_bpl_fit_data()
+                        if isinstance(fit_data, dict):
+                            fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
+                            fit_df.set_index("GRB", inplace=True)
+                        else:
+                            fit_df = fit_data
+                        fit_df.loc[grb] = [
+                            tt,
+                            T,
+                            T_err,
+                            F,
+                            F_err,
+                            alpha1,
+                            alpha1_err,
+                            alpha2,
+                            alpha2_err,
+                            *fit_vals[:-2],
+                            tf,
+                        ]
+                        savepath = os.path.join(get_dir(), "fit_vals.txt")
+                        fit_df.to_csv(savepath, sep="\t", index=True)
+                        clear_output()
+
+                elif auto_guess in ["", "n"]:
+                    clear_output()
+                    continue
+
+                elif auto_guess in "q":
+                    clear_output()
+                    return
+
+            else:
+                print(f"No accepted datapoints found for {grb}.")
+
+        except FileNotFoundError as e:
+            print(e)
+            continue
+
+
+def w07_fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=False, plot=True):
     failct = 0
     df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
 
@@ -112,24 +186,78 @@ def fit_routine(filepath, guess=[None, None, None, None, 0, np.inf], return_fit=
                 maxfev=10000,
             )
             if plot:
-                plot_fit_and_chisq(filepath, p, pcov, p0, tt, tf)
+                plot_w07_fit_and_chisq(filepath, p, pcov, p0, tt, tf)
 
             if return_fit:
                 return p, pcov
         except RuntimeError:
             failct += 1
-            print("Fitting does not work :(")
+            print("Fitting failed :(")
+    else:
+        print("Times <= 0 found! Exiting...")
 
 
-def plot_data(filepath, return_plot=False):
+def bpl_fit_routine(
+    filepath, guess=[None, None, None, None, 0, np.inf], return_fit=False, plot=True, save_plot=True, data_type="new"
+):
+    failct = 0
+
+    if any([x in filepath.lower() for x in ["si", "kann", "liang", "zaninoni", "oates", "comb", "nissim"]]):
+        data_type = "old"
+
+    if data_type == "old":
+        header = None
+    else:
+        header = 0
+
+    df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=header)
+
+    if sum(df["time_sec"] <= 0) == 0:
+        flux = df["flux"]
+        flux_err = df["flux_err"]
+        time = df["time_sec"]
+
+        xdata = np.array(np.log10(time))
+        ydata = np.array(np.log10(flux))
+        yerr = flux_err / (flux * np.log(10))
+
+        *p0, tt, tf = guess
+
+        try:
+            p, pcov = fit_bpl(
+                xdata,
+                ydata,
+                p0=p0,
+                tt=tt,
+                tf=tf,
+                logTerr=None,
+                logFerr=yerr,
+                return_guess=False,
+                maxfev=10000,
+            )
+            if plot:
+                plot_bpl_fit_and_chisq(filepath, p, pcov, p0, tt, tf, save=save_plot)
+
+            if return_fit:
+                return p, pcov
+        except RuntimeError:
+            failct += 1
+            print("Fitting failed :(")
+    else:
+        print("Times <= 0 found! Exiting...")
+
+
+def plot_data(filepath, df=None, return_plot=False):
     import plotly.express as px
 
     grb = re.search("(\d{6}[A-Z]?)", filepath)[0]
-    df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
 
-    t_dupes = set(
-        (df["time_sec"][df["time_sec"].duplicated(keep=False)]).apply(lambda x: round(np.log10(x), 4)).astype(str)
-    )
+    if df is None:
+        df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
+
+    # t_dupes = set(
+    #     (df["time_sec"][df["time_sec"].duplicated(keep=False)]).apply(lambda x: round(np.log10(x), 4)).astype(str)
+    # )
 
     # if len(t_dupes) > 0:
     #     dupe_string = ", ".join(t_dupes)
@@ -183,7 +311,7 @@ def LC_summary(filepaths):
     return {grb: l for grb, (l, _) in lc_data.items()}
 
 
-def _try_import_fit_data(filename="fit_vals.txt"):
+def _try_import_w07_fit_data(filename="fit_vals.txt"):
     empty_dict = {
         k: []
         for k in [
@@ -201,6 +329,41 @@ def _try_import_fit_data(filename="fit_vals.txt"):
             "F_guess",
             "alpha_guess",
             "t_guess",
+            "tf",
+            "chisq",
+        ]
+    }
+    try:
+        filepath = os.path.join(get_dir(), filename)
+        data = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0, index_col="GRB")
+        if len(data.index) > 0:
+            return data
+        else:
+            return empty_dict
+    except FileNotFoundError:
+        return empty_dict
+    except pandas.errors.EmptyDataError:
+        return empty_dict
+
+
+def _try_import_bpl_fit_data(filename="bpl_fit_vals.txt"):
+    empty_dict = {
+        k: []
+        for k in [
+            "GRB",
+            "tt",
+            "T",
+            "T_err",
+            "F",
+            "F_err",
+            "alpha1",
+            "alpha1_err",
+            "alpha2",
+            "alpha2_err",
+            "T_guess",
+            "F_guess",
+            "alpha1_guess",
+            "alpha2_guess",
             "tf",
             "chisq",
         ]
@@ -565,46 +728,46 @@ def prepare_fit_data():
     print(f"Successfully prepared {len(final.index)} GRBs for Mathematica")
 
 
-def check_one(grb):
+# def check_one(grb):
 
-    purpose = input("What do you want to do? [a] Show everything [b] Checking outliers [c] Fitting")
-    path = locate(grb)
+#     purpose = input("What do you want to do? [a] Show everything [b] Checking outliers [c] Fitting")
+#     path = locate(grb)
 
-    if not path:
-        print(f"There is no data for GRB {grb}")
-        return
+#     if not path:
+#         print(f"There is no data for GRB {grb}")
+#         return
 
-    if purpose == "a":
-        op = OutlierPlot(path[0], plot=True)
-        name = input("What is the <name> of the source txt: ")
-        source = glob2.glob(os.path.join(get_dir(), f"fit_vals_{name}.txt"))
+#     if purpose == "a":
+#         op = OutlierPlot(path[0], plot=True)
+#         name = input("What is the <name> of the source txt: ")
+#         source = glob2.glob(os.path.join(get_dir(), f"fit_vals_{name}.txt"))
 
-        if not source:
-            print("No txt file for the name")
-            return
+#         if not source:
+#             print("No txt file for the name")
+#             return
 
-        plot_data(path[0])
-        with open(source[0], "r") as file:
-            df = pd.read_csv(file, delimiter=r"\t+|\s+", engine="python", header=0)
+#         plot_data(path[0])
+#         with open(source[0], "r") as file:
+#             df = pd.read_csv(file, delimiter=r"\t+|\s+", engine="python", header=0)
 
-        df = df[df["GRB"] == grb]
-        if df.empty:
-            print("No GRB data found in the txt file.")
-            return
+#         df = df[df["GRB"] == grb]
+#         if df.empty:
+#             print("No GRB data found in the txt file.")
+#             return
 
-        data = df.iloc[0].to_dict()
-        keys = ["T_guess", "F_guess", "alpha_guess", "t_guess", "tt", "tf"]
-        guess = [float(data[k]) for k in keys]
-        filepath = os.path.join(os.path.dirname(path), f"{grb}_converted_flux_accepted_ext_corr.txt")
-        fit_routine(filepath, guess=guess)
+#         data = df.iloc[0].to_dict()
+#         keys = ["T_guess", "F_guess", "alpha_guess", "t_guess", "tt", "tf"]
+#         guess = [float(data[k]) for k in keys]
+#         filepath = os.path.join(os.path.dirname(path), f"{grb}_converted_flux_accepted_ext_corr.txt")
+#         fit_routine(filepath, guess=guess)
 
-    if purpose == "b":
-        check_all_(path, save=True)
-        run_fit(path)
+#     if purpose == "b":
+#         check_all_(path, save=True)
+#         run_fit(path)
 
-    if purpose == "c":
-        OutlierPlot(path[0], plot=True)
-        run_fit(path)
+#     if purpose == "c":
+#         OutlierPlot(path[0], plot=True)
+#         run_fit(path)
 
 
 def plot_for_gold_sample(filepath, grb, tt, tf, return_plot=True):
@@ -617,122 +780,122 @@ def plot_for_gold_sample(filepath, grb, tt, tf, return_plot=True):
     fig.show()
 
 
-def refit_all(guess="original", save=True):
+# def refit_all(guess="original", save=True):
 
-    main_dir = os.path.join(get_dir(), "accepted")
-    accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*ext_corr.txt")))
-    accepted = np.array(
-        [os.path.split(path)[1].rstrip("_converted_flux_accepted_ext_corr.txt") for path in accepted_paths]
-    )
-    # import fit_vals.txt to cross-reference with accepted_grbs.
-    # if we have a match in both, that means we can plot!
-    fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_approved.txt"))
-    fits = 0
-    for path in fitted_paths:
-        try:
-            fitted = pd.read_csv(path, sep=r"\t+|\s+", header=0, index_col=0, engine="python")
-        except Exception as e:
-            print(path)
-            raise e
+#     main_dir = os.path.join(get_dir(), "accepted")
+#     accepted_paths = np.array(glob2.glob(os.path.join(main_dir, "*ext_corr.txt")))
+#     accepted = np.array(
+#         [os.path.split(path)[1].rstrip("_converted_flux_accepted_ext_corr.txt") for path in accepted_paths]
+#     )
+#     # import fit_vals.txt to cross-reference with accepted_grbs.
+#     # if we have a match in both, that means we can plot!
+#     fitted_paths = glob2.glob(os.path.join(get_dir(), "fit_vals_approved.txt"))
+#     fits = 0
+#     for path in fitted_paths:
+#         try:
+#             fitted = pd.read_csv(path, sep=r"\t+|\s+", header=0, index_col=0, engine="python")
+#         except Exception as e:
+#             print(path)
+#             raise e
 
-        # find intersection between GRBs with accepted pts and fitted grbs
-        intersection = list(set(accepted) & set(fitted.index))
+#         # find intersection between GRBs with accepted pts and fitted grbs
+#         intersection = list(set(accepted) & set(fitted.index))
 
-        for GRB in intersection:
-            try:
-                # set up figure
-                ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
-                    [["fit", "fit", "EMPTY"], ["T", "F", "alpha"]], empty_sentinel="EMPTY"
-                )
+#         for GRB in intersection:
+#             try:
+#                 # set up figure
+#                 ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
+#                     [["fit", "fit", "EMPTY"], ["T", "F", "alpha"]], empty_sentinel="EMPTY"
+#                 )
 
-                # read in fitted vals
-                curr = fitted.loc[GRB]
-                # print(curr.index)
-                accepted_path, *__ = accepted_paths[accepted == GRB]
-                acc = pd.read_csv(accepted_path, sep="\t", header=0)
-                xdata = np.array(np.log10(acc.time_sec))
-                ydata = np.array(np.log10(acc.flux))
-                yerr = acc.flux_err / (acc.flux * np.log(10))
+#                 # read in fitted vals
+#                 curr = fitted.loc[GRB]
+#                 # print(curr.index)
+#                 accepted_path, *__ = accepted_paths[accepted == GRB]
+#                 acc = pd.read_csv(accepted_path, sep="\t", header=0)
+#                 xdata = np.array(np.log10(acc.time_sec))
+#                 ydata = np.array(np.log10(acc.flux))
+#                 yerr = acc.flux_err / (acc.flux * np.log(10))
 
-                if guess == "original":
-                    p0 = np.array(
-                        [curr["T_guess"], curr["F_guess"], curr["alpha_guess"], curr["t_guess"], curr.tt, curr.tf]
-                    )
-                elif guess == "fitted":
-                    p0 = np.array([curr["T"], curr.F, curr.alpha, curr.t, curr.tt, curr.tf])
-                else:
-                    p0 = [None, None, None, None, 0, np.inf]
+#                 if guess == "original":
+#                     p0 = np.array(
+#                         [curr["T_guess"], curr["F_guess"], curr["alpha_guess"], curr["t_guess"], curr.tt, curr.tf]
+#                     )
+#                 elif guess == "fitted":
+#                     p0 = np.array([curr["T"], curr.F, curr.alpha, curr.t, curr.tt, curr.tf])
+#                 else:
+#                     p0 = [None, None, None, None, 0, np.inf]
 
-                # refit using the previously fitted values as our guess
-                p, pcov = fit_routine(accepted_path, guess=p0, return_fit=True, plot=False)
-                fits += 1
-                perr = np.sqrt(np.diag(pcov))
-                tt = curr.tt
-                tf = curr.tf
-                mask = (xdata >= tt) & (xdata <= tf)
-                plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
-                plot_chisq(
-                    xdata[mask], ydata[mask], yerr[mask], p, perr, ax=[ax["T"], ax["F"], ax["alpha"]], show=False
-                )
+#                 # refit using the previously fitted values as our guess
+#                 p, pcov = fit_routine(accepted_path, guess=p0, return_fit=True, plot=False)
+#                 fits += 1
+#                 perr = np.sqrt(np.diag(pcov))
+#                 tt = curr.tt
+#                 tf = curr.tf
+#                 mask = (xdata >= tt) & (xdata <= tf)
+#                 plot_w07_fit(xdata, ydata, p, tt=tt, tf=tf, logTerr=None, logFerr=yerr, p0=p0, ax=ax["fit"], show=False)
+#                 plot_chisq(
+#                     xdata[mask], ydata[mask], yerr[mask], p, perr, ax=[ax["T"], ax["F"], ax["alpha"]], show=False
+#                 )
 
-                chisquared = chisq(xdata[mask], ydata[mask], yerr[mask], w07, *p)
-                reduced_nu = len(xdata[mask]) - 3
-                reduced_nu = 1 if reduced_nu == 0 else reduced_nu
-                reduced = chisquared / reduced_nu
-                nu = len(xdata[mask])
-                prob = probability(reduced, nu)
+#                 chisquared = chisq(xdata[mask], ydata[mask], yerr[mask], w07, *p)
+#                 reduced_nu = len(xdata[mask]) - 3
+#                 reduced_nu = 1 if reduced_nu == 0 else reduced_nu
+#                 reduced = chisquared / reduced_nu
+#                 nu = len(xdata[mask])
+#                 prob = probability(reduced, nu)
 
-                plt.figtext(
-                    x=0.63,
-                    y=0.6,
-                    s="""
-                    GRB %s
-                    
-                    $\\chi^2$: %.3f
-                    
-                    $\\chi_{\\nu}^2$: %.3f
-                    
-                    $\\alpha$ : %.3e
-                    """
-                    % (GRB, chisquared, reduced, prob),
-                    size=18,
-                )
+#                 plt.figtext(
+#                     x=0.63,
+#                     y=0.6,
+#                     s="""
+#                     GRB %s
 
-                FITS_NAME = "fit_vals_ext_corr_w_chisq.txt"
-                fit_data = _try_import_fit_data(FITS_NAME)
-                if isinstance(fit_data, dict):
-                    fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
-                    fit_df.set_index("GRB", inplace=True)
-                else:
-                    fit_df = fit_data
+#                     $\\chi^2$: %.3f
 
-                T, F, alpha, t = p
-                T_err, F_err, alpha_err, t_err = np.sqrt(np.diag(pcov))
-                fit_df.loc[GRB] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *p0[:-2], tf, reduced]
-                savepath = os.path.join(get_dir(), FITS_NAME)
-                fit_df.to_csv(savepath, sep="\t", index=True)
+#                     $\\chi_{\\nu}^2$: %.3f
 
-                if save:
-                    plt.savefig(
-                        reduce(
-                            os.path.join,
-                            [get_dir(), "fits_approved_ext_corr_old_guess", f"{GRB}_fitted_approved_ext_corr.pdf"],
-                        )
-                    )
-                    plt.close()
-                    print(
-                        "saved to",
-                        reduce(
-                            os.path.join,
-                            [get_dir(), "fits_approved_ext_corr_old_guess", f"{GRB}_fitted_approved_ext_corr.pdf"],
-                        ),
-                    )
+#                     $\\alpha$ : %.3e
+#                     """
+#                     % (GRB, chisquared, reduced, prob),
+#                     size=18,
+#                 )
 
-                else:
-                    plt.show()
-            except Exception as e:
-                print(GRB, e)
-                # raise e
-                continue
+#                 FITS_NAME = "fit_vals_ext_corr_w_chisq.txt"
+#                 fit_data = _try_import_fit_data(FITS_NAME)
+#                 if isinstance(fit_data, dict):
+#                     fit_df = pd.DataFrame(fit_data, columns=list(fit_data.keys()))
+#                     fit_df.set_index("GRB", inplace=True)
+#                 else:
+#                     fit_df = fit_data
 
-    print("Plotted", fits, "new fits with extinction.")
+#                 T, F, alpha, t = p
+#                 T_err, F_err, alpha_err, t_err = np.sqrt(np.diag(pcov))
+#                 fit_df.loc[GRB] = [tt, T, T_err, F, F_err, alpha, alpha_err, t, t_err, *p0[:-2], tf, reduced]
+#                 savepath = os.path.join(get_dir(), FITS_NAME)
+#                 fit_df.to_csv(savepath, sep="\t", index=True)
+
+#                 if save:
+#                     plt.savefig(
+#                         reduce(
+#                             os.path.join,
+#                             [get_dir(), "fits_approved_ext_corr_old_guess", f"{GRB}_fitted_approved_ext_corr.pdf"],
+#                         )
+#                     )
+#                     plt.close()
+#                     print(
+#                         "saved to",
+#                         reduce(
+#                             os.path.join,
+#                             [get_dir(), "fits_approved_ext_corr_old_guess", f"{GRB}_fitted_approved_ext_corr.pdf"],
+#                         ),
+#                     )
+
+#                 else:
+#                     plt.show()
+#             except Exception as e:
+#                 print(GRB, e)
+#                 # raise e
+#                 continue
+
+#     print("Plotted", fits, "new fits with extinction.")

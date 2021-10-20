@@ -11,9 +11,9 @@ def isfloat(value):
         return False
 
 
-def check_header(path, n=None, debug=False):
+def check_header(path, n=None, debug=False, more_than_one_row=False):
     """
-    This monstrosity returns what
+    This monstrosity returns what line a header is at
 
     For example, a file named '*_Oates.txt' will be interpreted as data in the same format
     as Sam Oates' data.
@@ -27,24 +27,27 @@ def check_header(path, n=None, debug=False):
             print("ParserError:", pe)
 
         # if fail, recursively try again with the next row as the header
-        n = 0 if n is None else n
-        return check_header(path, n=n + 1)
+        n = -1 if n is None else n
+        return check_header(path, n=n + 1, more_than_one_row=True)
     except pd.errors.EmptyDataError:
-        print(os.path.split(path)[-1].lower(), "is empty")
-        return -1
+
+        if more_than_one_row:
+            return None
+        else:
+            print(os.path.split(path)[-1], "is empty?")
+            return -1
 
     header = h = df.columns
 
-    # check if the header is pd.Int64Index and if 30% or more of the data aren't floats
-    # ! TODO: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
+    # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
     # ... so maybe change the h in [not isfloat(x) for x in h] to the second row???
-    if isinstance(h, pd.Int64Index) and sum([not isfloat(x) for x in h]) >= 0.3 * len(h) // 1:
+    if isinstance(h, pd.Int64Index) or sum([isfloat(x) for x in h]) >= 0.3 * len(h) // 1:
         if debug:
-            print("Some aren't floats...")
+            print("Some are floats...")
 
         # recursively try again with the next row as the header
-        n = 0 if n is None else n
-        return check_header(path, n=n + 1)
+        n = -1 if n is None else n
+        return check_header(path, n=n + 1, more_than_one_row=True)
     else:
         return n  # <-- the final stop in our recursion journey
 
@@ -58,7 +61,7 @@ def check_datatype(filename):
     as Sam Oates' data.
 
     """
-    check = lambda x, *args: any([f in filename for f in [x, *args]])
+    check = lambda x, *args: any([f in filename.lower() for f in [x, *args]])
 
     if check("zaninoni"):
         datatype = "zaninoni"
@@ -73,7 +76,7 @@ def check_datatype(filename):
     elif check("kann") or re.search(r"(?<!.)\d+[A-Z]?\.txt", filename):
         datatype = "kann"
 
-    elif re.search(r"combined(?!rest)", filename):
+    elif re.search(r"combined(?!rest)", filename) or re.search(r"comb(?!ined)", filename):
         datatype = "combined"
 
     elif check("combinedrest"):
@@ -94,26 +97,27 @@ def check_datatype(filename):
 def read_data(path, datatype="", debug=False):
     data = {}
 
-    if check_header(path) == -1:
+    header = check_header(path)
+
+    if header == -1:
         return
 
-    df = pd.read_csv(path, delimiter=r"\t+|\s+", header=check_header(path), engine="python")
+    df = pd.read_csv(path, delimiter=r"\t+|\s+", header=header, engine="python")
     header = h = df.columns
 
     filename = os.path.split(path)[-1].lower()
     datatype = datatype.lower() if datatype else check_datatype(filename)
+    print("datatype:", datatype)
 
     if datatype in ["si", "liang", "combinedrest"]:
 
         time = df[h[0]]
-        timeerr = None
         flux = df[h[1]]
         fluxerr = df[h[2]]
 
     elif datatype == "zaninoni":
 
         time = df[h[0]]
-        timeerr = None
         flux = df[h[2]]
         fluxerr = df[h[3]]
 
@@ -121,37 +125,26 @@ def read_data(path, datatype="", debug=False):
 
         time = df[h[0]]
         flux = df[h[1]]
-        timeerr = None
         posfluxerr, negfluxerr = df[h[2]], df[h[3]]
         fluxerr = (posfluxerr + negfluxerr) / 2
-        try:
-            beta = df[h[4]]
-            z = df[h[5]]
-        except:
-            pass
 
     elif datatype == "oates":
 
         time = df[h[0]]
-        timeerr = None
         flux = df[h[2]]
         maxflux = df[h[3]]
         minflux = df[h[4]]
         fluxerr = (maxflux - minflux) / (2 * 1.65)
 
-    elif datatype == "combined":
+    elif datatype in ["combined", "comb"]:
         z = df[h[3]]
         beta = df[h[4]]
         time = df[h[0]] * (1 + z)
-        timeerr = None
         flux = df[h[1]] * (1 + z) ** (1 - beta)
         fluxerr = df[h[2]] * (1 + z) ** (1 - beta)
 
     elif datatype == "wczytywanie":
         time = df[h[0]]
-        maxtime = df[h[1]]
-        mintime = df[h[2]]
-        timeerr = (maxtime - mintime) / (2 * 1.65)
         flux = df[h[3]]
         maxflux = df[h[4]]
         minflux = df[h[5]]
@@ -162,7 +155,6 @@ def read_data(path, datatype="", debug=False):
         # print('No datatype found. Assuming format:\n| time | flux | fluxerr |')
         # read_data(path, datatype='si', debug=debug)
         time = np.array([1])
-        timeerr = None
         flux = np.array([1])
         fluxerr = np.array([0])
 
@@ -173,19 +165,16 @@ def read_data(path, datatype="", debug=False):
 
     logflux = np.log10(flux)
     logfluxerr = fluxerr / (flux * np.log(10))
-    logtimeerr = timeerr / (time * np.log(10)) if not isinstance(timeerr, type(None)) else None
 
     if all(logtime > 0):
-        data["T"] = logtime
-        data["F"] = logflux
-        data["Ferr"] = logfluxerr
-
-        if not isinstance(logtimeerr, type(None)):
-            data["Terr"] = logtimeerr
+        data["time_sec"] = logtime
+        data["flux"] = logflux
+        data["flux_err"] = logfluxerr
+        data["band"] = ["R" for _ in logtime]
     else:
-        raise ImportError("Error importing data! Ahh!")
+        raise ImportError("Some logT's are < 0... Ahh!")
 
-    return data
+    return pd.DataFrame(data)
 
 
 def readin(directory="."):
