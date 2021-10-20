@@ -30,7 +30,7 @@ def sharp_bpl(x, T, F, alpha1, alpha2):
 def smooth_bpl(x, T, F, alpha1, alpha2, S):
 
     linT, linF, linX = np.power(10, [T, F, x])
-    return np.log10(linF * ((x / linT) ** (alpha1 * S) + (linX / linT) ** (alpha2 * S)) ** (-1 / S))
+    return np.log10(linF * ((linX / linT) ** (alpha1 * S) + (linX / linT) ** (alpha2 * S)) ** (-1 / S))
 
 
 def chisq(x, y, yerr, model, *p):
