@@ -259,7 +259,7 @@ class Fitter:
             row += f"{tt}\t{tf}\t"  # tt and tf
             row += "\t".join([f"{val}\t{valerr}" for val, valerr in zip(p, perr)])  # params and their errors
             row += "\t".join([f"{valguess}" for valguess in p0])  # parameter guesses
-            row += f"{self.chisq}\t"
+            row += f"\t{self.chisq}"
             row += "\n"
 
             f.write(row)
