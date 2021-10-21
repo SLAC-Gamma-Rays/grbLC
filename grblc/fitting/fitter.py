@@ -22,13 +22,13 @@ funcspecs = {
 }
 plabellist = {
     W07: ["T", "F", r"$\alpha$", "t"],
-    SMOOTH_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$", "S"],
+    SMOOTH_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"],
     SHARP_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"],
 }
 
 funcpriors = {
     W07: ((0, -50, 0, -np.inf), (np.inf, -1, 5, np.inf)),
-    SMOOTH_BPL: ((0, -50, -20, -20, -np.inf), (np.inf, -1, 20, 20, np.inf)),
+    SMOOTH_BPL: ((0, -50, -20, -20), (np.inf, -1, 20, 20)),
     SHARP_BPL: ((0, -50, -20, -20), (np.inf, -1, 20, 20)),
 }
 
@@ -49,7 +49,7 @@ class Fitter:
 
         if isinstance(model, int):
             self.func = funclist[model]
-            self.func_args = ["x", "T", "F", "alpha1", "alpha2", "S"]  # hardcoding sbpl rn
+            self.func_args = ["x", "T", "F", "alpha1", "alpha2"]  # hardcoding sbpl rn
             self.plabels = plabellist[model]
             self.priors = funcpriors[model]
         else:
@@ -81,7 +81,6 @@ class Fitter:
     def _check_dir(self):
         self.FIT_VALS_DIR = os.path.join(self.dir, "fit_vals.txt")
         if not os.path.exists(self.FIT_VALS_DIR):
-            print("yooooooo")
             best_params = self.func_args[1:]
             best_err = [param + "_err" for param in best_params]
             best_guesses = [param + "_guess" for param in best_params]
@@ -104,23 +103,22 @@ class Fitter:
         self.xmin, self.xmax, self.ymin, self.ymax = bounds
         self.xmask = (self.xmin <= self.xdata) & (self.xdata <= self.xmax)
         self.ymask = (self.ymin <= self.ydata) & (self.ydata <= self.ymax)
+        self.mask = self.xmask & self.ymask
 
         self.set_data(self.xdata, self.ydata, self.xerr, self.yerr)
 
     def set_data(self, xdata, ydata, xerr=None, yerr=None):
         self.orig_xdata = np.asarray(xdata)
         self.orig_ydata = np.asarray(ydata)
-        self.xdata = np.asarray(xdata)[self.xmask | self.ymask]
-        self.ydata = np.asarray(ydata)[self.ymask | self.xmask]
+        self.xdata = np.asarray(xdata)[self.mask]
+        self.ydata = np.asarray(ydata)[self.mask]
         self.orig_xerr = np.asarray(xerr) if xerr is not None else None
         self.orig_yerr = np.asarray(yerr) if yerr is not None else None
 
-        self.xerr = np.asarray(xerr)[self.xmask | self.ymask] if xerr is not None else None
-        self.yerr = np.asarray(yerr)[self.ymask | self.xmask] if yerr is not None else None
+        self.xerr = np.asarray(xerr)[self.mask] if xerr is not None else None
+        self.yerr = np.asarray(yerr)[self.mask] if yerr is not None else None
 
-        self.sigma = np.sqrt(np.sum([err ** 2 for err in [self.xerr, self.yerr] if err is not None], axis=0))[
-            self.xmask | self.ymask
-        ]
+        self.sigma = np.sqrt(np.sum([err ** 2 for err in [self.xerr, self.yerr] if err is not None], axis=0))
         if isinstance(self.sigma, int):
             self.sigma = None
 
@@ -188,8 +186,8 @@ class Fitter:
             p,
             tt=tt,
             tf=tf,
-            xerr=self.xerr,
-            yerr=self.yerr,
+            xerr=self.orig_xerr,
+            yerr=self.orig_yerr,
             p0=p0,
             ax=ax["fit"],
             show=False,
@@ -257,12 +255,12 @@ class Fitter:
 
             tt = float(input("tt : "))
             tf = float(input("tf : "))
+            self.set_bounds([tt, tf, -np.inf, np.inf])
 
             param_guesses = []
             for param in self.func_args[1:]:
                 param_guesses.append(float(input(f"{param} : ")))
 
-            self.set_bounds([tt, tf, -np.inf, np.inf])
             self.fit(p0=param_guesses)
             self.show_fit()
             plt.show()
