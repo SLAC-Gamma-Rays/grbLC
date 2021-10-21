@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, minimize, leastsq
 from .constants import *
 from .models import smooth_bpl, w07, sharp_bpl, chisq, probability
 from .fitting import plot_chisq, plot_fit, plot_data
@@ -16,20 +16,20 @@ SHARP_BPL = 2
 
 funclist = {W07: w07, SMOOTH_BPL: smooth_bpl, SHARP_BPL: sharp_bpl}
 funcspecs = {
-    W07: inspect.getargspec(w07),
-    SMOOTH_BPL: inspect.getargspec(smooth_bpl),
-    SHARP_BPL: inspect.getargspec(sharp_bpl),
+    W07: inspect.getargspec(w07).args,
+    SMOOTH_BPL: inspect.getargspec(smooth_bpl).args,
+    SHARP_BPL: inspect.getargspec(sharp_bpl).args,
 }
 plabellist = {
     W07: ["T", "F", r"$\alpha$", "t"],
-    SMOOTH_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"],
+    SMOOTH_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$", "S"],
     SHARP_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"],
 }
 
 funcpriors = {
-    W07: ((0, -50, 0, -np.inf), (np.inf, -1, 5, np.inf)),
-    SMOOTH_BPL: ((0, -50, -20, -20), (np.inf, -1, 20, 20)),
-    SHARP_BPL: ((0, -50, -20, -20), (np.inf, -1, 20, 20)),
+    W07: [[0, -50, 0, 0], [np.inf, -1, 5, np.inf]],
+    SMOOTH_BPL: [[1e-5, -50, -20, -20, -np.inf], [np.inf, -1, 20, 20, np.inf]],
+    SHARP_BPL: [[1e-5, -50, -5, 0], [np.inf, -1, 5, 20]],
 }
 
 
@@ -49,14 +49,21 @@ class Fitter:
 
         if isinstance(model, int):
             self.func = funclist[model]
-            self.func_args = ["x", "T", "F", "alpha1", "alpha2"]  # hardcoding sbpl rn
+            # self.func_args = ["x", "T", "F", "alpha1", "alpha2"]  # hardcoding sbpl rn
+            self.func_args = funcspecs[model][1:]
             self.plabels = plabellist[model]
             self.priors = funcpriors[model]
+            tmin, tmax, fmin, fmax = bounds
+            self.priors[0][0] = tmin
+            self.priors[0][1] = fmin
+            self.priors[1][0] = tmax
+            self.priors[1][1] = fmax
+
         else:
             raise Exception("other functions aren't fully ready for use yet")
             self.func = model
             self.func_args = list(inspect.getargspec(self.func)[0])
-            self.plabels = self.func_args[1:]
+            self.plabels = self.func_args
             self.priors = priors
 
         self.xdata = np.asarray(xdata)
@@ -65,11 +72,12 @@ class Fitter:
         self.yerr = np.asarray(yerr) if yerr is not None else None
         self.set_bounds(bounds)
         self.bounds = bounds  # in the form of (xmin, xmax, ymin, ymax)
+
         self.GRBname = GRBname
         self.fit_vals = None
 
         if self.priors is not None:
-            assert np.shape(self.priors) == (2, len(self.func_args[1:])), "Incorrect shape for prior bounds."
+            assert np.shape(self.priors) == (2, len(self.func_args)), "Incorrect shape for prior bounds."
 
         if save_dir is not None:
             self.dir = save_dir
@@ -81,7 +89,7 @@ class Fitter:
     def _check_dir(self):
         self.FIT_VALS_DIR = os.path.join(self.dir, "fit_vals.txt")
         if not os.path.exists(self.FIT_VALS_DIR):
-            best_params = self.func_args[1:]
+            best_params = self.func_args
             best_err = [param + "_err" for param in best_params]
             best_guesses = [param + "_guess" for param in best_params]
 
@@ -100,10 +108,10 @@ class Fitter:
         self._check_dir()
 
     def set_bounds(self, bounds):
-        self.xmin, self.xmax, self.ymin, self.ymax = bounds
-        self.xmask = (self.xmin <= self.xdata) & (self.xdata <= self.xmax)
-        self.ymask = (self.ymin <= self.ydata) & (self.ydata <= self.ymax)
-        self.mask = self.xmask & self.ymask
+        xmin, xmax, ymin, ymax = self.bounds = bounds
+        xmask = (xmin <= self.xdata) & (self.xdata <= xmax)
+        ymask = (ymin <= self.ydata) & (self.ydata <= ymax)
+        self.mask = xmask & ymask
 
         self.set_data(self.xdata, self.ydata, self.xerr, self.yerr)
 
@@ -128,7 +136,6 @@ class Fitter:
         assert self.xdata is not None, "xdata not supplied"
         assert self.ydata is not None, "ydata not supplied"
 
-        # run the fit
         p, cov = curve_fit(
             self.func,
             self.xdata,
@@ -136,7 +143,7 @@ class Fitter:
             p0=p0,
             bounds=self.priors,
             sigma=self.sigma,
-            absolute_sigma=True if self.sigma is not None else False,
+            absolute_sigma=self.sigma is not None,
             method="trf",
             **kwargs,
         )
@@ -162,14 +169,19 @@ class Fitter:
             title=self.GRBname,
             show=True,
         )
+        plt.show()
 
-    def show_fit(self):
+    def show_fit(self, save=False):
 
         p, cov, p0 = self.fit_vals
-        free_params = self.func_args[1:]
-        ax = plt.figure(constrained_layout=True, figsize=(10 / 3 * len(free_params), 7)).subplot_mosaic(
+        free_params = self.func_args
+        fit_length = int(0.75 * len(free_params))
+        empty_length = len(free_params) - fit_length
+        figlength = 10 / 3 * len(free_params)  # normalize to 10 when there are 3 parameters
+
+        ax = plt.figure(constrained_layout=True, figsize=(figlength, 7)).subplot_mosaic(
             [
-                ["fit"] * int(3 / 4 * (len(free_params) + 1)) + ["EMPTY"] * int(1 / 4 * (len(free_params) + 1)),
+                ["fit"] * fit_length + ["EMPTY"] * empty_length,
                 list(free_params),
             ],
             empty_sentinel="EMPTY",
@@ -200,8 +212,9 @@ class Fitter:
             p,
             perr,
             labels=self.plabels,
-            ax=[ax[param] for param in self.func_args[1:]],
+            ax=[ax[param] for param in self.func_args],
             show=False,
+            fineness=0.05,
         )
 
         chisquared = chisq(self.xdata, self.ydata, self.sigma, self.func, *p)
@@ -211,8 +224,9 @@ class Fitter:
         nu = len(self.xdata)
         prob = probability(reduced, nu)
 
+        textx = fit_length / (len(free_params) + 1) * (1.2)
         plt.figtext(
-            x=0.83,
+            x=textx,
             y=0.6,
             s="""
             GRB %s
@@ -226,12 +240,16 @@ class Fitter:
             % (self.GRBname, chisquared, reduced, prob),
             size=18,
         )
+        if save:
+            plt.savefig(f"{self.GRBname}.pdf", dpi=300)
+
+        plt.show()
 
     def save(self):
 
         assert self.fit_vals is not None, "Called save but no fit has been done."
 
-        with open(self.FIT_VALS_DIR, "w") as f:
+        with open(self.FIT_VALS_DIR, "a") as f:
 
             p, cov, p0 = self.fit_vals
             perr = np.sqrt(np.diag(cov))
@@ -250,7 +268,7 @@ class Fitter:
 
         self.show()
 
-        auto_guess = input("do you want to fit? (y/[n])")
+        auto_guess = input("do you want to fit? (y/[n])").lower()
         if auto_guess in ["y"]:
 
             tt = float(input("tt : "))
@@ -258,7 +276,7 @@ class Fitter:
             self.set_bounds([tt, tf, -np.inf, np.inf])
 
             param_guesses = []
-            for param in self.func_args[1:]:
+            for param in self.func_args:
                 param_guesses.append(float(input(f"{param} : ")))
 
             self.fit(p0=param_guesses)
@@ -268,9 +286,6 @@ class Fitter:
 
             if str(input("save? ([y]/n): ")) in ["", "y"]:
                 self.save()
-                clear_output()
-            else:
-                clear_output()
 
         else:
             clear_output()

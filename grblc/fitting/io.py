@@ -89,7 +89,7 @@ def check_datatype(filename):
         datatype = "wczytywanie"
 
     else:
-        datatype = ""
+        datatype = "si"
 
     return datatype
 
@@ -107,7 +107,6 @@ def read_data(path, datatype="", debug=False):
 
     filename = os.path.split(path)[-1].lower()
     datatype = datatype.lower() if datatype else check_datatype(filename)
-    print("datatype:", datatype)
 
     if datatype in ["si", "liang", "combinedrest"]:
 

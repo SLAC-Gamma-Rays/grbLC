@@ -181,7 +181,6 @@ def plot_data(model, xdata, ydata, tt=0, tf=np.inf, xerr=None, yerr=None, ax=Non
         xerr=xerr[mask] if xerr is not None else xerr,
         yerr=yerr[mask],
         fmt=".",
-        alpha=0.9,
         zorder=0,
     )
 
@@ -213,8 +212,7 @@ def plot_fit(model, xdata, ydata, p, tt=0, tf=np.inf, xerr=None, yerr=None, p0=N
     if ax is None:
         fig, ax = plt.subplots(1)
     ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
-    if tf != 999:
-        ax.axvline(tf, c="k", ls=":", label=f"tf = {tf}", alpha=0.3, zorder=-999999)
+    ax.axvline(tf, c="k", ls=":", label=f"tf = {tf}", alpha=0.3, zorder=-999999)
     logT = np.asarray(xdata)
     logF = np.asarray(ydata)
     logTmin, logTmax = min(logT), max(logT)
@@ -234,7 +232,7 @@ def plot_fit(model, xdata, ydata, p, tt=0, tf=np.inf, xerr=None, yerr=None, p0=N
         xerr=xerr[mask] if xerr is not None else xerr,
         yerr=yerr[mask],
         fmt=".",
-        alpha=0.4,
+        ms=10,
         zorder=0,
     )
 
