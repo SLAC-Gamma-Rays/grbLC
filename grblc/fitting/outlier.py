@@ -176,11 +176,11 @@ class OutlierPlot:
 
             fig.add_traces(scatters)
 
-            currpt = self.currpt
-            x = np.log10(self.df["time_sec"][currpt])
-            y = np.log10(self.df["flux"][currpt])
-            yerr = self.df["flux_err"][currpt] / (self.df["flux"][currpt] * np.log(10))
-            band = self.df["band"][currpt]
+            x = np.log10(self.df["time_sec"][self.currpt])
+            y = np.log10(self.df["flux"][self.currpt])
+            yerr = self.df["flux_err"][self.currpt] / \
+                (self.df["flux"][self.currpt] * np.log(10))
+            band = self.df["band"][self.currpt]
             fig.add_trace(
                 go.Scatter(
                     x=[x],
@@ -196,11 +196,10 @@ class OutlierPlot:
             return fig
         else:
             # update curr pt
-            currpt = self.currpt
-            x = np.log10(self.df["time_sec"][currpt])
-            y = np.log10(self.df["flux"][currpt])
-            yerr = self.df["flux_err"][currpt] / (self.df["flux"][currpt] * np.log(10))
-            band = self.df["band"][currpt]
+            x = np.log10(self.df["time_sec"][self.currpt])
+            y = np.log10(self.df["flux"][self.currpt])
+            yerr = self.df["flux_err"][self.currpt] / (self.df["flux"][self.currpt] * np.log(10))
+            band = self.df["band"][self.currpt]
 
             self.figure.update_traces(
                 patch=dict(x=[x], y=[y], error_y=dict(array=[yerr]), text=f"band={band}"),
@@ -395,5 +394,20 @@ class OutlierPlot:
 
         self.plot()
 
-    def prompt(self):
+    @staticmethod
+    def prompt():
         return input("a:accept r:reject s:strip u:undo f:forward b:backward d:done with GRB q:quit")
+    
+    @classmethod
+    def outlier_check_(cls, filepath, save=False):
+        try:
+            op = cls(filepath, plot=True)
+            while True:
+                try:
+                    key = op.prompt()
+                    op.update(key, save)
+                except StopIteration:
+                    break
+        except ImportError as e:
+            print(e)
+            pass

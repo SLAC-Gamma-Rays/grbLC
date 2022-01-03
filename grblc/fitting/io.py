@@ -97,6 +97,9 @@ def check_datatype(filename):
 def read_data(path, datatype="", debug=False):
     data = {}
 
+    if debug:
+        print("First 10 Lines:\n", "".join(open(path).readlines()[:10]))
+
     header = check_header(path)
 
     if header == -1:
@@ -107,7 +110,6 @@ def read_data(path, datatype="", debug=False):
 
     filename = os.path.split(path)[-1].lower()
     datatype = datatype.lower() if datatype else check_datatype(filename)
-
     if datatype in ["si", "liang", "combinedrest"]:
 
         time = df[h[0]]
@@ -179,4 +181,4 @@ def read_data(path, datatype="", debug=False):
 def readin(directory="."):
     import glob2
 
-    return glob2.glob(directory + "/*.txt")
+    return np.asarray(glob2.glob(directory + "/*.txt"))

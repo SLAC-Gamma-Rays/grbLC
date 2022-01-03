@@ -43,7 +43,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
             skycoord = SkyCoord("%s %s" % (obj["RA"][0], obj["DEC"][0]), unit=(u.hourangle, u.deg))
         except astroquery.exceptions.RemoteServiceError:
             raise astroquery.exceptions.RemoteServiceError(
-                f"Couldn't find the position of GRB {grb}. Please supply in RA and DEC manually."
+                f"Couldn't find the position of GRB {grb}. Please supply RA and DEC manually."
             )
     else:
         skycoord = SkyCoord("%s %s" % (ra, dec), frame="icrs", unit=(u.hourangle, u.deg))
@@ -96,7 +96,7 @@ def toFlux(
     f_R = f_x * (lambda_x / lambda_R) ** (-beta)
     f_lam_or_nu = f_R
 
-    if band.lower() in ["u_swift", "b_swift", "v_swift", "uvw1_swift", "uvw2_swift", "uvm2_swift", "white"]:
+    if "swift" in band.lower():
         # If flux density is given as f_lambda (erg / cm2 / s / Å)
         lam_or_nu = lambda_R * (u.angstrom)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
@@ -180,7 +180,7 @@ def convertGRB(
             bat_spec_df["photon_index"] = bat_spec_df["photon_index"].astype(np.float64)
             bat_spec_df["photon_index_err"] = bat_spec_df["photon_index_err"].astype(np.float64)
             bat_spec_df.dropna(how="any", subset=["photon_index", "photon_index_err"], inplace=True)
-            photon_index, photon_index_err = list(bat_spec_df.loc[GRB, ["photon_index", "photon_index_err"]])
+            photon_index, photon_index_err = bat_spec_df.loc[GRB, ["photon_index", "photon_index_err"]]
             battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
             ra, dec = bat_spec_df.loc[GRB, ["ra", "dec"]]
             battime = " ".join(battime)
@@ -308,11 +308,12 @@ def convert_all(debug=False):
 
 # simple checker that downloads the SFD dust map if it's not already there
 def _check_dust_maps():
-    from dustmaps.config import config
-    import dustmaps.sfd
 
     data_dir = os.path.join(os.path.dirname(__file__), "extinction_maps")
     if not os.path.exists(os.path.join(data_dir, "sfd")):
+        import dustmaps.sfd
+        from dustmaps.config import config
+
         config["data_dir"] = data_dir
         dustmaps.sfd.fetch()
 

@@ -1,14 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit, minimize, leastsq
+from scipy.optimize import curve_fit
 from .constants import *
 from .models import smooth_bpl, w07, sharp_bpl, chisq, probability
 from .fitting import plot_chisq, plot_fit, plot_data
 import convert.convert as convert
-from functools import reduce
 import inspect, os
 from IPython.display import clear_output
-import time
 
 W07 = 0
 SMOOTH_BPL = 1
@@ -20,7 +18,7 @@ funcspecs = {
     SMOOTH_BPL: inspect.getargspec(smooth_bpl).args,
     SHARP_BPL: inspect.getargspec(sharp_bpl).args,
 }
-plabellist = {
+funclabels = {
     W07: ["T", "F", r"$\alpha$", "t"],
     SMOOTH_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$", "S"],
     SHARP_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"],
@@ -49,9 +47,8 @@ class Fitter:
 
         if isinstance(model, int):
             self.func = funclist[model]
-            # self.func_args = ["x", "T", "F", "alpha1", "alpha2"]  # hardcoding sbpl rn
             self.func_args = funcspecs[model][1:]
-            self.plabels = plabellist[model]
+            self.plabels = funclabels[model]
             self.priors = funcpriors[model]
             tmin, tmax, fmin, fmax = bounds
             self.priors[0][0] = tmin
@@ -87,8 +84,7 @@ class Fitter:
         self._check_dir()
 
     def _check_dir(self):
-        self.FIT_VALS_DIR = os.path.join(self.dir, "fit_vals.txt")
-        if not os.path.exists(self.FIT_VALS_DIR):
+        if not os.path.exists(self.dir):
             best_params = self.func_args
             best_err = [param + "_err" for param in best_params]
             best_guesses = [param + "_guess" for param in best_params]
@@ -100,7 +96,7 @@ class Fitter:
             header += best_guesses
             header += ["chisq"]
 
-            with open(self.FIT_VALS_DIR, "w") as f:
+            with open(self.dir, "w") as f:
                 f.write("\t".join(header) + "\n")
 
     def set_dir(self, dirname):
@@ -131,10 +127,10 @@ class Fitter:
             self.sigma = None
 
     def fit(self, p0, return_guess=False, **kwargs):
-        assert np.shape(self.xdata) == np.shape(self.ydata), "xdata and ydata not the same shape"
-        assert np.shape(self.sigma) == np.shape(self.ydata), "err not the same shape as input data"
         assert self.xdata is not None, "xdata not supplied"
         assert self.ydata is not None, "ydata not supplied"
+        assert np.shape(self.xdata) == np.shape(self.ydata), "xdata and ydata not the same shape"
+        assert np.shape(self.sigma) == np.shape(self.ydata), "err not the same shape as input data"
 
         p, cov = curve_fit(
             self.func,
@@ -177,7 +173,7 @@ class Fitter:
         free_params = self.func_args
         fit_length = int(0.75 * len(free_params))
         empty_length = len(free_params) - fit_length
-        figlength = 10 / 3 * len(free_params)  # normalize to 10 when there are 3 parameters
+        figlength = 10 * (len(free_params) / 3)  # normalize to 10 when there are 3 parameters
 
         ax = plt.figure(constrained_layout=True, figsize=(figlength, 7)).subplot_mosaic(
             [
@@ -222,7 +218,7 @@ class Fitter:
         reduced_nu = 1 if reduced_nu == 0 else reduced_nu
         reduced = chisquared / reduced_nu
         nu = len(self.xdata)
-        prob = probability(reduced, nu)
+        # prob = probability(reduced, nu)
 
         textx = fit_length / (len(free_params) + 1) * (1.2)
         plt.figtext(
@@ -235,9 +231,8 @@ class Fitter:
             
             $\\chi_{\\nu}^2$: %.3f
             
-            $\\alpha$ : %.3e
             """
-            % (self.GRBname, chisquared, reduced, prob),
+            % (self.GRBname, chisquared, reduced),
             size=18,
         )
         if save:
@@ -249,7 +244,7 @@ class Fitter:
 
         assert self.fit_vals is not None, "Called save but no fit has been done."
 
-        with open(self.FIT_VALS_DIR, "a") as f:
+        with open(self.dir, "a") as f:
 
             p, cov, p0 = self.fit_vals
             perr = np.sqrt(np.diag(cov))
@@ -257,9 +252,9 @@ class Fitter:
 
             row = f"{self.GRBname}\t"  # GRBname
             row += f"{tt}\t{tf}\t"  # tt and tf
-            row += "\t".join([f"{val}\t{valerr}" for val, valerr in zip(p, perr)])  # params and their errors
-            row += "\t".join([f"{valguess}" for valguess in p0])  # parameter guesses
-            row += f"\t{self.chisq}"
+            row += "\t".join([f"{val}\t{valerr}" for val, valerr in zip(p, perr)]) + "\t"  # params and their errors
+            row += "\t".join([f"{valguess}" for valguess in p0]) + "\t"  # parameter guesses
+            row += f"{self.chisq}"
             row += "\n"
 
             f.write(row)
@@ -281,8 +276,6 @@ class Fitter:
 
             self.fit(p0=param_guesses)
             self.show_fit()
-            plt.show()
-            time.sleep(0.1)
 
             if str(input("save? ([y]/n): ")) in ["", "y"]:
                 self.save()

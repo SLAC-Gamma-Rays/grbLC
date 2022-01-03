@@ -42,5 +42,7 @@ flux_densities = {
     "Z": [8817, 2232e-23, "SDSS z"],
     "Y": [10305, 2026e-23, "DES Y"],
 }
-table_path = os.path.join(os.path.split(os.path.realpath(__file__))[0], "SF11_conversions.txt")
+
+table_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt")
 ebv2A_b_df = pd.read_table(table_path, comment="#", index_col=0)
+

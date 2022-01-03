@@ -1,5 +1,3 @@
-import datetime
-
 # converts decimal days to UT time.
 # Ex: 0.25 to 06:00:00.000, which is a quarter of a day
 def dec_to_UT(decimal: float) -> str:
@@ -53,6 +51,8 @@ def UT_to_dec(yr_time: str) -> str:
 # converts a GRB number to the actual date of the detection
 # Ex: 010222 to 2001-02-22
 def grb_to_date(GRB: str):
+    import datetime
+
     if not GRB.isnumeric():
         GRB = GRB[:-1]
     assert len(GRB) == 6 and GRB.isnumeric(), "Incorrect GRB format; should be in format YYMMDD(X)."
