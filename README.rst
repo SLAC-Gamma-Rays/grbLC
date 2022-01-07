@@ -24,7 +24,7 @@ Credits
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
 
-This package heavily relies on Andy Casey's `ads`_ Python package for dealing with search queries.
+The `ads` submodule heavily relies on Andy Casey's `ads`_ Python package for dealing with search queries.
 
 :)
 

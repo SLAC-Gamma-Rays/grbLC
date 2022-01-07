@@ -1,4 +1,4 @@
-"""Top-level package for adsgrb."""
+"""Top-level package for ads submodule."""
 
 __author__ = """Sam Young"""
 __email__ = "youngsam@sas.upenn.edu"
