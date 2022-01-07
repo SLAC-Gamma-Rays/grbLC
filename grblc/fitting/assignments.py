@@ -1,14 +1,62 @@
-from convert import get_dir
+import os
 from functools import reduce
-import os, glob2
+
+import glob2
 import numpy as np
 
+from ..convert import get_dir
+
 assignments = {
-    1: ["210411C", "210321A", "210210A", "210204A", "201024A", "201021C", "201020A", "201015A"],
-    2: ["201014A", "200829A", "200613A", "200524A", "191019A", "191011A", "190627A", "190530A"],
-    3: ["190114A", "181213A", "181201A", "181110A", "181020A", "181010A", "180728A", "180624A"],
-    4: ["180404A", "180325A", "180205A", "180115A", "171010A", "170714A", "170607A", "170604A"],
-    5: ["170405A", "170214A", "170113A", "161219B", "161129A", "161014A", "160804A", "160703A"],
+    1: [
+        "210411C",
+        "210321A",
+        "210210A",
+        "210204A",
+        "201024A",
+        "201021C",
+        "201020A",
+        "201015A",
+    ],
+    2: [
+        "201014A",
+        "200829A",
+        "200613A",
+        "200524A",
+        "191019A",
+        "191011A",
+        "190627A",
+        "190530A",
+    ],
+    3: [
+        "190114A",
+        "181213A",
+        "181201A",
+        "181110A",
+        "181020A",
+        "181010A",
+        "180728A",
+        "180624A",
+    ],
+    4: [
+        "180404A",
+        "180325A",
+        "180205A",
+        "180115A",
+        "171010A",
+        "170714A",
+        "170607A",
+        "170604A",
+    ],
+    5: [
+        "170405A",
+        "170214A",
+        "170113A",
+        "161219B",
+        "161129A",
+        "161014A",
+        "160804A",
+        "160703A",
+    ],
     6: [
         "160623A",
         "160425A",
@@ -319,7 +367,9 @@ def get_assignment(n):
     if n in assignments:
         # Look at LCs and go through outliers BEFORE cleaning
         assignment = assignments[n]
-        glob_path = glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", "*_converted_flux.txt"]))
+        glob_path = glob2.glob(
+            reduce(os.path.join, [get_dir(), "*_flux", "*_converted_flux.txt"])
+        )
         finals = []
         for filepath in glob_path:
             grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
@@ -331,11 +381,21 @@ def get_assignment(n):
 def locate(grb):
     if isinstance(grb, (list, tuple)):
         paths = np.concatenate(
-            [glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", f"{name}_converted_flux.txt"])) for name in grb]
+            [
+                glob2.glob(
+                    reduce(
+                        os.path.join,
+                        [get_dir(), "*_flux", f"{name}_converted_flux.txt"],
+                    )
+                )
+                for name in grb
+            ]
         )
 
     else:
-        paths = glob2.glob(reduce(os.path.join, [get_dir(), "*_flux", f"{grb}_converted_flux.txt"]))
+        paths = glob2.glob(
+            reduce(os.path.join, [get_dir(), "*_flux", f"{grb}_converted_flux.txt"])
+        )
 
     if isinstance(paths, list):
         return paths  # we want to return a list!

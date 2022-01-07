@@ -1,34 +1,20 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import curve_fit
-from .constants import *
-from .models import smooth_bpl, w07, sharp_bpl, chisq, probability
-from .fitting import plot_chisq, plot_fit, plot_data
-import convert.convert as convert
-import inspect, os
 from IPython.display import clear_output
+from scipy.optimize import curve_fit
 
-W07 = 0
-SMOOTH_BPL = 1
-SHARP_BPL = 2
-
-funclist = {W07: w07, SMOOTH_BPL: smooth_bpl, SHARP_BPL: sharp_bpl}
-funcspecs = {
-    W07: inspect.getargspec(w07).args,
-    SMOOTH_BPL: inspect.getargspec(smooth_bpl).args,
-    SHARP_BPL: inspect.getargspec(sharp_bpl).args,
-}
-funclabels = {
-    W07: ["T", "F", r"$\alpha$", "t"],
-    SMOOTH_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$", "S"],
-    SHARP_BPL: ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"],
-}
-
-funcpriors = {
-    W07: [[0, -50, 0, 0], [np.inf, -1, 5, np.inf]],
-    SMOOTH_BPL: [[1e-5, -50, -20, -20, -np.inf], [np.inf, -1, 20, 20, np.inf]],
-    SHARP_BPL: [[1e-5, -50, -5, 0], [np.inf, -1, 5, 20]],
-}
+import convert.convert as convert
+from .constants import *
+from .fitting import plot_chisq
+from .fitting import plot_data
+from .fitting import plot_fit
+from .models import chisq
+from .models import probability
+from .models import sharp_bpl
+from .models import smooth_bpl
+from .models import w07
 
 
 class Fitter:
@@ -74,7 +60,10 @@ class Fitter:
         self.fit_vals = None
 
         if self.priors is not None:
-            assert np.shape(self.priors) == (2, len(self.func_args)), "Incorrect shape for prior bounds."
+            assert np.shape(self.priors) == (
+                2,
+                len(self.func_args),
+            ), "Incorrect shape for prior bounds."
 
         if save_dir is not None:
             self.dir = save_dir
@@ -122,15 +111,23 @@ class Fitter:
         self.xerr = np.asarray(xerr)[self.mask] if xerr is not None else None
         self.yerr = np.asarray(yerr)[self.mask] if yerr is not None else None
 
-        self.sigma = np.sqrt(np.sum([err ** 2 for err in [self.xerr, self.yerr] if err is not None], axis=0))
+        self.sigma = np.sqrt(
+            np.sum(
+                [err ** 2 for err in [self.xerr, self.yerr] if err is not None], axis=0
+            )
+        )
         if isinstance(self.sigma, int):
             self.sigma = None
 
     def fit(self, p0, return_guess=False, **kwargs):
         assert self.xdata is not None, "xdata not supplied"
         assert self.ydata is not None, "ydata not supplied"
-        assert np.shape(self.xdata) == np.shape(self.ydata), "xdata and ydata not the same shape"
-        assert np.shape(self.sigma) == np.shape(self.ydata), "err not the same shape as input data"
+        assert np.shape(self.xdata) == np.shape(
+            self.ydata
+        ), "xdata and ydata not the same shape"
+        assert np.shape(self.sigma) == np.shape(
+            self.ydata
+        ), "err not the same shape as input data"
 
         p, cov = curve_fit(
             self.func,
@@ -173,7 +170,9 @@ class Fitter:
         free_params = self.func_args
         fit_length = int(0.75 * len(free_params))
         empty_length = len(free_params) - fit_length
-        figlength = 10 * (len(free_params) / 3)  # normalize to 10 when there are 3 parameters
+        figlength = 10 * (
+            len(free_params) / 3
+        )  # normalize to 10 when there are 3 parameters
 
         ax = plt.figure(constrained_layout=True, figsize=(figlength, 7)).subplot_mosaic(
             [
@@ -228,9 +227,9 @@ class Fitter:
             GRB %s
 
             $\\chi^2$: %.3f
-            
+
             $\\chi_{\\nu}^2$: %.3f
-            
+
             """
             % (self.GRBname, chisquared, reduced),
             size=18,
@@ -252,8 +251,12 @@ class Fitter:
 
             row = f"{self.GRBname}\t"  # GRBname
             row += f"{tt}\t{tf}\t"  # tt and tf
-            row += "\t".join([f"{val}\t{valerr}" for val, valerr in zip(p, perr)]) + "\t"  # params and their errors
-            row += "\t".join([f"{valguess}" for valguess in p0]) + "\t"  # parameter guesses
+            row += (
+                "\t".join([f"{val}\t{valerr}" for val, valerr in zip(p, perr)]) + "\t"
+            )  # params and their errors
+            row += (
+                "\t".join([f"{valguess}" for valguess in p0]) + "\t"
+            )  # parameter guesses
             row += f"{self.chisq}"
             row += "\n"
 

@@ -1,6 +1,8 @@
-import pandas as pd
+import os
+import re
+
 import numpy as np
-import re, os
+import pandas as pd
 
 
 def isfloat(value):
@@ -41,7 +43,7 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
 
     # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
     # ... so maybe change the h in [not isfloat(x) for x in h] to the second row???
-    if isinstance(h, pd.Int64Index) or sum([isfloat(x) for x in h]) >= 0.3 * len(h) // 1:
+    if isinstance(h, pd.Int64Index) or sum(isfloat(x) for x in h) >= 0.3 * len(h) // 1:
         if debug:
             print("Some are floats...")
 
@@ -76,7 +78,9 @@ def check_datatype(filename):
     elif check("kann") or re.search(r"(?<!.)\d+[A-Z]?\.txt", filename):
         datatype = "kann"
 
-    elif re.search(r"combined(?!rest)", filename) or re.search(r"comb(?!ined)", filename):
+    elif re.search(r"combined(?!rest)", filename) or re.search(
+        r"comb(?!ined)", filename
+    ):
         datatype = "combined"
 
     elif check("combinedrest"):

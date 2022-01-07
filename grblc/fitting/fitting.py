@@ -1,10 +1,17 @@
+from functools import reduce
+
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-from .constants import plabelsW07, plabelsBPL
-from .models import w07, smooth_bpl, chisq, probability
-from convert.convert import get_dir, set_dir
-from functools import reduce
+
+from .constants import plabelsBPL
+from .constants import plabelsW07
+from .models import chisq
+from .models import probability
+from .models import smooth_bpl
+from .models import w07
+from convert.convert import get_dir
+from convert.convert import set_dir
 
 
 def fit_bpl(
@@ -52,7 +59,9 @@ def fit_bpl(
     # deal with sigma.
     # sigma = yerr(xerr) if xerr(yerr) is None.
     # otherwise, it's (xerr**2 + yerr**2)**(0.5)
-    sigma = np.sqrt(np.sum([err ** 2 for err in [logTerr, logFerr] if err is not None], axis=0))
+    sigma = np.sqrt(
+        np.sum([err ** 2 for err in [logTerr, logFerr] if err is not None], axis=0)
+    )
     if isinstance(sigma, int):
         sigma = None
 
@@ -119,7 +128,9 @@ def fit_w07(
     if logFerr is not None:
         logFerr = np.asarray(logFerr)[mask]
 
-    sigma = np.sqrt(np.sum([err ** 2 for err in [logTerr, logFerr] if err is not None], axis=0))
+    sigma = np.sqrt(
+        np.sum([err ** 2 for err in [logTerr, logFerr] if err is not None], axis=0)
+    )
     if isinstance(sigma, int):
         sigma = None
 
@@ -157,7 +168,18 @@ def fit_w07(
         return p, cov
 
 
-def plot_data(model, xdata, ydata, tt=0, tf=np.inf, xerr=None, yerr=None, ax=None, title="", show=True):
+def plot_data(
+    model,
+    xdata,
+    ydata,
+    tt=0,
+    tf=np.inf,
+    xerr=None,
+    yerr=None,
+    ax=None,
+    title="",
+    show=True,
+):
     if ax is None:
         fig, ax = plt.subplots(1)
     ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
@@ -208,7 +230,19 @@ def plot_data(model, xdata, ydata, tt=0, tf=np.inf, xerr=None, yerr=None, ax=Non
         plt.close()
 
 
-def plot_fit(model, xdata, ydata, p, tt=0, tf=np.inf, xerr=None, yerr=None, p0=None, ax=None, show=True):
+def plot_fit(
+    model,
+    xdata,
+    ydata,
+    p,
+    tt=0,
+    tf=np.inf,
+    xerr=None,
+    yerr=None,
+    p0=None,
+    ax=None,
+    show=True,
+):
     if ax is None:
         fig, ax = plt.subplots(1)
     ax.axvline(tt, c="k", ls=":", label=f"tt = {tt}", alpha=0.3, zorder=-999999)
@@ -281,9 +315,13 @@ def plot_toy_fit(model, logT, logF, pfit, ptrue, logTerr=None, logFerr=None, ax=
     if not ax:
         fig, ax = plt.subplots(1, figsize=(8, 5))
     plotT = np.linspace(logT[0], logT[-1], 100)
-    ax.errorbar(logT, logF, xerr=logTerr, yerr=logFerr, c="k", fmt="x", label="data", zorder=0)
+    ax.errorbar(
+        logT, logF, xerr=logTerr, yerr=logFerr, c="k", fmt="x", label="data", zorder=0
+    )
     ax.plot(plotT, model(plotT, *pfit), c="tab:red", label="fit", zorder=-10)
-    ax.plot(plotT, model(plotT, *ptrue), c="tab:blue", ls=":", label="truth", zorder=-10)
+    ax.plot(
+        plotT, model(plotT, *ptrue), c="tab:blue", ls=":", label="truth", zorder=-10
+    )
     Tfit, Ffit, *__ = pfit
     Ttrue, Ftrue, *__ = ptrue
     ax.scatter(Tfit, Ffit, c="tab:red", label="fit", s=80, zorder=200)
@@ -294,7 +332,18 @@ def plot_toy_fit(model, logT, logF, pfit, ptrue, logTerr=None, logFerr=None, ax=
     fig, ax = None, None
 
 
-def plot_w07_fit(logT, logF, p, tt=0, tf=np.inf, logTerr=None, logFerr=None, p0=None, ax=None, show=True):
+def plot_w07_fit(
+    logT,
+    logF,
+    p,
+    tt=0,
+    tf=np.inf,
+    logTerr=None,
+    logFerr=None,
+    p0=None,
+    ax=None,
+    show=True,
+):
     return plot_fit(w07, logT, logF, p, tt, tf, logTerr, logFerr, p0, ax, show)
 
 
@@ -302,29 +351,40 @@ def plot_w07_toy_fit(logT, logF, pfit, ptrue, logTerr=None, logFerr=None, ax=Non
     return plot_toy_fit(w07, logT, logF, pfit, ptrue, logTerr, logFerr, ax)
 
 
-def plot_chisq(model, x, y, yerr, p, perr, labels=None, fineness=0.1, ax=None, show=True):
+def plot_chisq(
+    model, x, y, yerr, p, perr, labels=None, fineness=0.1, ax=None, show=True
+):
     if ax is None:
         fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
     if labels is None:
-        labels = ["$x_{}$".format(n) for n in range(len(p))]
+        labels = [f"$x_{n}$" for n in range(len(p))]
 
     assert np.shape(p) == np.shape(
         perr
     ), "Best fit parameters and errors should be the same shape. Did you accidentally enter the covariance matrix instead?"
 
     multiplier = np.arange(-2, 2, fineness)
-    paramspace = np.array([p + m * perr for m in multiplier])  # shape is (len(multiplier), 4)
+    paramspace = np.array(
+        [p + m * perr for m in multiplier]
+    )  # shape is (len(multiplier), 4)
     best_chisq = chisq(x, y, yerr, model, *p)
     for idx, ax_ in enumerate(list(ax)):
         chisq_params = np.tile(p, (len(multiplier), 1))
         chisq_params[:, idx] = paramspace[:, idx]
-        delta_chisq = [chisq(x, y, yerr, model, *chisq_param) - best_chisq for chisq_param in chisq_params]
+        delta_chisq = [
+            chisq(x, y, yerr, model, *chisq_param) - best_chisq
+            for chisq_param in chisq_params
+        ]
 
         # print(delta_chisq)
         # print(chisq_params[:-5])
 
-        ax_.plot(multiplier, delta_chisq, label=labels[idx] + f"={p[idx]:.3f} $\pm$ {perr[idx]:.3f}")
+        ax_.plot(
+            multiplier,
+            delta_chisq,
+            label=labels[idx] + fr"={p[idx]:.3f} $\pm$ {perr[idx]:.3f}",
+        )
         ax_.legend(framealpha=0.0)
         ax_.set_xlabel(r"$\sigma$ multiplier")
         ax_.set_ylabel(r"$\Delta\chi^2$")
@@ -356,7 +416,7 @@ def plot_2d_chisq(x, y, yerr, p, pcov, fineness=0.1, xlabel="X", ylabel="Y", **k
     plt.ylabel(xlabel)
     plt.contour(p1, p2, res, 50, **kwargs)
     plt.scatter(*p[:2], color="r", label="Best fit")
-    plt.title("$\Chi^2$")
+    plt.title(r"$\Chi^2$")
     plt.legend()
     plt.colorbar()
     plt.show()
@@ -424,7 +484,16 @@ def plot_w07_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf):
     yerr = acc.flux_err / (acc.flux * np.log(10))
     perr = np.sqrt(np.diag(pcov))
     mask = (xdata >= tt) & (xdata <= tf)
-    plot_w07_fit(xdata[mask], ydata[mask], p, logTerr=None, logFerr=yerr[mask], p0=p0, ax=ax["fit"], show=False)
+    plot_w07_fit(
+        xdata[mask],
+        ydata[mask],
+        p,
+        logTerr=None,
+        logFerr=yerr[mask],
+        p0=p0,
+        ax=ax["fit"],
+        show=False,
+    )
     plot_chisq(
         w07,
         xdata[mask],
@@ -451,9 +520,9 @@ def plot_w07_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf):
         GRB %s
 
         $\\chi^2$: %.3f
-        
+
         $\\chi_{\\nu}^2$: %.3f
-        
+
         $\\alpha$ : %.3e
         """
         % (GRB, chisquared, reduced, prob),
@@ -468,12 +537,23 @@ def plot_toy_bpl_fit_and_chisq(xdata, ydata, yerr, p, pcov, p0, tt=0, tf=np.inf)
     import os
 
     ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
-        [["fit", "fit", "fit", "EMPTY"], ["T", "F", "alpha1", "alpha2"]], empty_sentinel="EMPTY"
+        [["fit", "fit", "fit", "EMPTY"], ["T", "F", "alpha1", "alpha2"]],
+        empty_sentinel="EMPTY",
     )
 
     perr = np.sqrt(np.diag(pcov))
     mask = (xdata >= tt) & (xdata <= tf)
-    plot_fit(smooth_bpl, xdata[mask], ydata[mask], p, logTerr=None, logFerr=yerr[mask], p0=p0, ax=ax["fit"], show=False)
+    plot_fit(
+        smooth_bpl,
+        xdata[mask],
+        ydata[mask],
+        p,
+        logTerr=None,
+        logFerr=yerr[mask],
+        p0=p0,
+        ax=ax["fit"],
+        show=False,
+    )
     plot_chisq(
         smooth_bpl,
         xdata[mask],
@@ -517,19 +597,30 @@ def plot_bpl_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf, save=True):
     import re
 
     ax = plt.figure(constrained_layout=True, figsize=(10, 7)).subplot_mosaic(
-        [["fit", "fit", "fit", "EMPTY"], ["T", "F", "alpha1", "alpha2"]], empty_sentinel="EMPTY"
+        [["fit", "fit", "fit", "EMPTY"], ["T", "F", "alpha1", "alpha2"]],
+        empty_sentinel="EMPTY",
     )
 
     # read in fitted vals
     acc = pd.read_csv(filepath, sep="\t", header=0)
 
-    GRB = re.search("(\d{6}[A-Z]?)", filepath)[0]
+    GRB = re.search(r"(\d{6}[A-Z]?)", filepath)[0]
     xdata = np.array(np.log10(acc.time_sec))
     ydata = np.array(np.log10(acc.flux))
     yerr = acc.flux_err / (acc.flux * np.log(10))
     perr = np.sqrt(np.diag(pcov))
     mask = (xdata >= tt) & (xdata <= tf)
-    plot_fit(smooth_bpl, xdata[mask], ydata[mask], p, logTerr=None, logFerr=yerr[mask], p0=p0, ax=ax["fit"], show=False)
+    plot_fit(
+        smooth_bpl,
+        xdata[mask],
+        ydata[mask],
+        p,
+        logTerr=None,
+        logFerr=yerr[mask],
+        p0=p0,
+        ax=ax["fit"],
+        show=False,
+    )
     plot_chisq(
         smooth_bpl,
         xdata[mask],
@@ -556,9 +647,9 @@ def plot_bpl_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf, save=True):
         GRB %s
 
         $\\chi^2$: %.3f
-        
+
         $\\chi_{\\nu}^2$: %.3f
-        
+
         $\\alpha$ : %.3e
         """
         % (GRB, chisquared, reduced, prob),
@@ -568,8 +659,17 @@ def plot_bpl_fit_and_chisq(filepath, p, pcov, p0, tt=0, tf=np.inf, save=True):
     if save:
         import os
 
-        plt.savefig(reduce(os.path.join, [get_dir(), "fits_approved", f"{GRB}_fitted_approved.pdf"]))
+        plt.savefig(
+            reduce(
+                os.path.join, [get_dir(), "fits_approved", f"{GRB}_fitted_approved.pdf"]
+            )
+        )
         plt.close()
-        print("saved to", reduce(os.path.join, [get_dir(), "fits_approved", f"{GRB}_fitted_approved.pdf"]))
+        print(
+            "saved to",
+            reduce(
+                os.path.join, [get_dir(), "fits_approved", f"{GRB}_fitted_approved.pdf"]
+            ),
+        )
 
     plt.show()
