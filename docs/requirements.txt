@@ -1,4 +1,0 @@
-ads==0.12.3
-requests==2.25.1
-myst-parser==0.15.1
-furo==2021.6.24b37
