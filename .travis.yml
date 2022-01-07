@@ -16,10 +16,10 @@ script: tox
 # create the Github repo and add it to Travis, run the
 # following command to finish PyPI deployment setup:
 # $ travis encrypt --add deploy.password
-deploy:
-  distributions: sdist bdist_wheel
-  provider: pypi
-  on:
-   branch: master
-  username: __token__
-  password: $PYPI_PASSWORD
+# deploy:
+#   distributions: sdist bdist_wheel
+#   provider: pypi
+#   on:
+#    branch: master
+#   username: __token__
+#   password: $PYPI_PASSWORD
