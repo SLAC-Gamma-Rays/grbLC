@@ -7,16 +7,3 @@ tox==3.14.0
 coverage==4.5.4
 Sphinx==1.8.5
 twine==1.14.0
-scipy
-requests
-adsgrb
-astropy
-pandas
-dustmaps
-plotly
-astroquery
-glob2
-matplotlib
-numpy
-ipython
-PyPDF2
