@@ -1,4 +1,4 @@
-* adsgrb version:
+* grbLC version:
 * Python version:
 * Operating System:
 
