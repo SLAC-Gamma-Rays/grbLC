@@ -1,5 +1,5 @@
 import os
-from .constants import sentence_check, mag_check
+from .constants import sentence_check, mag_check, flux_check
 
 
 def check_sentence(grb_listing):
@@ -67,7 +67,7 @@ def get_final_sentences_txt(grb, output_path):
         for paragraph in GCN_paragraphs:
             
             magMatch = mag_check.findall(paragraph)
-            fluxMatch = flux_check.finall(paragraph
+            fluxMatch = flux_check.findall(paragraph)
            
             if magMatch:
                 
