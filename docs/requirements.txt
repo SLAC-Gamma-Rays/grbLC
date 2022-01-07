@@ -1,0 +1,14 @@
+myst-parser==0.15.1
+furo==2021.6.24b37
+requests
+matplotlib
+numpy
+astroquery
+scipy
+pandas
+glob2
+astropy
+dustmaps
+plotly
+ipython
+PyPDF2
