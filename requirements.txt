@@ -1,0 +1,13 @@
+scipy
+requests
+adsgrb
+astropy
+pandas
+dustmaps
+plotly
+astroquery
+glob2
+matplotlib
+numpy
+ipython
+PyPDF2
