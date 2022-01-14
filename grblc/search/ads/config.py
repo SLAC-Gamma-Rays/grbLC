@@ -1,7 +1,8 @@
-from ads import config
-from pathlib import Path
 import os
 from functools import reduce
+from pathlib import Path
+
+from ads import config
 
 
 def read_apikey():
@@ -13,11 +14,10 @@ def read_apikey():
         No return.
     """
     try:
-        global DEV_KEY_DIR
-        with open(DEV_KEY_DIR, "r") as f:
+        with open(DEV_KEY_DIR) as f:
             config.token = f.read()
     except:
-        print(
+        ImportError(
             f"""API key not found in {DEV_KEY_DIR}. Either set adsgrb.config.token manually or consider
 calling adsgrb.set_apikey() to save the API key onto your system, bypassing the need to set your API key after
 each import. Your key can be found here: https://ui.adsabs.harvard.edu/user/settings/token."""
@@ -39,12 +39,10 @@ def set_apikey(key):
         No return, but calls _read_apikey() after setting.
     """
     try:
-        global HOME
         os.mkdir(os.path.join(HOME, ".ads"))
     except:
         pass
 
-    global DEV_KEY_DIR
     with open(DEV_KEY_DIR, "w") as f:
         f.write(key)
 
@@ -59,7 +57,6 @@ def reset_apikey():
         No return, but calls _read_apikey() after reset.
     """
     try:
-        global DEV_KEY_DIR
         os.remove(DEV_KEY_DIR)
     except:
         print(f"No key found in {os.path.split(DEV_KEY_DIR)[0]} to delete.")

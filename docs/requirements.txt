@@ -12,3 +12,4 @@ dustmaps
 plotly
 ipython
 PyPDF2
+ads

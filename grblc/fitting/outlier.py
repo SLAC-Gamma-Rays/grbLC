@@ -6,6 +6,8 @@ import pandas as pd
 from IPython.display import clear_output
 from IPython.display import display
 
+from .lightcurve import Lightcurve
+
 
 def LC_summary(filepaths):
     lc_data = {}

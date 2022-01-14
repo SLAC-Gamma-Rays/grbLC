@@ -10,3 +10,5 @@ dustmaps
 plotly
 ipython
 PyPDF2
+numdifftools
+lmfit
