@@ -1,11 +1,16 @@
-from astropy import units as u, constants as const
-from astropy.time import Time
-import pandas as pd
-import numpy as np
-from .constants import flux_densities, ebv2A_b_df
 import os.path
-import re, glob2
+import re
 from functools import reduce
+
+import glob2
+import numpy as np
+import pandas as pd
+from astropy import constants as const
+from astropy import units as u
+from astropy.time import Time
+
+from .constants import ebv2A_b_df
+from .constants import flux_densities
 
 
 def angstromToHz(ang: float):
@@ -20,13 +25,28 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
                             of the SFD dust map, and is queried using the dustmaps python package.
                             Updated coefficient conversion values for the SFD is taken from Schlafly & Finkbeiner (2011)
                             and is found in SF11_conversions.txt.
-    Args:
-            ra (str): Right ascension
-            dec (str): Declination
-            bandpass (str): One of the 94 bandpasses supported. See SF11_conversion.txt for these bandpasses.
 
-    Returns:
-            float: Galactic extinction correct in magnitude.
+    Parameters
+    ----------
+    grb : str
+        Gamma ray burst name
+    bandpass : str
+        One of the 94 bandpasses supported. See SF11_conversion.txt for these bandpasses.
+    ra : str, optional
+        Right ascension, by default None
+    dec : str, optional
+        Declination, by default None
+
+    Returns
+    -------
+    float
+        Galactic extinction correct in magnitude.
+
+    Raises
+    ------
+    astroquery.exceptions.RemoteServiceError
+        If the GRB position cannot be found with `astroquery`, then
+        the user is prompted to enter the RA and DEC manually.
     """
 
     from astropy.coordinates import SkyCoord
@@ -40,13 +60,17 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
 
         try:
             obj = Simbad.query_object(f"GRB {grb}")
-            skycoord = SkyCoord("%s %s" % (obj["RA"][0], obj["DEC"][0]), unit=(u.hourangle, u.deg))
+            skycoord = SkyCoord(
+                "{} {}".format(obj["RA"][0], obj["DEC"][0]), unit=(u.hourangle, u.deg)
+            )
         except astroquery.exceptions.RemoteServiceError:
             raise astroquery.exceptions.RemoteServiceError(
                 f"Couldn't find the position of GRB {grb}. Please supply RA and DEC manually."
             )
     else:
-        skycoord = SkyCoord("%s %s" % (ra, dec), frame="icrs", unit=(u.hourangle, u.deg))
+        skycoord = SkyCoord(
+            f"{ra} {dec}", frame="icrs", unit=(u.hourangle, u.deg)
+        )
 
     # this grabs the degree of reddening E(B-V) at the given position in the sky.
     # see https://astronomy.swin.edu.au/cosmos/i/interstellar+reddening for an explanation of what this is
@@ -109,7 +133,8 @@ def toFlux(
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
     fluxerr = abs(flux) * np.sqrt(
-        (magerr * np.log(10 ** (0.4))) ** 2 + (photon_index_err * np.log(lambda_x / lambda_R)) ** 2
+        (magerr * np.log(10 ** (0.4))) ** 2
+        + (photon_index_err * np.log(lambda_x / lambda_R)) ** 2
     )
 
     assert flux >= 0, "Error computing flux."
@@ -119,7 +144,12 @@ def toFlux(
 
 # main conversion function to call
 def convertGRB(
-    GRB: str, battime: str = "", index: float = 0, index_type: str = "", use_nick: bool = False, debug: bool = False
+    GRB: str,
+    battime: str = "",
+    index: float = 0,
+    index_type: str = "",
+    use_nick: bool = False,
+    debug: bool = False,
 ):
     # make sure we have dust maps downloaded for calculating galactic extinction
     _check_dust_maps()
@@ -172,15 +202,21 @@ def convertGRB(
         try:
             bat_spec_df = pd.read_csv(
                 os.path.join(directory, "trigs_and_specs.txt"),
-                delimiter="\t+|\s+",
+                delimiter="\t+|\\s+",
                 index_col=0,
                 header=0,
                 engine="python",
             )
             bat_spec_df["photon_index"] = bat_spec_df["photon_index"].astype(np.float64)
-            bat_spec_df["photon_index_err"] = bat_spec_df["photon_index_err"].astype(np.float64)
-            bat_spec_df.dropna(how="any", subset=["photon_index", "photon_index_err"], inplace=True)
-            photon_index, photon_index_err = bat_spec_df.loc[GRB, ["photon_index", "photon_index_err"]]
+            bat_spec_df["photon_index_err"] = bat_spec_df["photon_index_err"].astype(
+                np.float64
+            )
+            bat_spec_df.dropna(
+                how="any", subset=["photon_index", "photon_index_err"], inplace=True
+            )
+            photon_index, photon_index_err = bat_spec_df.loc[
+                GRB, ["photon_index", "photon_index_err"]
+            ]
             battime = list(bat_spec_df.loc[GRB, ["trigger_date", "trigger_time"]])
             ra, dec = bat_spec_df.loc[GRB, ["ra", "dec"]]
             battime = " ".join(battime)
@@ -193,7 +229,19 @@ def convertGRB(
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
     if debug:
-        converted_debug = {k: [] for k in ("time_sec", "flux", "flux_err", "band", "logF", "logT", "mag", "mag_err")}
+        converted_debug = {
+            k: []
+            for k in (
+                "time_sec",
+                "flux",
+                "flux_err",
+                "band",
+                "logF",
+                "logT",
+                "mag",
+                "mag_err",
+            )
+        }
 
     for __, row in mag_table.iterrows():
         band = row["band"]
@@ -203,7 +251,13 @@ def convertGRB(
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
             flux, flux_err = toFlux(
-                magnitude, band, ra, dec, mag_err, photon_index=photon_index, photon_index_err=photon_index_err
+                magnitude,
+                band,
+                ra,
+                dec,
+                mag_err,
+                photon_index=photon_index,
+                photon_index_err=photon_index_err,
             )
         except KeyError as error:
             print(error)
@@ -240,7 +294,9 @@ def convertGRB(
         save_path = os.path.join(os.path.dirname(filename), f"{GRB}_converted_flux.txt")
         pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
     else:
-        save_path = os.path.join(os.path.dirname(filename), f"{GRB}_converted_flux_DEBUG.txt")
+        save_path = os.path.join(
+            os.path.dirname(filename), f"{GRB}_converted_flux_DEBUG.txt"
+        )
         pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
 
     return
@@ -267,7 +323,9 @@ def convert_all(debug=False):
     grbs = [
         os.path.split(f)[1][:-4]
         for f in filepaths
-        if os.path.split(f)[1].count("flux") == 0 and "trigger" not in f and "spectral_index" not in f
+        if os.path.split(f)[1].count("flux") == 0
+        and "trigger" not in f
+        and "spectral_index" not in f
     ]
 
     converted = []

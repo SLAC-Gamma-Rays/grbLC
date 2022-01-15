@@ -24,6 +24,25 @@ class Lightcurve:
         name=None,
         model: Model = None,
     ):
+        """__init__ [summary]
+
+        Parameters
+        ----------
+        filename : [type], optional
+            [description], by default None
+        xdata : [type], optional
+            [description], by default None
+        ydata : [type], optional
+            [description], by default None
+        xerr : [type], optional
+            [description], by default None
+        yerr : [type], optional
+            [description], by default None
+        name : [type], optional
+            [description], by default None
+        model : Model, optional
+            [description], by default None
+        """
         assert bool(filename) ^ (
             xdata is not None and ydata is not None
         ), "Either provide a filename or xdata, ydata."
@@ -45,7 +64,21 @@ class Lightcurve:
     def set_bounds(
         self, bounds=None, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
     ):
+        """set_bounds [summary]
 
+        Parameters
+        ----------
+        bounds : [type], optional
+            [description], by default None
+        xmin : [type], optional
+            [description], by default -np.inf
+        xmax : [type], optional
+            [description], by default np.inf
+        ymin : [type], optional
+            [description], by default -np.inf
+        ymax : [type], optional
+            [description], by default np.inf
+        """
         # assert that either bounds or any of xmin, xmax, ymin, ymax is not None,
         # but prohibiting both to be true
         assert (bounds is not None) ^ any(
@@ -66,6 +99,19 @@ class Lightcurve:
         self.set_data(self.xdata, self.ydata, self.xerr, self.yerr)
 
     def set_data(self, xdata, ydata, xerr=None, yerr=None):
+        """set_data [summary]
+
+        Parameters
+        ----------
+        xdata : [type]
+            [description]
+        ydata : [type]
+            [description]
+        xerr : [type], optional
+            [description], by default None
+        yerr : [type], optional
+            [description], by default None
+        """
         if not hasattr(self, "mask"):
             self.mask = np.ones(len(xdata), dtype=bool)
 
@@ -79,6 +125,13 @@ class Lightcurve:
         self.yerr = np.asarray(yerr)[self.mask] if yerr is not None else None
 
     def set_model(self, model: Model):
+        """set_model [summary]
+
+        Parameters
+        ----------
+        model : Model
+            [description]
+        """
         self.res = None
         self.figs = {}
 
@@ -89,10 +142,24 @@ class Lightcurve:
         self.set_bounds(self.model.bounds)
 
     def _read_data(self, filename):
+        """_read_data [summary]
+
+        Parameters
+        ----------
+        filename : [type]
+            [description]
+        """
 
         pass
 
     def show_data(self, fig_kwargs={}):
+        """show_data [summary]
+
+        Parameters
+        ----------
+        fig_kwargs : dict, optional
+            [description], by default {}
+        """
 
         fig_dict = dict(figsize=[plt.rcParams["figure.figsize"][0]] * 2)
         if bool(fig_kwargs):
@@ -164,10 +231,19 @@ class Lightcurve:
         ----------
         p0 : [type]
             [description]
-        method : str, optional
-            [description], by default "mcmc"
-        parallelized : bool, optional
+        run_mcmc : bool, optional
+            [description], by default True
+        show : bool, optional
             [description], by default False
+        minimize_kwargs : dict, optional
+            [description], by default {}
+        emcee_kwargs : dict, optional
+            [description], by default {}
+
+        Returns
+        -------
+        [type]
+            [description]
         """
 
         assert self.model is not None, "No model set."
@@ -282,6 +358,48 @@ class Lightcurve:
         data_kwargs={},
         fit_kwargs={},
     ):
+        """show_fit [summary]
+
+        Parameters
+        ----------
+        detailed : [type], optional
+            [description], by default None
+        print_res : bool, optional
+            [description], by default True
+        show_plot : bool, optional
+            [description], by default True
+        show_corner : bool, optional
+            [description], by default False
+        show_chisq : bool, optional
+            [description], by default False
+        xlabel : [type], optional
+            [description], by default None
+        ylabel : [type], optional
+            [description], by default None
+        save_plots : [type], optional
+            [description], by default None
+        show : bool, optional
+            [description], by default True
+        corner_kwargs : dict, optional
+            [description], by default {}
+        chisq_kwargs : dict, optional
+            [description], by default {}
+        fig_kwargs : dict, optional
+            [description], by default {}
+        residual_ax_kwargs : dict, optional
+            [description], by default {}
+        fit_ax_kwargs : dict, optional
+            [description], by default {}
+        data_kwargs : dict, optional
+            [description], by default {}
+        fit_kwargs : dict, optional
+            [description], by default {}
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         assert getattr(self, "res", None) is not None, "No fit results found to show."
 
         if show_plot or detailed:
@@ -513,6 +631,14 @@ class Lightcurve:
         return self.figs
 
     def print_fit(self, detailed=False):
+        """print_fit [summary]
+
+        Parameters
+        ----------
+        detailed : bool, optional
+            [description], by default False
+        """
+
         assert getattr(self, "res", None) is not None, "No fit results found."
 
         if detailed:
@@ -530,15 +656,20 @@ class Lightcurve:
             )
 
     def _savefig(self, fig, filename=None, suffix=None, format="pdf", **kwargs):
-        """
-        Wrapper around plt.savefig.
+        """_savefig Wrapper around plt.savefig
 
         Parameters
         ----------
-        figs : list
-            List of matplotlib figures to save.
-        filename : str
-            Path to save the plots to.
+        fig : list
+            List of matplotlib figures to save
+        filename : {str, None}, optional
+            File prefix for each plot, by default None
+        suffix : {str, None}, optional
+            [description], by default None
+        format : str, optional
+            [description], by default "pdf"
+
+
 
         """
         assert isinstance(fig, Figure), "figs must be a matplotlib Figure."
