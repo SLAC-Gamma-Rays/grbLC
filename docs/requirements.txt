@@ -1,5 +1,4 @@
-myst-parser==0.15.1
-furo==2021.6.24b37
+furo
 requests
 matplotlib
 numpy

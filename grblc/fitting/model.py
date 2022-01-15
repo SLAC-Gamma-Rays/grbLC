@@ -111,7 +111,7 @@ class Parameter:
         vary : bool, optional
             Controls whether the variable will be allowed to vary in fitting, by default True
         plot_fmt : str, optional
-            LaTeX form of the parameter name to be plotted, by default None
+            LaTeX form of the parameter name to be plotted, by default the same as `name`.
         """
         self.name = name
         self.description = (
@@ -256,7 +256,6 @@ class Model:
         :class:`Model`
             The Willingale et al. (2007) model.
 
-        .. [#w07] https://arxiv.org/abs/astro-ph/0612031
 
         An example lightcurve is shown below:
 
@@ -278,6 +277,7 @@ class Model:
             plt.show()
 
 
+        .. [#w07] https://arxiv.org/abs/astro-ph/0612031
         """
         return cls(
             name="Willingale 2007",

@@ -12,14 +12,6 @@ grblc.convert.clean module
    :undoc-members:
    :show-inheritance:
 
-grblc.convert.constants module
-------------------------------
-
-.. automodule:: grblc.convert.constants
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 grblc.convert.convert module
 ----------------------------
 
@@ -40,14 +32,6 @@ grblc.convert.time module
 -------------------------
 
 .. automodule:: grblc.convert.time
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: grblc.convert
    :members:
    :undoc-members:
    :show-inheritance:

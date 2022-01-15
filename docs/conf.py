@@ -39,7 +39,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx_math_dollar",
     "jupyter_sphinx",
-    "sphinxcontrib.bibtex",
+    "sphinx_rtd_theme"
     # "myst_parser",
 ]
 
@@ -123,6 +123,16 @@ os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", 
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
+
+# html_sidebars = {
+#     "**": [
+#         "about.html",
+#         "navigation.html",
+#         "relations.html",
+#         "searchbox.html",
+#     ]
+# }
+
 
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.  For a list of options available for each theme, see the
