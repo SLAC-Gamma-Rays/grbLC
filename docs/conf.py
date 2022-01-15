@@ -18,6 +18,7 @@
 #
 import os
 import sys
+from datetime import date
 
 sys.path.insert(0, os.path.abspath(".."))
 import grblc  # noqa E402 # noreorder
@@ -30,10 +31,45 @@ import grblc  # noqa E402 # noreorder
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.viewcode", "myst_parser"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.mathjax",
+    "sphinx_math_dollar",
+    "jupyter_sphinx",
+    "sphinxcontrib.bibtex",
+    # "myst_parser",
+]
+
+mathjax_config = {
+    "tex2jax": {
+        "inlineMath": [["\\(", "\\)"]],
+        "displayMath": [["\\[", "\\]"]],
+    },
+}
+
+bibtex_bibfiles = ["./refs.bib"]
+
+
+# shpinx.ext.autodoc settings
+autoclass_content = "both"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["_templates"]
+# templates_path = ["_templates"]
+
+# shpinx.ext.extlinks settings
+extlinks = {
+    "scipydoc": (
+        "https://docs.scipy.org/doc/scipy/reference/generated/scipy.%s.html",
+        "scipy.",
+    ),
+    "numpydoc": (
+        "https://docs.scipy.org/doc/numpy/reference/generated/numpy.%s.html",
+        "numpy.",
+    ),
+}
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -46,7 +82,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "grbLC"
-copyright = "2022, Sam Young"
+copyright = f"{date.today().year}, Sam Young"
 author = "Sam Young"
 
 # The version info for the project you're documenting, acts as replacement
@@ -76,13 +112,17 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# configuration for jupyter_sphinx
+package_path = os.path.abspath("../")
+os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", "")))
+
 
 # -- Options for HTML output -------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "furo"
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a
 # theme further.  For a list of options available for each theme, see the
@@ -93,7 +133,7 @@ html_theme = "furo"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ["_static"]
 
 
 # -- Options for HTMLHelp output ---------------------------------------

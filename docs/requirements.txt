@@ -13,3 +13,4 @@ plotly
 ipython
 PyPDF2
 ads
+sphinxcontrib-bibtex
