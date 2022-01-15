@@ -429,7 +429,7 @@ class Lightcurve:
             yerr = np.random.normal(0, 0.1, len(xdata))
             ydata = model(xdata, 5, -12, 1.5, 0) + yerr
             lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
-            lc.fit(p0=[4.5, -12.5, 1, 0], run_mcmc=False)
+            lc.fit(p0=[4.5, -12.5, 1, 0])
             lc.show_fit(detailed=True)
 
         """
@@ -675,9 +675,9 @@ class Lightcurve:
 
             model = grblc.Model.W07(vary_t=False)
             xdata = np.arange(0, 10, 0.05)
-            ydata = model(xdata, 5, -12, 1.5, 0)
-            ydata_err = ydata + np.random.normal(0, 0.1, len(xdata))
-            lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=ydata_err, model=model)
+            yerr = np.random.normal(0, 0.1, len(xdata))
+            ydata = model(xdata, 5, -12, 1.5, 0) + yerr
+            lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
             lc.fit(p0=[4.5, -12.5, 1, 0], run_mcmc=False)
             print("="*10, "detailed=False", "="*10)
             lc.print_fit()
