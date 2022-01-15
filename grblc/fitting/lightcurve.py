@@ -415,6 +415,22 @@ class Lightcurve:
         -------
         dict
             Dictionary of figures. Depending on the options chosen, the keys are `fit`, `corner`, `chisq`.
+
+        Example:
+
+        .. jupyter-execute::
+
+            import numpy as np
+            import grblc
+
+            model = grblc.Model.W07(vary_t=False)
+            xdata = np.arange(0, 10, 0.05)
+            ydata = model(xdata, 5, -12, 1.5, 0)
+            ydata_err = ydata + np.random.normal(0, 0.1, len(xdata))
+            lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=ydata_err, model=model)
+            lc.fit(p0=[4.5, -12.5, 1, 0], run_mcmc=False)
+            lc.show_fit(detailed=True)
+
         """
         assert getattr(self, "res", None) is not None, "No fit results found to show."
 
@@ -649,7 +665,7 @@ class Lightcurve:
             the necessaries, by default False
 
 
-        Examples:
+        Example:
 
         .. jupyter-execute::
 
