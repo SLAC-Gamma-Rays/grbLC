@@ -16,3 +16,4 @@ sphinxcontrib-bibtex
 lmfit
 jupyter-sphinx
 sphinx-math-dollar
+numdifftools
