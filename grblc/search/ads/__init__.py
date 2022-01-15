@@ -1,5 +1,3 @@
-"""Top-level package for ads submodule."""
-
 __author__ = """Sam Young"""
 __email__ = "youngsam@sas.upenn.edu"
 __version__ = "0.1.7"

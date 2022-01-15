@@ -16,32 +16,32 @@ class Lightcurve:
 
     def __init__(
         self,
-        filename=None,
+        filename: str = None,
         xdata=None,
         ydata=None,
         xerr=None,
         yerr=None,
-        name=None,
+        name: str = None,
         model: Model = None,
     ):
-        """__init__ [summary]
+        """The main module for fitting lightcurves.
 
         Parameters
         ----------
-        filename : [type], optional
-            [description], by default None
-        xdata : [type], optional
-            [description], by default None
-        ydata : [type], optional
-            [description], by default None
-        xerr : [type], optional
-            [description], by default None
-        yerr : [type], optional
-            [description], by default None
-        name : [type], optional
-            [description], by default None
+        filename : str, optional
+            Name of file containing light curve data, by default None
+        xdata : array_like, optional
+            X values, by default None
+        ydata : array_like, optional
+            Y values, by default None
+        xerr : array_like, optional
+            X error, by default None
+        yerr : array_like, optional
+            Y error, by default None
+        name : str, optional
+            Name of the GRB, by default :py:class:`Model` name, or "unknown grb" if not provided.
         model : Model, optional
-            [description], by default None
+            :py:class:`Model` to use in lightcurve fitting, by default None
         """
         assert bool(filename) ^ (
             xdata is not None and ydata is not None
@@ -54,7 +54,7 @@ class Lightcurve:
         else:
             self.name = self._name_placeholder
         if filename:
-            self.set_data(*self._read_data(filename))
+            self.set_data(*self.read_data(filename))
         else:
             self.set_data(xdata, ydata, xerr=xerr, yerr=yerr)
 
@@ -64,20 +64,21 @@ class Lightcurve:
     def set_bounds(
         self, bounds=None, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
     ):
-        """set_bounds [summary]
+        """Sets the bounds on the xdata and ydata to (1) plot and (2) fit with. Either
+            provide bounds or xmin, xmax, ymin, ymax.
 
         Parameters
         ----------
-        bounds : [type], optional
-            [description], by default None
-        xmin : [type], optional
-            [description], by default -np.inf
-        xmax : [type], optional
-            [description], by default np.inf
-        ymin : [type], optional
-            [description], by default -np.inf
-        ymax : [type], optional
-            [description], by default np.inf
+        bounds : array_like of length 4, optional
+            Bounds on inputted x and y-data, by default None
+        xmin : float, optional
+            Minimum x, by default -np.inf
+        xmax : float, optional
+            Maximum x, by default np.inf
+        ymin : float, optional
+            Minimum y, by default -np.inf
+        ymax : float, optional
+            Maximum y, by default np.inf
         """
         # assert that either bounds or any of xmin, xmax, ymin, ymax is not None,
         # but prohibiting both to be true
@@ -99,18 +100,18 @@ class Lightcurve:
         self.set_data(self.xdata, self.ydata, self.xerr, self.yerr)
 
     def set_data(self, xdata, ydata, xerr=None, yerr=None):
-        """set_data [summary]
+        """Set the `xdata` and `ydata`, and optionally `xerr` and `yerr` of the lightcurve.
 
         Parameters
         ----------
-        xdata : [type]
-            [description]
-        ydata : [type]
-            [description]
-        xerr : [type], optional
-            [description], by default None
-        yerr : [type], optional
-            [description], by default None
+        xdata : array_like
+            X data
+        ydata : array_like
+            Y data
+        xerr : array_like, optional
+            X error, by default None
+        yerr : array_like, optional
+            Y error, by default None
         """
         if not hasattr(self, "mask"):
             self.mask = np.ones(len(xdata), dtype=bool)
@@ -125,12 +126,12 @@ class Lightcurve:
         self.yerr = np.asarray(yerr)[self.mask] if yerr is not None else None
 
     def set_model(self, model: Model):
-        """set_model [summary]
+        """Sets the lightcurve model to use.
 
         Parameters
         ----------
-        model : Model
-            [description]
+        model : :py:class:`Model`
+            :py:class:`Model` to use in lightcurve fitting
         """
         self.res = None
         self.figs = {}
@@ -141,24 +142,32 @@ class Lightcurve:
 
         self.set_bounds(self.model.bounds)
 
-    def _read_data(self, filename):
-        """_read_data [summary]
+    def read_data(self, filename: str):
+        """
+            Reads in data from a file. The data must be in the correct format.
+            See the :py:meth:`io.read_data` for more information.
 
         Parameters
         ----------
-        filename : [type]
-            [description]
+        filename : str
+
+        Returns
+        ----------
+        xdata, ydata, xerr, yerr : array_like
         """
 
-        pass
+        print(f"Reading data from {filename}")
 
     def show_data(self, fig_kwargs={}):
-        """show_data [summary]
+        """
+            Plots the lightcurve data.
+
+            .. note:: This doesn't plot any fit results. Use :py:meth:`Lightcurve.show_fit` to do so.
 
         Parameters
         ----------
         fig_kwargs : dict, optional
-            [description], by default {}
+            Arguments to pass to ``plt.figure()``, by default {}.
         """
 
         fig_dict = dict(figsize=[plt.rcParams["figure.figsize"][0]] * 2)
@@ -172,8 +181,6 @@ class Lightcurve:
         logF = self.orig_ydata
         logTerr = self.orig_xerr
         logFerr = self.orig_yerr
-        logTmin, logTmax = min(logT), max(logT)
-        logFmin, logFmax = min(logF), max(logF)
 
         mask = (logT >= xmin) & (logT <= xmax) & (logF >= ymin) & (logF <= ymax)
 
@@ -225,25 +232,29 @@ class Lightcurve:
         minimize_kwargs={},
         emcee_kwargs={},
     ):
-        """fit [summary]
+        """
+            Fits the lightcurve data to the model. There are two steps in this process:
+
+            1. Minimize the residuals using `Nelder-Mead` with `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_
+            2. Probe the posterior distribution using `emcee <https://emcee.readthedocs.io/en/stable/>`_, a Markov-Chain Monte Carlo Python package, using the best-fit parameters from step 1 as the starting point. This is optional (via the ``run_mcmc`` parameter), but recommended, as it gives a better view of the errors on the best-fit parameters.
 
         Parameters
         ----------
-        p0 : [type]
-            [description]
+        p0 : array_list, length of number of parameters
+            Initial guess for the parameters.
         run_mcmc : bool, optional
-            [description], by default True
+            Whether to run the optional MCMC step, by default True
         show : bool, optional
             [description], by default False
         minimize_kwargs : dict, optional
-            [description], by default {}
+            Keyword arguments to pass to `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_, by default {}
         emcee_kwargs : dict, optional
-            [description], by default {}
+            Keyword arguments to pass to `lmfit.Minimizer.emcee <https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.Minimizer.emcee>`_ by default {}
 
         Returns
         -------
-        [type]
-            [description]
+        `lmfit.minimizer.MinimizerResult`
+            See `lmfit.Minimizer.MinimizerResult <https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.MinimizerResult>`_ for more information.
         """
 
         assert self.model is not None, "No model set."
@@ -341,13 +352,11 @@ class Lightcurve:
 
     def show_fit(
         self,
-        detailed=None,
+        detailed=False,
         print_res=True,
         show_plot=True,
         show_corner=False,
         show_chisq=False,
-        xlabel=None,
-        ylabel=None,
         save_plots=None,
         show=True,
         corner_kwargs={},
@@ -358,52 +367,58 @@ class Lightcurve:
         data_kwargs={},
         fit_kwargs={},
     ):
-        """show_fit [summary]
+        r"""Shows the fit to the data.
+            This function can:
+                * Print the best-fit parameters and their errors. (`print_res`)
+                * Show the fit to the data. (`show_plot`)
+                * Show the corner plot of the posterior distribution of the parameters. (`show_corner`)
+                * Show the $\Delta\chi^2$ confidence intervals of the fit. (`show_chisq`)
 
         Parameters
         ----------
-        detailed : [type], optional
-            [description], by default None
+        detailed : bool, optional
+            Whether to use all plotting and printing capabilities available
+            to show the fit, by default False
         print_res : bool, optional
-            [description], by default True
+            Prints the fit result parameters and their errors, by default True
         show_plot : bool, optional
-            [description], by default True
+            Shows the lightcurve and fitted model, as well as residuals, by default True
         show_corner : bool, optional
-            [description], by default False
+            Whether to show the corner plot. Can only be used when `use_mcmc` was set
+            to True when calling :py:meth:`Lightcurve.fit`, by default False
         show_chisq : bool, optional
-            [description], by default False
-        xlabel : [type], optional
-            [description], by default None
-        ylabel : [type], optional
-            [description], by default None
-        save_plots : [type], optional
-            [description], by default None
+            Whether to show $\Delta\chi^2$ confidence intervals, by default False
+        save_plots : bool or str, optional
+            If `bool`, whether to save the plots or not in a folder in the current
+            directory called `plots`. If `str`, the directory and filename to save plots
+            (e.g., ``../../fit/grb010222.pdf``), by default None
         show : bool, optional
-            [description], by default True
+            Whether you want `plt.show()` to be ran, by default True
         corner_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to :py:meth:`corner.corner`, by default {}
         chisq_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to ``plt.plot`` for the $\Delta\chi^2$
+            confidence interval plots, by default {}
         fig_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to ``plt.figure`` when showing the
+            fit plot, by default {}
         residual_ax_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to the residual axes subplot, by default {}
         fit_ax_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to the fit axes subplot, by default {}
         data_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to data plotting, by default {}
         fit_kwargs : dict, optional
-            [description], by default {}
+            Additional arguments to pass to the fitted model plotting, by default {}
 
         Returns
         -------
-        [type]
-            [description]
+        dict
+            Dictionary of figures. Depending on the options chosen, the keys are `fit`, `corner`, `chisq`.
         """
         assert getattr(self, "res", None) is not None, "No fit results found to show."
 
         if show_plot or detailed:
-
             # create figure
             fig_dict = dict(figsize=[plt.rcParams["figure.figsize"][0]] * 2)
             if bool(fig_kwargs):
@@ -475,11 +490,7 @@ class Lightcurve:
 
             ax_fit.legend(framealpha=0.0)
             ax_fit.set_title(f"{self.name} Fit")
-
-            if ylabel is None:
-                ax_fit.set_ylabel("log y")
-            else:
-                ax_fit.set_ylabel(ylabel)
+            ax_fit.set_ylabel("log Flux (erg cm$^{-2}$ s$^{-1})$")
 
             # plot residuals
             ax_residual.axhline(
@@ -523,11 +534,7 @@ class Lightcurve:
                 ax_residual.set_xlim(0.8 * self.xdata.min(), 1.1 * self.xdata.max())
                 ax_residual.set_ylim(residual_ylim)
 
-            if xlabel is None:
-                ax_residual.set_xlabel("log x")
-            else:
-                ax_residual.set_xlabel(xlabel)
-
+            ax_residual.set_xlabel("log T (sec)")
             ax_residual.set_ylabel("residuals")
             plt.setp(ax_fit.get_xticklabels(), visible=False)
             self.figs["fit"] = plot_fig
@@ -590,6 +597,7 @@ class Lightcurve:
                     delta_chisq,
                     label=curr_param_fmt + fr"={p[idx]:.3f} $\pm$ {perr[idx]:.3f}",
                     color="k",
+                    **chisq_kwargs,
                 )
                 ax_.legend(framealpha=0.0)
                 ax_.set_xlabel(r"$\sigma$ multiplier")
@@ -631,12 +639,34 @@ class Lightcurve:
         return self.figs
 
     def print_fit(self, detailed=False):
-        """print_fit [summary]
+        """
+            Print a fit report to `stdout`.
 
         Parameters
         ----------
         detailed : bool, optional
-            [description], by default False
+            Whether you'd like the full-on fit report, or a simplified version with
+            the necessaries, by default False
+
+
+        Examples:
+
+        .. jupyter-execute::
+
+            import numpy as np
+            import grblc
+
+            model = grblc.Model.W07(vary_t=False)
+            xdata = np.arange(0, 10, 0.05)
+            ydata = model(xdata, 5, -12, 1.5, 0)
+            ydata_err = ydata + np.random.normal(0, 0.1, len(xdata))
+            lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=ydata_err, model=model)
+            lc.fit(p0=[4.5, -12.5, 1, 0], run_mcmc=False)
+            print("="*10, "detailed=False", "="*10)
+            lc.print_fit()
+            print("="*10, "detailed=True", "="*10)
+            lc.print_fit(detailed=True)
+
         """
 
         assert getattr(self, "res", None) is not None, "No fit results found."
@@ -656,39 +686,25 @@ class Lightcurve:
             )
 
     def _savefig(self, fig, filename=None, suffix=None, format="pdf", **kwargs):
-        """_savefig Wrapper around plt.savefig
-
-        Parameters
-        ----------
-        fig : list
-            List of matplotlib figures to save
-        filename : {str, None}, optional
-            File prefix for each plot, by default None
-        suffix : {str, None}, optional
-            [description], by default None
-        format : str, optional
-            [description], by default "pdf"
-
-
-
-        """
         assert isinstance(fig, Figure), "figs must be a matplotlib Figure."
+
+        suffix = "_" + suffix if suffix is not None else ""
+
         if filename is None:
             FILE_DIR = os.path.join(os.path.dirname(os.getcwd()), "plots")
 
             if not os.path.exists(FILE_DIR):
                 os.mkdir(FILE_DIR)
 
-            if suffix is None:
-                suffix = ""
-            else:
-                suffix = "_" + suffix
             filename = os.path.join(
                 FILE_DIR,
                 "{}{}.{}".format(
                     self.name.replace(" ", "_").replace(".", "p"), suffix, format
                 ),
             )
+        else:
+            *fn, extension = filename.split(".")
+            filename = ".".join(fn) + suffix + "." + extension
 
         savefig_kwargs = dict(
             fname=filename,
@@ -717,12 +733,13 @@ class Lightcurve:
                 f.write("\t".join(header) + "\n")
 
     def save_fit(self, filename=None):
-        """save_fit [summary]
+        """
+            Saves fit values to either a specified file or a default file.
 
         Parameters
         ----------
-        filename : [type], optional
-            [description], by default None
+        filename : str, optional
+            File name to save fit values to, by default None
         """
         assert getattr(self, "res", None) is not None, "No fit results found."
 
@@ -730,7 +747,10 @@ class Lightcurve:
         return f"<grbLC> {self.__class__.__name__}({self.name})"
 
     def prompt(self):
-
+        """
+        A pipeline for fitting a light curve from user inputs. The data is first shown,
+        bounds are set, parameter priors are set, and the fit is run, and saved if desired.
+        """
         self.show_data()
 
         auto_guess = input("want to fit? (y/[n])").lower()
@@ -774,14 +794,14 @@ major, *__ = sys.version_info
 readfile_kwargs = {"encoding": "utf-8"} if major >= 3 else {}
 
 
-def readfile(filename):
+def _readfile(filename):
     with open(filename, **readfile_kwargs) as fp:
         contents = fp.read()
     return contents
 
 
 version_regex = re.compile('__version__ = "(.*?)"')
-contents = readfile(
+contents = _readfile(
     os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "__init__.py"
     )

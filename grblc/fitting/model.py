@@ -266,7 +266,7 @@ class Model:
             import grblc
             %matplotlib inline
 
-            w07 = grblc.fitting.Model.W07()
+            w07 = grblc.Model.W07()
             x = np.linspace(2, 8, 100)
             T, F, alpha, t = 5, -12, 1.5, 1
             y = w07(x, T, F, alpha, t)
@@ -351,7 +351,7 @@ class Model:
             import grblc
             %matplotlib inline
 
-            sbpl = grblc.fitting.Model.SMOOTH_BPL()
+            sbpl = grblc.Model.SMOOTH_BPL()
             x = np.linspace(2, 8, 100)
             T, F, alpha1, alpha2, S = p = 5, -12, -0.1, 1.5, 0.5
             y = sbpl(x, *p)
@@ -434,7 +434,7 @@ class Model:
             import grblc
             %matplotlib inline
 
-            sbpl = grblc.fitting.Model.SIMPLE_BPL()
+            sbpl = grblc.Model.SIMPLE_BPL()
             x = np.linspace(2, 8, 100)
             T, F, alpha1, alpha2 = p = 5, -12, -0.1, 1.5
             y = sbpl(x, *p)
