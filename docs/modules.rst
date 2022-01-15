@@ -1,4 +1,4 @@
-grbLC
+grblc
 =====
 
 .. toctree::

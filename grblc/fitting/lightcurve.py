@@ -416,6 +416,7 @@ class Lightcurve:
         dict
             Dictionary of figures. Depending on the options chosen, the keys are `fit`, `corner`, `chisq`.
 
+
         Example:
 
         .. jupyter-execute::
