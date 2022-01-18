@@ -64,211 +64,180 @@ class OutlierPlot:
             self.figure = FigureWidget(self.display)
             display(self.figure)
 
-    def plot(self, hover: list = None, return_display=False):
+    def init_plot(self, hover: list = None):
 
-        if return_display:
-            # plot main sample of points by band
-
-            if hover is None:
-                kwargs = dict(hover_data=list(map(str, self.df.columns[3:])))
-            else:
-                assert all(h in self.df.columns for h in hover)
-                kwargs = dict(hover_data=hover)
-
-            color = "band" if "band" in self.df.columns else None
-
-            fig = px.scatter(
-                self.df,
-                x=np.log10(self.df["time_sec"]),
-                y=np.log10(self.df["flux"]),
-                error_y=self.df["flux_err"] / (self.df["flux"] * np.log(10)),
-                color=color,
-                width=700,
-                height=400,
-                **kwargs,
-            )
-
-            # update overall layout (x & y axis labels, etc.)
-            fig.update_layout(
-                xaxis_title=r"logT (sec)",
-                yaxis_title=r"logF (erg cm-2 s-1)",
-                title=self.grb,
-                legend_title="Band" if color is not None else None,
-            )
-
-            # plot accepted points if there are any
-            scatters = []
-            if len(self.accepted) > 0:
-                accepted_df = pd.concat(
-                    list(self.accepted.values()), axis=0, join="inner"
-                )
-                accepted_df[["time_sec", "flux", "flux_err"]] = accepted_df[
-                    ["time_sec", "flux", "flux_err"]
-                ].astype("float64")
-                band = accepted_df["band"]
-                # get source type if possible
-                try:
-                    source = accepted_df["source"]
-                except:
-                    source = None
-                customdata = (
-                    np.stack((band, source), axis=-1)
-                    if source is not None
-                    else np.stack((band), axis=-1)
-                )
-                addition = "source: %{customdata[1]}<br>" if source is not None else ""
-
-                scatters.append(
-                    go.Scatter(
-                        x=np.log10(accepted_df["time_sec"]),
-                        y=np.log10(accepted_df["flux"]),
-                        error_y=dict(
-                            array=accepted_df["flux_err"]
-                            / (accepted_df["flux"] * np.log(10))
-                        ),
-                        mode="markers",
-                        customdata=customdata,
-                        hovertemplate=addition
-                        + "band: %{customdata[0]}<br>"
-                        + "x: %{x}<br>"
-                        + "y: %{y}<br>",
-                        name="Accepted",
-                    )
-                )
-            else:
-                scatters.append(
-                    go.Scatter(
-                        x=[],
-                        y=[],
-                        error_y=dict(array=[]),
-                        mode="markers",
-                        name="Accepted",
-                    )
-                )
-
-            # plot rejected points if there are any
-            if len(self.rejected) > 0:
-                rejected_df = pd.concat(
-                    list(self.rejected.values()), axis=0, join="inner"
-                )
-                rejected_df[["time_sec", "flux", "flux_err"]] = rejected_df[
-                    ["time_sec", "flux", "flux_err"]
-                ].astype("float64")
-                band = rejected_df["band"]
-                # get source type if possible
-                try:
-                    source = rejected_df["source"]
-                except:
-                    source = None
-                customdata = (
-                    np.stack((band, source), axis=-1)
-                    if source is not None
-                    else np.stack((band), axis=-1)
-                )
-                addition = "source: %{customdata[1]}<br>" if source is not None else ""
-
-                scatters.append(
-                    go.Scatter(
-                        x=np.log10(rejected_df["time_sec"]),
-                        y=np.log10(rejected_df["flux"]),
-                        error_y=dict(
-                            array=rejected_df["flux_err"]
-                            / (rejected_df["flux"] * np.log(10))
-                        ),
-                        mode="markers",
-                        customdata=customdata,
-                        hovertemplate=addition
-                        + "band: %{customdata[0]}<br>"
-                        + "x: %{x}<br>"
-                        + "y: %{y}<br>",
-                        name="Rejected",
-                    )
-                )
-            else:
-                scatters.append(
-                    go.Scatter(
-                        x=[],
-                        y=[],
-                        error_y=dict(array=[]),
-                        mode="markers",
-                        name="Rejected",
-                    )
-                )
-
-            fig.add_traces(scatters)
-
-            x = np.log10(self.df["time_sec"][self.currpt])
-            y = np.log10(self.df["flux"][self.currpt])
-            yerr = self.df["flux_err"][self.currpt] / (
-                self.df["flux"][self.currpt] * np.log(10)
-            )
-            band = self.df["band"][self.currpt]
-            fig.add_trace(
-                go.Scatter(
-                    x=[x],
-                    y=[y],
-                    error_y=dict(array=[yerr]),
-                    mode="markers",
-                    hoverinfo=["text+x+y"],
-                    text=f"band={band}",
-                    name="Current Point",
-                    marker_color="rgba(0,0,0,0.5)",
-                )
-            )
-            return fig
+        if hover is None:
+            kwargs = dict(hover_data=list(map(str, self.df.columns[3:])))
         else:
-            # update curr pt
-            x = np.log10(self.df["time_sec"][self.currpt])
-            y = np.log10(self.df["flux"][self.currpt])
-            yerr = self.df["flux_err"][self.currpt] / (
-                self.df["flux"][self.currpt] * np.log(10)
-            )
-            band = self.df["band"][self.currpt]
+            assert all(h in self.df.columns for h in hover), "Hover data supplied not in attributes"
 
-            self.figure.update_traces(
-                patch=dict(
-                    x=[x], y=[y], error_y=dict(array=[yerr]), text=f"band={band}"
-                ),
-                selector=dict(name="Current Point"),
-                overwrite=True,
-            )
+            kwargs = dict(hover_data=hover)
 
-            # plot accepted points if there are any
-            if len(self.accepted) > 0:
-                accepted_df = pd.concat(
-                    list(self.accepted.values()), axis=0, join="inner"
-                )
-                accepted_df[["time_sec", "flux", "flux_err"]] = accepted_df[
+        # color will default to the band column in the dataframe
+        color = "band" if "band" in self.df.columns else None
+
+        fig = px.scatter(
+            self.df,
+            x=np.log10(self.df["time_sec"]),
+            y=np.log10(self.df["flux"]),
+            error_y=self.df["flux_err"] / (self.df["flux"] * np.log(10)),
+            color=color,
+            width=700,
+            height=400,
+            template="plotly_white",
+            **kwargs,
+        )
+
+        # update overall layout (x & y axis labels, etc.)
+        fig.update_layout(
+            xaxis_title=r"log T (sec)",
+            yaxis_title=r"log F (erg cm-2 s-1)",
+            title=self.grb,
+            legend_title="Band" if color is not None else None,
+        )
+
+        # plot accepted points if there are any
+        scatters = []
+
+        for type, c in {"accepted":"firebrick", "rejected":"royalblue"}.items():
+            data_dict = getattr(self, type)
+            if len(data_dict) > 0:
+                data_df = pd.concat(list(data_dict.values()), axis=0, join="inner")
+                data_df[["time_sec", "flux", "flux_err"]] = data_df[
                     ["time_sec", "flux", "flux_err"]
                 ].astype("float64")
-                band = accepted_df["band"]
-                # get source type if possible
-                try:
-                    source = accepted_df["source"]
-                except:
-                    source = None
-                customdata = (
-                    np.stack((band, source), axis=-1)
-                    if source is not None
-                    else np.stack((band), axis=-1)
-                )
-                addition = "source: %{customdata[1]}<br>" if source is not None else ""
 
+                if hover is None:
+                    self.labels = self.df.columns[3:]
+                else:
+                    self.labels = hover
+
+
+                customdata = np.stack(
+                    tuple(data_df[n] for n in self.labels), axis=-1
+                )
+                hovertemplate = "<br>".join(f"{n}: %{{customdata[{idx}]}}"
+                                            for idx, n
+                                            in enumerate(self.labels))
+
+                scatters.append(
+                    go.Scatter(
+                        x=np.log10(data_df["time_sec"]),
+                        y=np.log10(data_df["flux"]),
+                        error_y=dict(
+                            array=data_df["flux_err"]
+                            / (data_df["flux"] * np.log(10))
+                        ),
+                        mode="markers",
+                        customdata=customdata,
+                        hovertemplate="x: %{x}<br>"
+                        + "y: %{y}<br>"
+                        + "y_err: %{y_err}<br>"
+                        + hovertemplate,
+                        name=type.capitalize(),
+                        marker=dict(color=c)
+                    )
+                )
+            else:
+                scatters.append(
+                    go.Scatter(
+                        x=[],
+                        y=[],
+                        error_y=dict(array=[]),
+                        mode="markers",
+                        name=type.capitalize(),
+                        marker=dict(color=c),
+                    )
+                )
+
+
+        fig.add_traces(scatters)
+
+        # add current point in black over everything else!
+        x = np.log10(self.df["time_sec"][self.currpt])
+        y = np.log10(self.df["flux"][self.currpt])
+        yerr = self.df["flux_err"][self.currpt] / (
+            self.df["flux"][self.currpt] * np.log(10)
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=[x],
+                y=[y],
+                error_y=dict(array=[yerr]),
+                mode="markers",
+                customdata=customdata,
+                hovertemplate="x: %{x}<br>"
+                + "y: %{y}<br>"
+                + "y_err: %{y_err}<br>"
+                + hovertemplate,
+                name="Current Point",
+                marker=dict(color="rgba(0,0,0,0.5)"),
+            )
+        )
+        return fig
+
+    def update_plot(self):
+        assert hasattr(self, "figure"), "Must call init_plot() first"
+
+        # update curr pt
+        x = np.log10(self.df["time_sec"][self.currpt])
+        y = np.log10(self.df["flux"][self.currpt])
+        yerr = self.df["flux_err"][self.currpt] / (
+            self.df["flux"][self.currpt] * np.log(10)
+        )
+
+        customdata = np.stack(
+            tuple(self.df[n][self.currpt] for n in self.labels), axis=-1
+        )
+        hovertemplate = "<br>".join(f"{n}: %{{customdata[{idx}]}}"
+                                    for idx, n
+                                    in enumerate(self.labels))
+
+
+        self.figure.update_traces(
+            patch=dict(
+                x=[x],
+                y=[y],
+                error_y=dict(array=[yerr]),
+                customdata=customdata,
+                hovertemplate="x: %{x}<br>"
+                + "y: %{y}<br>"
+                + "y_err: %{y_err}<br>"
+                + hovertemplate),
+            selector=dict(name="Current Point"),
+            overwrite=True,
+        )
+
+        for type, c in {"accepted":"firebrick", "rejected":"royalblue"}.items():
+            data_dict = getattr(self, type)
+            if len(data_dict) > 0:
+                data_df = pd.concat(list(data_dict.values()), axis=0, join="inner")
+                data_df[["time_sec", "flux", "flux_err"]] = data_df[
+                    ["time_sec", "flux", "flux_err"]
+                ].astype("float64")
+
+                customdata = np.stack(
+                    tuple(data_df[n] for n in self.labels), axis=-1
+                )
+                hovertemplate = "<br>".join(f"{n}: %{{customdata[{idx}]}}"
+                                            for idx, n
+                                            in enumerate(self.labels))
                 patch = dict(
-                    x=np.log10(accepted_df["time_sec"]),
-                    y=np.log10(accepted_df["flux"]),
+                    x=np.log10(data_df["time_sec"]),
+                    y=np.log10(data_df["flux"]),
                     error_y=dict(
-                        array=accepted_df["flux_err"]
-                        / (accepted_df["flux"] * np.log(10))
+                        array=data_df["flux_err"]
+                        / (data_df["flux"] * np.log(10))
                     ),
                     customdata=customdata,
-                    hovertemplate=addition
-                    + "band: %{customdata[0]}<br>"
-                    + "x: %{x}<br>"
-                    + "y: %{y}<br>",
+                    hovertemplate="x: %{x}<br>"
+                    + "y: %{y}<br>"
+                    + "y_err: %{y_err}<br>"
+                    + hovertemplate,
                 )
                 self.figure.update_traces(
-                    patch=patch, selector=dict(name="Accepted"), overwrite=True
+                    patch=patch, selector=dict(name=type.capitalize()), overwrite=True
                 )
             else:
                 patch = dict(
@@ -277,59 +246,14 @@ class OutlierPlot:
                     error_y=dict(array=[]),
                 )
                 self.figure.update_traces(
-                    patch=patch, selector=dict(name="Accepted"), overwrite=True
+                    patch=patch, selector=dict(name=type.capitalize()), overwrite=True
                 )
 
-            # plot rejected points if there are any
-            if len(self.rejected) > 0:
-                rejected_df = pd.concat(
-                    list(self.rejected.values()), axis=0, join="inner"
-                )
-                rejected_df[["time_sec", "flux", "flux_err"]] = rejected_df[
-                    ["time_sec", "flux", "flux_err"]
-                ].astype("float64")
-                band = rejected_df["band"]
-                # get source type if possible
-                try:
-                    source = rejected_df["source"]
-                except:
-                    source = None
-                customdata = (
-                    np.stack((band, source), axis=-1)
-                    if source is not None
-                    else np.stack((band), axis=-1)
-                )
-                addition = "source: %{customdata[1]}<br>" if source is not None else ""
-
-                patch = dict(
-                    x=np.log10(rejected_df["time_sec"]),
-                    y=np.log10(rejected_df["flux"]),
-                    error_y=dict(
-                        array=rejected_df["flux_err"]
-                        / (rejected_df["flux"] * np.log(10))
-                    ),
-                    customdata=customdata,
-                    hovertemplate="band: %{customdata[0]}<br>"
-                    + "x: %{x}<br>"
-                    + "y: %{y}<br>",
-                )
-                self.figure.update_traces(
-                    patch=patch, selector=dict(name="Rejected"), overwrite=True
-                )
-            else:
-                patch = dict(
-                    x=[],
-                    y=[],
-                    error_y=dict(array=[]),
-                )
-                self.figure.update_traces(
-                    patch=patch, selector=dict(name="Rejected"), overwrite=True
-                )
 
     def _try_import_prev_data(self, pile: str):
         try:
             filepath = os.path.join(
-                self.main_path, f"{self.grb}_converted_flux_{pile}.txt"
+                self.main_path, f"{self.grb}_flux_{pile}.txt"
             )
             data = pd.read_csv(
                 filepath, delimiter=r"\t+|\s+", engine="python", header=0
@@ -342,29 +266,20 @@ class OutlierPlot:
             return {}
 
     def _save(self):
-        acceptedpath = os.path.join(
-            self.main_path, f"{self.grb}_converted_flux_accepted.txt"
-        )
-        if len(self.accepted) > 0:
-            accepted_df = pd.concat(list(self.accepted.values()), axis=0, join="inner")
-            accepted_df.to_csv(acceptedpath, sep="\t", index=0)
-        else:
-            try:
-                os.remove(acceptedpath)
-            except:
-                pass
 
-        rejectedpath = os.path.join(
-            self.main_path, f"{self.grb}_converted_flux_rejected.txt"
-        )
-        if len(self.rejected) > 0:
-            rejected_df = pd.concat(list(self.rejected.values()), axis=0, join="inner")
-            rejected_df.to_csv(rejectedpath, sep="\t", index=0)
-        else:
-            try:
-                os.remove(rejectedpath)
-            except:
-                pass
+        for type in ["accepted", "rejected"]:
+
+            path = os.path.join(
+                self.main_path, f"{self.grb}_flux_{type}.txt"
+            )
+            if len(getattr(self, type)) > 0:
+                data_df = pd.concat(list(getattr(self, type).values()), axis=0, join="inner")
+                data_df.to_csv(path, sep="\t", index=0)
+            else:
+                try:
+                    os.remove(path)
+                except:
+                    pass
 
     # set current index & update current mag, mag_err, and band
     def _set_currpt(self, currpt):
@@ -377,9 +292,10 @@ class OutlierPlot:
             del pilefrom[index]
 
     # "insert" a row from accepted or rejected back into the main sample
-    def _insert(self, index, pile):
-        if index in pile:
-            del pile[index]
+    def _insert(self, index):
+        for pile in [self.accepted, self.rejected]:
+            if index in pile:
+                del pile[index]
 
     # increment
     def _inc(self):
@@ -415,11 +331,11 @@ class OutlierPlot:
             self._inc()
 
         elif last_job == "a":
-            self._insert(self.prevpt, self.accepted)
+            self._insert(self.prevpt)
             self._dec()
 
         elif last_job == "r":
-            self._insert(self.prevpt, self.rejected)
+            self._insert(self.prevpt)
             self._dec()
 
         self.prevpt = old_prevpt
