@@ -10,16 +10,17 @@ from astropy import units as u
 from astropy.time import Time
 
 from .constants import ebv2A_b_df
-from .constants import flux_densities
+from .constants import photometry
 
 
-def angstromToHz(ang: float):
+def _angstromToHz(ang: float):
+    """Simple conversion to hertz from wavelengths in angstroms"""
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
 def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
-    """ebv2A_b A function that returns the galactic extinction correction
-                       at a given position for a given band.
+    r"""A function that returns the galactic extinction correction
+       at a given position for a given band.
 
                             This takes data from Schlegel, Finkbeiner & Davis (1998) in the form
                             of the SFD dust map, and is queried using the dustmaps python package.
@@ -40,7 +41,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     Returns
     -------
     float
-        Galactic extinction correct in magnitude.
+        Galactic extinction correction in magnitude ($A_\nu$).
 
     Raises
     ------
@@ -68,9 +69,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
                 f"Couldn't find the position of GRB {grb}. Please supply RA and DEC manually."
             )
     else:
-        skycoord = SkyCoord(
-            f"{ra} {dec}", frame="icrs", unit=(u.hourangle, u.deg)
-        )
+        skycoord = SkyCoord(f"{ra} {dec}", frame="icrs", unit=(u.hourangle, u.deg))
 
     # this grabs the degree of reddening E(B-V) at the given position in the sky.
     # see https://astronomy.swin.edu.au/cosmos/i/interstellar+reddening for an explanation of what this is
@@ -85,17 +84,84 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
 
 
 def toFlux(
-    mag: float,
     band: str,
-    grb: str,
+    mag: float,
     magerr: float = 0,
-    photon_index: float = 0,
+    photon_index: float = 1,
     photon_index_err: float = 0,
     A_b: float = 0,
+    grb: str = None,
+    ra: str = None,
+    dec: str = None,
     source: str = "manual",
-    ra: str = "",
-    dec: str = "",
 ):
+    r"""
+        A function that converts a given magnitude to flux (erg cm$^{-2}$ s$^{-1}$),
+        normalized to the R photometric band. This is done by converting the
+        zero-point flux densities of a given band to the R band via assuming that
+        the spectral energy distribution follows a simple power law.
+
+        The conversion is as follows:
+
+        $${\rm Flux~}= \lambda_R f_X \left(\frac{\lambda_X}{\lambda_R}\right)^{-\beta} \left(10\right)^{-m/2.5},$$
+
+        where $\lambda_R$ is the R band wavelength, $\lambda_X$ is the bandpass
+        wavelength, $\beta$ is the photon index ($\beta = \Gamma - 1$), and $m$ is the dust-corrected magnitude.
+
+        Dust extinction corrections are taken from Schlafly & Finkbeiner (2011). Error propagation
+        for the flux, assuming there is error on the magnitude and photon index and no covariance
+        between the two values, is as follows:
+
+        $$\sigma = \left|{\rm Flux}\right| \sqrt{(\frac{\sigma_m}{2.5} \log10)^2 + \left(\sigma_\beta\log{\left(\frac{\lambda_X}{\lambda_R}\right)}\right)^2},$$
+
+        where $\sigma_i$ denotes the standard error on $i$.
+
+        Supported bands:
+
+        .. jupyter-execute::
+            :hide-code:
+
+            import grblc
+            from grblc.convert.constants import photometry
+            print(", ".join(list(photometry.keys())))
+
+
+    Parameters
+    ----------
+    mag : float
+        Magnitude to convert to flux.
+    band : str
+        Photometric bandpass of the given magnitude. Must be one of the bandpasses
+        from :py:data:`grblc.constants.photometry`.
+    grb : str
+        GRB name.
+    magerr : float, optional
+        Error on the magnitude, by default 0
+    photon_index : float, optional
+        Photon index $\Gamma$ ($\Gamma = \beta + 1$), by default 1
+    photon_index_err : float, optional
+        Error on the photon index, by default 0
+    A_b : float, optional
+        Galactic extinction to add onto the magnitude. If not provided, extinction values
+        will be looked up and added automatically to the final flux.
+    source : str, optional
+        Source of the datapoint (e.g., "manual", "UVOT", ...), by default "manual"
+    ra : str, optional
+        Right ascension, for use in grabbing dust extinction values, by default None
+    dec : str, optional
+        Declination, for use in grabbing dust extinction values, by default None
+
+    Returns
+    -------
+    float, float
+        flux and flux error in erg cm$^{-2}$ s$^{-1}$ normalized to the R band.
+
+    Raises
+    ------
+    KeyError
+        If a bandpass is not found in :py:data:`grblc.constants.photometry`.
+    """
+    assert A_b != 0 ^ grb ^ (ra and dec), "Must provide either A_b or grb or ra, dec"
 
     band = re.sub(r"(\'|_|\\|\(.+\))", "", band)
     band = re.sub(r"(?<![A-Za-z])([mw]\d{1})", r"uv\1", band)
@@ -107,8 +173,8 @@ def toFlux(
     beta = photon_index - 1
 
     try:
-        lambda_R, *__ = flux_densities["R"]  # lambda_R in angstrom
-        lambda_x, f_x, bandpass_for_ebv = flux_densities[band]
+        lambda_R, *__ = photometry["R"]  # lambda_R in angstrom
+        lambda_x, f_x, bandpass_for_ebv = photometry[band]
     except KeyError:
         raise KeyError(f"Band '{band}' is not currently supported.")
 
@@ -126,7 +192,7 @@ def toFlux(
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
     else:
         # If flux density is given as f_nu (erg / cm2 / s / Hz)
-        lam_or_nu = angstromToHz(lambda_R) * (u.Hz)
+        lam_or_nu = _angstromToHz(lambda_R) * (u.Hz)
         f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
     flux = (lam_or_nu * f_lam_or_nu * 10 ** (-(mag + A_b) / 2.5)).value
@@ -179,7 +245,7 @@ def convertGRB(
     # try to import magnitude table to convert
     try:
         global directory
-        glob_path = reduce(os.path.join, (directory, "**", f"{GRB}.txt"))
+        glob_path = reduce(os.path.join, (directory, "**", f"{GRB}_magnitude.txt"))
         filename, *__ = glob2.glob(glob_path)
         mag_table = pd.read_csv(
             filename,
@@ -201,7 +267,7 @@ def convertGRB(
     else:
         try:
             bat_spec_df = pd.read_csv(
-                os.path.join(directory, "trigs_and_specs.txt"),
+                os.path.join(__file__, "grb_attrs.txt"),
                 delimiter="\t+|\\s+",
                 index_col=0,
                 header=0,
@@ -224,7 +290,8 @@ def convertGRB(
 
         except KeyError:
             raise ImportError(
-                f"{GRB} isn't currently supported and it's trigger time, photon index, and position must be manually provided. :("
+                f"{GRB} isn't currently supported and it's trigger time, photon index,"
+                + "and position must be manually provided."
             )
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
@@ -298,8 +365,6 @@ def convertGRB(
             os.path.dirname(filename), f"{GRB}_converted_flux_DEBUG.txt"
         )
         pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
-
-    return
 
 
 # small setter to set the main conversion directory

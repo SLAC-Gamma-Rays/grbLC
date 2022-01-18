@@ -3,67 +3,58 @@ import re
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 from IPython.display import clear_output
 from IPython.display import display
+from plotly.graph_objects import FigureWidget
 
-from .lightcurve import Lightcurve
-
-
-def LC_summary(filepaths):
-    lc_data = {}
-    fig, ax = None, None
-    for filepath in filepaths:
-        grb = re.search(r"(\d{6}[A-Z]?)", filepath)[0]
-        df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
-        num_rows = len(df.index)
-        bands = ",".join(list(df["band"]))  # because lists aren't hashable >:(
-        lc_data[grb] = [num_rows, bands]
-
-    return {grb: l for grb, (l, _) in lc_data.items()}
-
-
-def outlier_check_(filepath, save=False):
-    try:
-        op = OutlierPlot(filepath, plot=True)
-        while True:
-            try:
-                key = op.prompt()
-                op.update(key, save)
-            except StopIteration:
-                break
-    except ImportError as e:
-        print(e)
-        pass
-
-
-def check_all_(filepaths, save=False):
-    num_points = LC_summary(filepaths)
-    for filepath in filepaths:
-        grb = os.path.split(filepath)[-1].rstrip("_converted_flux.txt")
-        try:
-            if num_points[grb] > 0:
-                outlier_check_(filepath, save)
-        except KeyboardInterrupt:
-            break
-
+from ..convert import get_dir
+from .constants import grb_regex
+from .io import check_header
 
 class OutlierPlot:
-    def __init__(self, filepath, plot=True):
-        from plotly.graph_objects import FigureWidget
+    _name_placeholder = "unknown grb"
 
-        self.main_path = os.path.split(filepath)[0]
-        self.grb = re.search(r"(\d{6}[A-Z]?)", filepath)[0]
+    def __init__(
+        self,
+        filename: str = None,
+        accepted: dict = None,
+        rejected: dict = None,
+        name: str = None,
+        plot=True,
+    ):
+        assert isinstance(filename, str) ^ all(
+            (x, dict) for x in [accepted, rejected]
+        ), "Must provide either a filename or two dicts of accepted and rejected points"
 
-        self.df = pd.read_csv(filepath, delimiter=r"\t+|\s+", engine="python", header=0)
+        if name is not None:
+            self.grb = name
+        elif filename is not None:
+            self.grb = grb_regex.search(filename)[0]
+        else:
+            self.grb = self._name_placeholder
+
+        if filename:
+            self.main_path = os.path.dirname(filename)
+            self.df = pd.read_csv(
+                filename, delimiter=r"\t+|\s+", engine="python", header=check_header(filename)
+            )
+            # these two functions return {}'s if nothing is found
+            self.accepted = self._try_import_prev_data("accepted")
+            self.rejected = self._try_import_prev_data("rejected")
+        else:
+            self.main_path = get_dir()
+            self.df = pd.concat([accepted, rejected], axis=0, ignore_index=True)
+            self.accepted = accepted
+            self.rejected = rejected
+            self._save()
+
         self.df = self.df.sort_values(by=["time_sec"]).reset_index(drop=True)
         self.numpts = len(self.df.index)
         if self.numpts == 0:
-            raise ImportError("Empty file given.")
+            raise ValueError("Empty data given.")
 
-        self.accepted = self._try_import_prev_data(
-            "accepted"
-        )  # these two functions return {}'s if
-        self.rejected = self._try_import_prev_data("rejected")  # nothing is found
         self.queue = []
         self.currpt = 0
         self.prevpt = -1
@@ -72,15 +63,14 @@ class OutlierPlot:
             self.display = self.plot(return_display=True)
             self.figure = FigureWidget(self.display)
             display(self.figure)
-        else:
-            print("imported", self.numpts, "pts")
 
-    def plot(self, return_display=False):
-        import plotly.express as px
-        import plotly.graph_objects as go
+    def plot(self, hover: list = None, return_display=False):
 
         if return_display:
             # plot main sample of points by band
+
+            if hover is None:
+                pass
             try:
                 self.df["source"]
                 kwargs = {"hover_data": ["source"]}

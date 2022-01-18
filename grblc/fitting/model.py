@@ -232,10 +232,12 @@ class Model:
 
             $$f(t) = \left \{ \begin{array}{ll}\displaystyle{F_i \exp{\left ( \alpha_i \left( 1 - \frac{t}{T_i} \right) \right )} \exp{\left (- \frac{t_i}{t} \right )}} & {\rm for} \ \ t < T_i \\ ~ & ~ \\ \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_i} \exp{\left ( - \frac{t_i}{t} \right )}} & {\rm for} \ \ t \ge T_i, \\\end{array} \right .$$
 
-            where the transition from the exponential to the power law occurs at the point ($T_i$, $F_i$), $\alpha$
-            determines the temporal decay index of the power law, and $t_i$ is the time of the initial rise of the lightcurve.
+            where the transition from the exponential to the power law occurs at the
+            point ($T_i$, $F_i$), $\alpha$ determines the temporal decay index of the
+            power law, and $t_i$ is the time of the initial rise of the lightcurve.
 
-            As implemented, log space is used for the time (sec) and flux (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
+            As implemented, log space is used for the time (sec) and flux
+            (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
             afterglow plateau phase ends at 10,000 seconds corresponds to a $T_i$ of 5.
 
             Pre-defined priors on these parameters are:
@@ -247,8 +249,9 @@ class Model:
         Parameters
         ----------
         vary_t : bool, optional
-            The fourth parameter to this :py:class:`Model`, `t`, often does not vary the lightcurve in any
-            way and thus is sometimes set to zero. This allows the user to make the fitter not vary it. Otherwise, you can set the vary
+            The fourth parameter to this :py:class:`Model`, `t`, often does not vary
+            the lightcurve in any way and thus is sometimes set to zero. This allows
+            the user to make the fitter not vary it. Otherwise, you can set the vary
             parameter to zero via ``Model[Parameter.name].vary = False``. By default True.
 
         Returns
@@ -322,11 +325,13 @@ class Model:
 
             $$f(t) = F_i \left (\left (\frac{t}{T_i} \right )^{S\alpha_1} + \left (\frac{t}{T_i} \right )^{S \alpha_2} \right )^{-\frac{1}{S}}$$
 
-            where the transition from the exponential to the power law occurs at the point ($T_i$, $F_i$), $\alpha_1$
-            determines the temporal decay index of the initial power law, and $\alpha_2$ is the temporal decay index of the final power law,
-            and $S$ is the smoothing factor.
+            where the transition from the exponential to the power law occurs at the
+            point ($T_i$, $F_i$), $\alpha_1$ determines the temporal decay index of
+            the initial power law, and $\alpha_2$ is the temporal decay index of the
+            final power law, and $S$ is the smoothing factor.
 
-            As implemented, log space is used for the time (sec) and flux (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
+            As implemented, log space is used for the time (sec) and flux
+            (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
             afterglow plateau phase ends at 10,000 seconds corresponds to a $T_i$ of 5.
 
             Pre-defined priors on these parameters are::
@@ -407,10 +412,12 @@ class Model:
 
             $$f(t) = \left \{ \begin{array}{ll} \displaystyle{F_i \left (\frac{t}{T_i} \right)^{-\alpha_1} } & {\rm for} \ \ t < T_i \\ \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_2} } & {\rm for} \ \ t \ge T_i, \\ \end{array} \right . $$
 
-            where the transition from the exponential to the power law occurs at the point ($T_i$, $F_i$), $\alpha_1$
-            determines the temporal decay index of the initial power law, and $\alpha_2$ is the temporal decay index of the final power law.
+            where the transition from the exponential to the power law occurs at the point
+            ($T_i$, $F_i$), $\alpha_1$ determines the temporal decay index of the initial
+            power law, and $\alpha_2$ is the temporal decay index of the final power law.
 
-            As implemented, log space is used for the time (sec) and flux (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
+            As implemented, log space is used for the time (sec) and flux
+            (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
             afterglow plateau phase ends at 10,000 seconds corresponds to a $T_i$ of 5.
 
             Pre-defined priors on these parameters are:

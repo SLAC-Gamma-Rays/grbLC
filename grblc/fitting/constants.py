@@ -1,3 +1,3 @@
-plabelsW07 = ["T", "F", r"$\alpha$", "t"]
+import re
 
-plabelsBPL = ["T", "F", r"$\alpha_{1}$", r"$\alpha_{2}$"]
+grb_regex = re.compile(r"(\d{6}[A-Z]?)")

@@ -16,10 +16,6 @@ def isfloat(value):
 def check_header(path, n=None, debug=False, more_than_one_row=False):
     """
     This monstrosity returns what line a header is at
-
-    For example, a file named '*_Oates.txt' will be interpreted as data in the same format
-    as Sam Oates' data.
-
     """
     try:
         # attempt importing the datafile with the header "n"
@@ -39,7 +35,7 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
             print(os.path.split(path)[-1], "is empty?")
             return -1
 
-    header = h = df.columns
+    h = df.columns
 
     # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
     # ... so maybe change the h in [not isfloat(x) for x in h] to the second row???

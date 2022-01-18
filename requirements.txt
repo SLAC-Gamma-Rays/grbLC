@@ -12,3 +12,4 @@ ipython
 PyPDF2
 numdifftools
 lmfit
+ads

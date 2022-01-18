@@ -1,14 +1,19 @@
 import os
 import re
 import sys
+from functools import reduce
 
 import lmfit as lf
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from matplotlib.figure import Figure
 
+from . import io
+from ..convert import get_dir
 from .model import chisq
 from .model import Model
+from .outlier import OutlierPlot
 
 
 class Lightcurve:
@@ -21,31 +26,49 @@ class Lightcurve:
         ydata=None,
         xerr=None,
         yerr=None,
+        data_space: str = "log",
         name: str = None,
         model: Model = None,
+        attrs: dict = {},
     ):
         """The main module for fitting lightcurves.
+
+        .. warning::
+            Data stored in :py:class:`Lightcurve` objects are always in logarithmic
+            space; the parameter ``data_space`` is only used to convert data to log space
+            if it is not already in such. If your data is in linear space [i.e., your
+            time data is sec, and not $log$(sec)], then you should set ``data_space``
+            to ``lin``.
+
 
         Parameters
         ----------
         filename : str, optional
             Name of file containing light curve data, by default None
         xdata : array_like, optional
-            X values, by default None
+            X values, length (n,), by default None
         ydata : array_like, optional
             Y values, by default None
         xerr : array_like, optional
             X error, by default None
         yerr : array_like, optional
             Y error, by default None
+        data_space : str, {log, lin}, optional
+            Whether the data inputted is in log or linear space, by default 'log'
         name : str, optional
-            Name of the GRB, by default :py:class:`Model` name, or "unknown grb" if not provided.
-        model : Model, optional
+            Name of the GRB, by default :py:class:`Model` name, or ``unknown grb`` if not
+            provided.
+        model : :py:class:`Model`, optional
             :py:class:`Model` to use in lightcurve fitting, by default None
+        attrs : dict, optional
+            A :py:class:`dict` of array_like objects with length (n,) with
+            any additional attributes (e.g., band) for each datapoint, by default {}.
         """
         assert bool(filename) ^ (
             xdata is not None and ydata is not None
         ), "Either provide a filename or xdata, ydata."
+
+        self.attrs = attrs
 
         if name:
             self.name = name
@@ -53,10 +76,21 @@ class Lightcurve:
             self.name = model.name
         else:
             self.name = self._name_placeholder
-        if filename:
-            self.set_data(*self.read_data(filename))
+
+
+        if isinstance(filename, str):
+            self.filename = filename
+            self.set_data(*self.read_data(filename), data_space=data_space)
         else:
-            self.set_data(xdata, ydata, xerr=xerr, yerr=yerr)
+            self.filename = reduce(
+                os.path.join,
+                [
+                    get_dir(),
+                    "lightcurves",
+                    "{}_flux.txt".format(self.name.replace(" ", "_").replace(".", "p")),
+                ],
+            )
+            self.set_data(xdata, ydata, xerr, yerr, data_space=data_space)
 
         if model is not None:
             self.set_model(model)
@@ -65,7 +99,9 @@ class Lightcurve:
         self, bounds=None, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
     ):
         """Sets the bounds on the xdata and ydata to (1) plot and (2) fit with. Either
-            provide bounds or xmin, xmax, ymin, ymax.
+            provide bounds or xmin, xmax, ymin, ymax. Assumes data is already in log
+            space. If :py:method:`Lightcurve.set_data` has been called, then the data
+            has already been converted to log space.
 
         Parameters
         ----------
@@ -97,10 +133,17 @@ class Lightcurve:
         ymask = (ymin <= self.ydata) & (self.ydata <= ymax)
         self.mask = xmask & ymask
 
-        self.set_data(self.xdata, self.ydata, self.xerr, self.yerr)
+        self.set_data(self.xdata, self.ydata, self.xerr, self.yerr, data_space="log")
 
-    def set_data(self, xdata, ydata, xerr=None, yerr=None):
+    def set_data(self, xdata, ydata, xerr=None, yerr=None, data_space="log"):
         """Set the `xdata` and `ydata`, and optionally `xerr` and `yerr` of the lightcurve.
+
+        .. warning::
+            Data stored in :py:class:`Lightcurve` objects are always in logarithmic
+            space; the parameter ``data_space`` is only used to convert data to log space
+            if it is not already in such. If your data is in linear space [i.e., your
+            time data is sec, and not $log$(sec)], then you should set ``data_space``
+            to ``lin``.
 
         Parameters
         ----------
@@ -112,18 +155,39 @@ class Lightcurve:
             X error, by default None
         yerr : array_like, optional
             Y error, by default None
+        data_space : str, {log, lin}, optional
+            Whether the data inputted is in logarithmic or linear space, by default 'log'.
         """
         if not hasattr(self, "mask"):
             self.mask = np.ones(len(xdata), dtype=bool)
 
-        self.orig_xdata = np.asarray(xdata)
-        self.orig_ydata = np.asarray(ydata)
-        self.xdata = np.asarray(xdata)[self.mask]
-        self.ydata = np.asarray(ydata)[self.mask]
-        self.orig_xerr = np.asarray(xerr) if xerr is not None else None
-        self.orig_yerr = np.asarray(yerr) if yerr is not None else None
-        self.xerr = np.asarray(xerr)[self.mask] if xerr is not None else None
-        self.yerr = np.asarray(yerr)[self.mask] if yerr is not None else None
+        def convert_data(data):
+            if data_space == "lin":
+                d = np.log10(data)
+            elif data_space == "log":
+                d = data
+            else:
+                raise ValueError("data_space must be 'log' or 'lin'")
+
+            return np.asarray(d)
+
+        def convert_err(data, err):
+            if data_space == "lin":
+                eps = err / (data * np.log(10))
+            elif data_space == "log":
+                eps = err
+            else:
+                raise ValueError("data_space must be 'log' or 'lin'")
+            return np.asarray(eps)
+
+        self.orig_xdata = convert_data(xdata)
+        self.orig_ydata = convert_data(ydata)
+        self.xdata = self.orig_xdata[self.mask]
+        self.ydata = self.orig_ydata[self.mask]
+        self.orig_xerr = convert_err(xdata, xerr) if xerr is not None else None
+        self.orig_yerr = convert_err(ydata, yerr) if yerr is not None else None
+        self.xerr = self.orig_xerr[self.mask] if xerr is not None else None
+        self.yerr = self.orig_yerr[self.mask] if yerr is not None else None
 
     def set_model(self, model: Model):
         """Sets the lightcurve model to use.
@@ -160,9 +224,25 @@ class Lightcurve:
 
     def show_data(self, fig_kwargs={}):
         """
-            Plots the lightcurve data.
+            Plots the lightcurve data. If no fit has been ran, :py:meth:`Lightcurve.show` will call
+            this function.
 
             .. note:: This doesn't plot any fit results. Use :py:meth:`Lightcurve.show_fit` to do so.
+
+            Example:
+
+            .. jupyter-execute::
+
+                import numpy as np
+                import grblc
+
+                model = grblc.Model.W07(vary_t=False)
+                xdata = np.linspace(0, 10, 15)
+                yerr = np.random.normal(0, 0.5, len(xdata))
+                ydata = model(xdata, 5, -12, 1.5, 0) + yerr
+                lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
+                lc.show_data()
+
 
         Parameters
         ----------
@@ -170,7 +250,12 @@ class Lightcurve:
             Arguments to pass to ``plt.figure()``, by default {}.
         """
 
-        fig_dict = dict(figsize=[plt.rcParams["figure.figsize"][0]] * 2)
+        fig_dict = dict(
+            figsize=[
+                plt.rcParams["figure.figsize"][0],
+                plt.rcParams["figure.figsize"][0],
+            ]
+        )
         if bool(fig_kwargs):
             fig_dict.update(fig_kwargs)
         plot_fig = plt.figure(**fig_kwargs)
@@ -235,8 +320,11 @@ class Lightcurve:
         """
             Fits the lightcurve data to the model. There are two steps in this process:
 
-            1. Minimize the residuals using `Nelder-Mead` with `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_
-            2. Probe the posterior distribution using `emcee <https://emcee.readthedocs.io/en/stable/>`_, a Markov-Chain Monte Carlo Python package, using the best-fit parameters from step 1 as the starting point. This is optional (via the ``run_mcmc`` parameter), but recommended, as it gives a better view of the errors on the best-fit parameters.
+            1. Minimize the residuals using `Nelder-Mead` with
+               `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_
+            2. Probe the posterior distribution using `emcee <https://emcee.readthedocs.io/en/stable/>`_, a Markov-Chain Monte Carlo Python
+               package, using the best-fit parameters from step 1 as the starting point. This is optional (via the ``run_mcmc`` parameter),
+               but recommended, as it gives a better view of the errors on the best-fit parameters.
 
         Parameters
         ----------
@@ -247,9 +335,12 @@ class Lightcurve:
         show : bool, optional
             [description], by default False
         minimize_kwargs : dict, optional
-            Keyword arguments to pass to `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_, by default {}
+            Keyword arguments to pass to
+            `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_,
+            by default {}
         emcee_kwargs : dict, optional
-            Keyword arguments to pass to `lmfit.Minimizer.emcee <https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.Minimizer.emcee>`_ by default {}
+            Keyword arguments to pass to
+            `lmfit.Minimizer.emcee <https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.Minimizer.emcee>`_ by default {}
 
         Returns
         -------
@@ -367,7 +458,10 @@ class Lightcurve:
         data_kwargs={},
         fit_kwargs={},
     ):
-        r"""Shows the fit to the data.
+        r"""
+            Shows the fit to the data. If a fit has been ran, :py:meth:`Lightcurve.show`
+            will call this function.
+
             This function can:
                 * Print the best-fit parameters and their errors. (`print_res`)
                 * Show the fit to the data. (`show_plot`)
@@ -393,7 +487,8 @@ class Lightcurve:
             directory called `plots`. If `str`, the directory and filename to save plots
             (e.g., ``../../fit/grb010222.pdf``), by default None
         show : bool, optional
-            Whether you want `plt.show()` to be ran, by default True
+            Whether you want `plt.show()` to be ran. If not true, the figures will be returned
+            as a dictionary, by default True
         corner_kwargs : dict, optional
             Additional arguments to pass to :py:meth:`corner.corner`, by default {}
         chisq_kwargs : dict, optional
@@ -414,7 +509,8 @@ class Lightcurve:
         Returns
         -------
         dict
-            Dictionary of figures. Depending on the options chosen, the keys are `fit`, `corner`, `chisq`.
+            Dictionary of figures. Depending on the options chosen, the keys are `fit`,
+            `corner`, `chisq`.
 
 
         Example:
@@ -425,8 +521,8 @@ class Lightcurve:
             import grblc
 
             model = grblc.Model.W07(vary_t=False)
-            xdata = np.arange(0, 10, 0.05)
-            yerr = np.random.normal(0, 0.1, len(xdata))
+            xdata = np.linspace(0, 10, 15)
+            yerr = np.random.normal(0, 0.5, len(xdata))
             ydata = model(xdata, 5, -12, 1.5, 0) + yerr
             lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
             lc.fit(p0=[4.5, -12.5, 1, 0])
@@ -498,14 +594,13 @@ class Lightcurve:
                 ax_fit.scatter(
                     T,
                     F,
-                    c="tab:red",
-                    zorder=200,
+                    c="red",
+                    zorder=-999,
                     s=200,
-                    alpha=0.5,
                     label="fitted T, F",
                 )
 
-            ax_fit.legend(framealpha=0.0)
+            ax_fit.legend(frameon=False)
             ax_fit.set_title(f"{self.name} Fit")
             ax_fit.set_ylabel("log Flux (erg cm$^{-2}$ s$^{-1})$")
 
@@ -559,7 +654,7 @@ class Lightcurve:
             if show:
                 plt.show()
 
-        if (show_corner or detailed) and getattr(self.res, "flatchain") is not None:
+        if (show_corner or detailed) and (getattr(self.res, "flatchain")) is not None:
             import corner
 
             corner_fig = corner.corner(
@@ -582,12 +677,22 @@ class Lightcurve:
         if show_chisq or detailed:  # and getattr(self.res, "flatchain") is not None:
 
             num_varied = sum(self.params[p].vary for p in self.params)
-            fig, ax = plt.subplots(1, num_varied, figsize=(5 * num_varied, 5))
+            fig_chisq, ax_chisq = plt.subplots(
+                1, num_varied, figsize=(5 * num_varied, 5)
+            )
 
             fineness = chisq_kwargs.pop("fineness", 0.1)
             multiplier = np.arange(-2, 2, fineness)
             p, perr = np.array(
-                [[self.params[p].value, self.params[p].stderr] for p in self.params]
+                [
+                    [
+                        self.params[p].value,
+                        self.params[p].stderr
+                        if self.params[p].stderr is not None
+                        else 0,
+                    ]
+                    for p in self.params
+                ]
             ).T
 
             paramspace = np.array(
@@ -597,7 +702,7 @@ class Lightcurve:
             best_chisq = chisq(self.xdata, self.ydata, self.sigma, self.model, p)
 
             idx = 0
-            for ax_ in list(ax):
+            for ax_ in list(ax_chisq):
                 if not self.params[list(self.params.keys())[idx]].vary:
                     idx += 1
 
@@ -628,7 +733,7 @@ class Lightcurve:
                     ls=":",
                     alpha=0.2,
                     linewidth=plt.rcParams["axes.linewidth"],
-                    zorder=-999999,
+                    zorder=-999,
                 )
                 ax_.axvline(
                     x=1,
@@ -636,9 +741,11 @@ class Lightcurve:
                     ls=":",
                     alpha=0.2,
                     linewidth=plt.rcParams["axes.linewidth"],
-                    zorder=-999999,
+                    zorder=-999,
                 )
                 idx += 1
+
+            self.figs["chisq"] = fig_chisq
 
             if show:
                 plt.show()
@@ -646,14 +753,37 @@ class Lightcurve:
         if print_res or detailed:
             print(lf.fit_report(self.res, show_correl=False))
 
-        if save_plots is True:
+        if bool(save_plots):
+            savekwargs = dict(
+                filename=save_plots if isinstance(save_plots, str) else None
+            )
             for fig in self.figs:
-                self._savefig(self.figs[fig], suffix=fig)
-        if isinstance(save_plots, str):
-            for fig in self.figs:
-                self._savefig(self.figs[fig], filename=save_plots, suffix=fig)
+                self._savefig(self.figs[fig], suffix=fig, **savekwargs)
 
-        return self.figs
+        if not show:
+            return self.figs
+
+    def show(self, *args, **kwargs):
+        """
+        Calls :py:meth:`Lightcurve.show_fit` if a fit has been done,
+        :py:meth:`Lightcurve.show_data` otherwise
+
+
+        Returns
+        -------
+        *args : optional
+            Positional arguments to pass to :py:meth:`Lightcurve.show_data` or :py:meth:`Lightcurve.show_fit`
+
+        **kwargs : optional
+            Keyword arguments to pass to :py:meth:`Lightcurve.show_data` or :py:meth:`Lightcurve.show_fit`
+        """
+
+        if getattr(self, "res", None) is not None:
+            func = self.show_fit
+        else:
+            func = self.show_data
+
+        return func(*args, **kwargs)
 
     def print_fit(self, detailed=False):
         """
@@ -674,16 +804,14 @@ class Lightcurve:
             import grblc
 
             model = grblc.Model.W07(vary_t=False)
-            xdata = np.arange(0, 10, 0.05)
-            yerr = np.random.normal(0, 0.1, len(xdata))
+            xdata = np.linspace(0, 10, 15)
+            yerr = np.random.normal(0, 0.5, len(xdata))
             ydata = model(xdata, 5, -12, 1.5, 0) + yerr
             lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
             lc.fit(p0=[4.5, -12.5, 1, 0], run_mcmc=False)
-            print("="*10, "detailed=False", "="*10)
-            lc.print_fit()
-            print("="*10, "detailed=True", "="*10)
-            lc.print_fit(detailed=True)
-
+            for detailed in [False, True]:
+                print("="*10 + f"detailed={detailed}" + "="*10)
+                lc.print_fit(detailed=detailed)
         """
 
         assert getattr(self, "res", None) is not None, "No fit results found."
@@ -708,7 +836,7 @@ class Lightcurve:
         suffix = "_" + suffix if suffix is not None else ""
 
         if filename is None:
-            FILE_DIR = os.path.join(os.path.dirname(os.getcwd()), "plots")
+            FILE_DIR = os.path.join(os.path.dirname(get_dir()), "plots")
 
             if not os.path.exists(FILE_DIR):
                 os.mkdir(FILE_DIR)
@@ -760,8 +888,130 @@ class Lightcurve:
         """
         assert getattr(self, "res", None) is not None, "No fit results found."
 
+        io.save_fit(self.res, filename=filename)
+
     def __repr__(self):
         return f"<grbLC> {self.__class__.__name__}({self.name})"
+
+    def to_dict(self, data_space="log"):
+        """Function that returns two dictionaries of the lightcurve data.
+
+            This function returns two dictionaries: one with "accepted" datapoints --
+            those within the specified bounds, and one with "rejected" datapoints --
+            those outside the specified bounds, and thus not included in any fitting.
+
+            You can specify the data to be in either logarithmic (`log`) or linear
+            (`lin`) space.
+
+            Each dictionary contains the following keys:
+                #. `time_sec` : The time of the datapoint in seconds (xdata)
+                #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
+                #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$
+                (yerr)
+                #. **attrs : Any additional attributes of the datapoint as given in the
+                instantiation of the :py:class:`Lightcurve` object.
+
+        Parameters
+        ----------
+        data_space : str, {"log", "lin"}, optional
+            Whether the data returned will be in logarithmic or linear space,
+            by default "log"
+
+        Returns
+        -------
+        accepted_dict, rejected_dict : dict
+
+        Raises
+        ------
+        ValueError
+            If any "space" other than "log" and "lin" are specified.
+        """
+        assert hasattr(self, "mask")
+
+        # assumes data is already in log space
+        def loglin_data(data):
+            if data_space == "log":
+                log_data = data
+                return log_data
+            elif data_space == "lin":
+                lin_data = np.power(10, data)
+                return lin_data
+            else:
+                raise ValueError("data_space must be 'log' or 'lin'")
+
+        # assumes data is already in log space
+        def loglin_err(data, err):
+            if data_space == "log":
+                log_err = err
+                return log_err
+            elif data_space == "lin":
+                log_err = err
+                log_data = data
+                lin_err = log_err * np.power(10, log_data) * np.log(10)
+                return lin_err
+            else:
+                raise ValueError("data_space must be 'log' or 'lin'")
+
+
+        accepted_attrs = {
+            k: v[self.mask] for k, v in self.attrs.items()
+        }
+
+        accepted_dict = dict(
+            time_sec=loglin_data(self.xdata),
+            flux=loglin_data(self.ydata),
+            flux_err=loglin_err(self.yerr),
+            **accepted_attrs,
+        )
+        rejected_attrs = {
+            k: v[~self.mask] for k, v in self.attrs.items()
+        }
+        rejected_dict = dict(
+            time_sec=loglin_data(self.orig_xdata)[~self.mask],
+            flux=loglin_data(self.orig_ydata)[~self.mask],
+            flux_err=loglin_data(self.orig_yerr)[~self.mask],
+            **rejected_attrs,
+        )
+
+        return accepted_dict, rejected_dict
+
+    def to_df(self, data_space="log"):
+        """Function that returns two Pandas DataFrames of the lightcurve data.
+
+
+            This function returns two pandas DataFrames: one with "accepted" datapoints
+            -- those within the specified bounds, and one with "rejected" datapoints --
+            those outside the specified bounds, and thus not included in any fitting.
+
+            You can specify the data to be in either logarithmic (`log`) or linear
+            (`lin`) space.
+
+            Each DataFrame contains the following columns:
+                #. `time_sec` : The time of the datapoint in seconds (xdata)
+                #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
+                #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$
+                (yerr)
+                #. **attrs : Any additional attributes of the datapoint as given in the
+                instantiation of the :py:class:`Lightcurve` object.
+
+
+        Parameters
+        ----------
+        data_space : str, {"log", "lin"}, optional
+            Whether the data returned will be in logarithmic or linear space,
+            by default "log"
+
+        Returns
+        -------
+        accepted_df, rejected_df : pd.DataFrame's
+
+        Raises
+        ------
+        ValueError
+            If any "space" other than "log" and "lin" are specified.
+        """
+        accepted_df, rejected_df = tuple(map(pd.DataFrame, self.to_dict(data_space)))
+        return accepted_df, rejected_df
 
     def prompt(self):
         """
@@ -824,3 +1074,5 @@ contents = _readfile(
     )
 )
 __version__ = version_regex.findall(contents)[0]
+
+__directory__ = get_dir()
