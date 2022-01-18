@@ -13,3 +13,4 @@ PyPDF2
 numdifftools
 lmfit
 ads
+emcee

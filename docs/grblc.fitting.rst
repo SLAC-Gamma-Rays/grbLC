@@ -4,14 +4,6 @@ grblc.fitting package
 Submodules
 ----------
 
-grblc.fitting.assignments module
---------------------------------
-
-.. automodule:: grblc.fitting.assignments
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 grblc.fitting.constants module
 ------------------------------
 

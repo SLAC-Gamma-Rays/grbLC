@@ -17,3 +17,4 @@ lmfit
 jupyter-sphinx
 sphinx-math-dollar
 numdifftools
+emcee
