@@ -6,8 +6,8 @@ grbLC
 .. image:: https://img.shields.io/pypi/v/grblc.svg
         :target: https://pypi.python.org/pypi/grblc
 
-.. image:: https://img.shields.io/travis/youngsm/grblc.svg
-        :target: https://travis-ci.com/youngsm/grblc
+.. image:: https://app.travis-ci.com/youngsm/grbLC.svg?branch=master
+    :target: https://app.travis-ci.com/youngsm/grbLC
 
 .. image:: https://readthedocs.org/projects/grblc/badge/?version=latest
         :target: https://grblc.readthedocs.io/en/latest/?version=latest
