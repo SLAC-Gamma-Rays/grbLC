@@ -70,19 +70,19 @@ class OutlierPlot:
             # plot main sample of points by band
 
             if hover is None:
-                pass
-            try:
-                self.df["source"]
-                kwargs = {"hover_data": ["source"]}
-            except:
-                kwargs = {}
+                kwargs = dict(hover_data=list(map(str, self.df.columns[3:])))
+            else:
+                assert all(h in self.df.columns for h in hover)
+                kwargs = dict(hover_data=hover)
+
+            color = "band" if "band" in self.df.columns else None
 
             fig = px.scatter(
                 self.df,
                 x=np.log10(self.df["time_sec"]),
                 y=np.log10(self.df["flux"]),
                 error_y=self.df["flux_err"] / (self.df["flux"] * np.log(10)),
-                color="band",
+                color=color,
                 width=700,
                 height=400,
                 **kwargs,
@@ -93,7 +93,7 @@ class OutlierPlot:
                 xaxis_title=r"logT (sec)",
                 yaxis_title=r"logF (erg cm-2 s-1)",
                 title=self.grb,
-                legend_title="Band",
+                legend_title="Band" if color is not None else None,
             )
 
             # plot accepted points if there are any

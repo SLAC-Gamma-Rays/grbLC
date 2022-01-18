@@ -989,10 +989,9 @@ class Lightcurve:
             Each DataFrame contains the following columns:
                 #. `time_sec` : The time of the datapoint in seconds (xdata)
                 #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
-                #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$
-                (yerr)
+                #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$ (yerr)
                 #. **attrs : Any additional attributes of the datapoint as given in the
-                instantiation of the :py:class:`Lightcurve` object.
+                             instantiation of the :py:class:`Lightcurve` object.
 
 
         Parameters

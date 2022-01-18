@@ -6,3 +6,5 @@ __version__ = "0.0.0"
 
 from . import convert, fitting, search  # noqa F401
 from .fitting import Model, Lightcurve
+from .convert import toFlux, get_dir, set_dir, convertGRB
+from .search import ads, gcn
