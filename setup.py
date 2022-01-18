@@ -3,6 +3,7 @@
 import os
 import re
 import sys
+from functools import reduce
 
 from setuptools import find_packages
 from setuptools import setup
@@ -22,7 +23,7 @@ readfile_kwargs = {"encoding": "utf-8"} if major >= 3 else {}
 
 version_regex = re.compile('__version__ = "(.*?)"')
 with open(
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "__init__.py"),
+    reduce(os.path.join, [os.path.dirname(os.path.abspath(__file__)), "grblc", "__init__.py"]),
     **readfile_kwargs
 ) as fp:
     contents = fp.read()
@@ -43,7 +44,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    description="A Python package for GRB light curve studies.",
+    description="A Python package for GRB optical light curve studies.",
     install_requires=requirements,
     license="MIT license",
     long_description=readme,
