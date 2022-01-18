@@ -2,7 +2,7 @@
 """Tests for `grblc` package."""
 import unittest
 
-from grblc import grblc  # noqa
+import grblc  # noqa
 
 
 class TestGrblc(unittest.TestCase):
