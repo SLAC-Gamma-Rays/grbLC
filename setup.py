@@ -11,8 +11,12 @@ from setuptools import setup
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
-with open("requirements.txt") as requirements_file:
-    requirements = requirements_file.read().splitlines()
+# with open("./requirements.txt") as requirements_file:
+#     requirements = requirements_file.read().splitlines()
+requirements = ["requests", "matplotlib", "numpy", "astroquery",
+                "scipy", "pandas", "glob2", "astropy", "dustmaps",
+                "plotly", "ipython", "PyPDF2", "numdifftools", "lmfit",
+                "ads", "emcee", "corner"]
 
 test_requirements = []
 
