@@ -16,19 +16,13 @@ grbLC
 
 
 
-A Python package for GRB light curve studies.
+A Python package for GRB optical light curve studies.
 
 
 * Free software: MIT license
 * Documentation: https://grblc.readthedocs.io.
 
 
-Features
---------
-
-* TODO
-
-Credits
 -------
 
 This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
