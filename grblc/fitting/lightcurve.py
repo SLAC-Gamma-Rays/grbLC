@@ -2,6 +2,7 @@ import os
 import re
 import sys
 from functools import reduce
+from typing import Dict
 
 import lmfit as lf
 import matplotlib.pyplot as plt
@@ -13,7 +14,6 @@ from . import io
 from ..convert import get_dir
 from .model import chisq
 from .model import Model
-from .outlier import OutlierPlot
 
 
 class Lightcurve:
@@ -29,7 +29,7 @@ class Lightcurve:
         data_space: str = "log",
         name: str = None,
         model: Model = None,
-        attrs: dict = {},
+        attrs: Dict[str, np.ndarray] = {},
     ):
         """The main module for fitting lightcurves.
 
@@ -76,7 +76,6 @@ class Lightcurve:
             self.name = model.name
         else:
             self.name = self._name_placeholder
-
 
         if isinstance(filename, str):
             self.filename = filename
@@ -893,12 +892,8 @@ class Lightcurve:
     def __repr__(self):
         return f"<grbLC> {self.__class__.__name__}({self.name})"
 
-    def to_dict(self, data_space="log"):
-        """Function that returns two dictionaries of the lightcurve data.
-
-            This function returns two dictionaries: one with "accepted" datapoints --
-            those within the specified bounds, and one with "rejected" datapoints --
-            those outside the specified bounds, and thus not included in any fitting.
+    def to_dict(self, data_space="lin"):
+        """Function that returns a dictionary of the lightcurve data.
 
             You can specify the data to be in either logarithmic (`log`) or linear
             (`lin`) space.
@@ -915,11 +910,11 @@ class Lightcurve:
         ----------
         data_space : str, {"log", "lin"}, optional
             Whether the data returned will be in logarithmic or linear space,
-            by default "log"
+            by default "lin"
 
         Returns
         -------
-        accepted_dict, rejected_dict : dict
+        data : dict
 
         Raises
         ------
@@ -952,39 +947,22 @@ class Lightcurve:
             else:
                 raise ValueError("data_space must be 'log' or 'lin'")
 
+        data_attrs = {k: v[self.mask] for k, v in self.attrs.items()}
 
-        accepted_attrs = {
-            k: v[self.mask] for k, v in self.attrs.items()
-        }
-
-        accepted_dict = dict(
+        data_dict = dict(
             time_sec=loglin_data(self.xdata),
             flux=loglin_data(self.ydata),
-            flux_err=loglin_err(self.yerr),
-            **accepted_attrs,
-        )
-        rejected_attrs = {
-            k: v[~self.mask] for k, v in self.attrs.items()
-        }
-        rejected_dict = dict(
-            time_sec=loglin_data(self.orig_xdata)[~self.mask],
-            flux=loglin_data(self.orig_ydata)[~self.mask],
-            flux_err=loglin_data(self.orig_yerr)[~self.mask],
-            **rejected_attrs,
+            flux_err=loglin_err(self.ydata, self.yerr),
+            **data_attrs,
         )
 
-        return accepted_dict, rejected_dict
+        return data_dict
 
-    def to_df(self, data_space="log"):
-        """Function that returns two Pandas DataFrames of the lightcurve data.
+    def to_df(self, data_space="lin"):
+        """Function that returns a Pandas DataFrames of the lightcurve data.
 
-
-            This function returns two pandas DataFrames: one with "accepted" datapoints
-            -- those within the specified bounds, and one with "rejected" datapoints --
-            those outside the specified bounds, and thus not included in any fitting.
-
-            You can specify the data to be in either logarithmic (`log`) or linear
-            (`lin`) space.
+            You can specify the data to be returned in either logarithmic (`log`) or
+            linear (`lin`) space.
 
             Each DataFrame contains the following columns:
                 #. `time_sec` : The time of the datapoint in seconds (xdata)
@@ -1002,15 +980,14 @@ class Lightcurve:
 
         Returns
         -------
-        accepted_df, rejected_df : pd.DataFrame's
+        data : pd.DataFrame
 
         Raises
         ------
         ValueError
             If any "space" other than "log" and "lin" are specified.
         """
-        accepted_df, rejected_df = tuple(map(pd.DataFrame, self.to_dict(data_space)))
-        return accepted_df, rejected_df
+        return pd.DataFrame(self.to_dict(data_space=data_space))
 
     def prompt(self):
         """
