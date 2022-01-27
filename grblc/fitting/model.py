@@ -78,8 +78,7 @@ def _smooth_bpl(x, T, F, alpha1, alpha2, S):
     linT, linF = np.power(10, [T, F], dtype=float)
     linX = np.power(10, x, dtype=float)
     return np.log10(
-        linF
-        * ((linX / linT) ** (S * alpha1) + (linX / linT) ** (S * alpha2)) ** (-1 / S)
+        linF * ((linX / linT) ** (S * alpha1) + (linX / linT) ** (S * alpha2)) ** (-1 / S)
     )
 
 
@@ -319,7 +318,7 @@ class Model:
     @classmethod
     def SMOOTH_BPL(cls):
         r"""Smooth broken power law model
-            This is an emperical piece-wise model for GRB lightcurve afterglows.
+            This is an empirical piece-wise model for GRB lightcurve afterglows.
 
             The function is as follows:
 
@@ -406,7 +405,7 @@ class Model:
     @classmethod
     def SIMPLE_BPL(cls):
         r"""Simple broken power law model
-            This is an emperical piece-wise model for GRB lightcurve afterglows.
+            This is an empirical piece-wise model for GRB lightcurve afterglows.
 
             The function is as follows:
 
