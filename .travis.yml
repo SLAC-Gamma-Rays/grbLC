@@ -1,4 +1,8 @@
 # Config file for automatic testing at travis-ci.com
+branches:
+  only:
+  - master
+
 
 language: python
 python:
