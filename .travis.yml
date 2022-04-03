@@ -20,6 +20,6 @@ deploy:
   distributions: sdist bdist_wheel
   provider: pypi
   on:
-   branch: master
+   branch: main
   username: __token__
   password: $PYPI_PASSWORD
