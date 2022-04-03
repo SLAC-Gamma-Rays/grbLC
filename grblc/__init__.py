@@ -2,7 +2,7 @@
 
 __author__ = """Sam Young"""
 __email__ = "youngsam@sas.upenn.edu"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 from . import convert, fitting, search  # noqa F401
 from .fitting import Model, Lightcurve, OutlierPlot
