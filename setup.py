@@ -50,7 +50,6 @@ setup(
     install_requires=requirements,
     license="MIT license",
     long_description=readme,
-    include_package_data=True,
     keywords="grblc",
     name="grblc",
     packages=find_packages(include=["grblc", "grblc.*"]),
