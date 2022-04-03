@@ -55,7 +55,7 @@ setup(
     name="grblc",
     packages=find_packages(include=["grblc", "grblc.*"]),
     package_data={
-        "convert": ["*.txt"]
+        "grblc.convert": ["*.txt"]
     },
     test_suite="tests",
     tests_require=test_requirements,
