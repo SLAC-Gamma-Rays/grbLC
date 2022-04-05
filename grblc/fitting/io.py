@@ -17,6 +17,14 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
     """
     This monstrosity returns what line a header is at
     """
+    with open(path, "r") as f:
+        lines = f.readlines()
+
+    if isinstance(n, int) and n > len(lines):
+        raise Exception(f"Error in file ({path})! Something wrong "
+                         "is going on here and I can't find the "
+                         "header row for this file")
+
     try:
         # attempt importing the datafile with the header "n"
         df = pd.read_csv(path, delimiter=r"\t+|\s+", header=n, engine="python")
@@ -48,6 +56,8 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
         return check_header(path, n=n + 1, more_than_one_row=True)
     else:
         return n  # <-- the final stop in our recursion journey
+
+
 
 
 def check_datatype(filename):
@@ -94,13 +104,13 @@ def check_datatype(filename):
     return datatype
 
 
-def read_data(path, datatype="", debug=False):
+def read_data(path, datatype="", header=-999, debug=False):
     data = {}
 
     if debug:
         print("First 10 Lines:\n", "".join(open(path).readlines()[:10]))
 
-    header = check_header(path)
+    header = check_header(path) if header==-999 else header
 
     if header == -1:
         return
@@ -132,9 +142,9 @@ def read_data(path, datatype="", debug=False):
     elif datatype == "oates":
 
         time = df[h[0]]
-        flux = df[h[2]]
-        maxflux = df[h[3]]
-        minflux = df[h[4]]
+        flux = df[h[1]]
+        maxflux = df[h[2]]
+        minflux = df[h[3]]
         fluxerr = (maxflux - minflux) / (2 * 1.65)
 
     elif datatype in ["combined", "comb"]:
@@ -152,12 +162,9 @@ def read_data(path, datatype="", debug=False):
         fluxerr = (maxflux - minflux) / (2 * 1.65)
 
     else:
-        # if debug:
-        # print('No datatype found. Assuming format:\n| time | flux | fluxerr |')
-        # read_data(path, datatype='si', debug=debug)
-        time = np.array([1])
-        flux = np.array([1])
-        fluxerr = np.array([0])
+        if debug:
+            print('No datatype found. Assuming format: | time | flux | fluxerr |')
+        return read_data(path, datatype='si', header=header, debug=debug)
 
     try:
         logtime = np.log10(time)
@@ -167,11 +174,11 @@ def read_data(path, datatype="", debug=False):
     logflux = np.log10(flux)
     logfluxerr = fluxerr / (flux * np.log(10))
 
-    if all(logtime > 0):
+    if all(time > 0) and all(flux > 0):
         data["time_sec"] = logtime
         data["flux"] = logflux
         data["flux_err"] = logfluxerr
-        data["band"] = ["R" for _ in logtime]
+        # data["band"] = ["R" for _ in logtime]
     else:
         raise ImportError("Some logT's are < 0... Ahh!")
 
