@@ -60,26 +60,21 @@ def _w07(x, T, F, alpha, t):
     vals = np.piecewise(x, [x < T, x >= T], [before, after])
     return vals
 
-
+# modified and simplified so T and F are logarithmic inputs
+# to avoid numerical overflow issues.
 def _simple_bpl(x, T, F, alpha1, alpha2):
 
-    linT, linF = np.power(10, [T, F], dtype=float)
-    linX = np.power(10, x, dtype=float)
+    before = lambda x: F - alpha1*(x-T)
+    after = lambda x: F - alpha2*(x-T)
 
-    before = lambda x: linF * (x / linT) ** (-alpha1)
-    after = lambda x: linF * (x / linT) ** (-alpha2)
-    vals = np.piecewise(linX, [linX < linT, linX >= linT], [before, after])
+    vals = np.piecewise(x, [x < T, x >= T], [before, after])
 
-    return np.log10(vals)
+    return vals
 
-
+# modified and simplified so T and F are logarithmic inputs
+# to avoid numerical overflow issues.
 def _smooth_bpl(x, T, F, alpha1, alpha2, S):
-
-    linT, linF = np.power(10, [T, F], dtype=float)
-    linX = np.power(10, x, dtype=float)
-    return np.log10(
-        linF * ((linX / linT) ** (S * alpha1) + (linX / linT) ** (S * alpha2)) ** (-1 / S)
-    )
+    return F - alpha1*(x-T) - 1/(10**S)*np.log10(1 + 10**((10**S)*(alpha2-alpha1)*(x-T)))
 
 
 class Parameter:
@@ -122,6 +117,9 @@ class Parameter:
         self.min = min
         self.max = max
         self.vary = vary
+
+    def __repr__(self):
+        return f"<grblc Parameter> {self.name}: {self.description}. min={self.min}, max={self.max}, vary={self.vary}"
 
 
 class Model:
@@ -398,7 +396,12 @@ class Model:
                     max=20,
                     plot_fmt=r"$\alpha_2$",
                 ),
-                Parameter("S", "smoothing factor"),
+                Parameter(
+                    "S",
+                    "smoothing factor",
+                    min=-10,
+                    max=2,
+                ),
             ],
         )
 
@@ -479,7 +482,7 @@ class Model:
                 Parameter(
                     "alpha2",
                     "temporal decay index of end power law",
-                    min=0,
+                    min=-2,
                     max=20,
                     plot_fmt=r"$\alpha_2$",
                 ),
