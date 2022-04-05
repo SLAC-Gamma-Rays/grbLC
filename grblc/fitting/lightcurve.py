@@ -69,6 +69,8 @@ class Lightcurve:
         ), "Either provide a filename or xdata, ydata."
 
         self.attrs = attrs
+        if model is not None and not hasattr(model, "name"):
+            model = model()
 
         if name:
             self.name = name
@@ -218,10 +220,16 @@ class Lightcurve:
         ----------
         xdata, ydata, xerr, yerr : array_like
         """
+        df = io.read_data(filename)
 
-        print(f"Reading data from {filename}")
+        xdata = df["time_sec"].to_numpy()
+        ydata = df["flux"].to_numpy()
+        xerr = None
+        yerr = df["flux_err"].to_numpy()
 
-    def show_data(self, fig_kwargs={}):
+        return xdata, ydata, xerr, yerr
+
+    def show_data(self, save=False, fig_kwargs={}, save_kwargs={}):
         """
             Plots the lightcurve data. If no fit has been ran, :py:meth:`Lightcurve.show` will call
             this function.
@@ -257,7 +265,7 @@ class Lightcurve:
         )
         if bool(fig_kwargs):
             fig_dict.update(fig_kwargs)
-        plot_fig = plt.figure(**fig_kwargs)
+        plot_fig = plt.figure(**fig_dict)
         ax = plot_fig.add_subplot(1, 1, 1)
 
         xmin, xmax, ymin, ymax = self.model.bounds
@@ -292,6 +300,7 @@ class Lightcurve:
                 yerr=logFerr[~mask] if logFerr is not None else logFerr,
                 color="k",
                 fmt=".",
+                ms=10,
                 alpha=0.2,
                 zorder=0,
             )
@@ -301,6 +310,14 @@ class Lightcurve:
         ax.set_xlabel("log T (sec)")
         ax.set_ylabel("log F (erg cm$^{-2}$ s$^{-1}$)")
         ax.set_title(self.name)
+
+        if save:
+            savefig_kwargs = dict(
+                fname = self.slug
+            )
+
+
+
         plt.show()
 
     def _res(self, params):
@@ -391,7 +408,7 @@ class Lightcurve:
         minimizer = lf.Minimizer(self._res, self.params, nan_policy="propagate")
 
         # solve first with robust Nelder-Mead
-        self.res = mi1 = minimizer.minimize(method="Nelder", **minimize_kwargs)
+        self.res = mi1 = minimizer.minimize(method="leastsq", **minimize_kwargs)
         self.params = self.res.params
 
         if run_mcmc:
@@ -535,7 +552,7 @@ class Lightcurve:
             fig_dict = dict(figsize=[plt.rcParams["figure.figsize"][0]] * 2)
             if bool(fig_kwargs):
                 fig_dict.update(fig_kwargs)
-            plot_fig = plt.figure(**fig_kwargs)
+            plot_fig = plt.figure(**fig_dict)
             gridspec = plt.GridSpec(nrows=2, ncols=1, height_ratios=[3, 1])
 
             # create axes
@@ -548,43 +565,19 @@ class Lightcurve:
             # plot fit (within bounds first)
             if not isinstance(self.sigma, (int, float)):
                 ax_fit.errorbar(
-                    self.xdata, self.ydata, self.yerr, fmt="o", color="k", **fit_kwargs
+                    self.xdata, self.ydata, self.yerr, fmt="o", ms=5, color="k", **fit_kwargs
                 )
             else:
-                ax_fit.scatter(self.xdata, self.ydata, color="k", **fit_kwargs)
+                ax_fit.scatter(self.xdata, self.ydata, s=5, color="k", **fit_kwargs)
 
-            fit_ylim = ax_fit.get_ylim()
 
             x_vals = np.linspace(0.8 * self.xdata.min(), 1.1 * self.xdata.max(), 100)
             y_vals = self.model(x_vals, *self.params.valuesdict().values())
             ax_fit.plot(x_vals, y_vals, ls="-", color="r", label="fit")
 
-            # plot fit (outside bounds)
-            if sum(~self.mask) > 0:
-                if not isinstance(self.sigma, int):
-                    ax_fit.errorbar(
-                        self.orig_xdata[~self.mask],
-                        self.orig_ydata[~self.mask],
-                        self.orig_yerr[~self.mask],
-                        fmt="o",
-                        color="k",
-                        alpha=0.2,
-                        **data_kwargs,
-                    )
-                else:
-                    ax_fit.scatter(
-                        self.orig_xdata[~self.mask],
-                        self.orig_ydata[~self.mask],
-                        color="k",
-                        alpha=0.2,
-                        **data_kwargs,
-                    )
-
-                ax_fit.set_ylim(fit_ylim)
 
             if self.model.name in [
                 "Willingale 2007",
-                "smooth broken power law",
                 "simple broken power law",
             ]:
 
@@ -595,10 +588,56 @@ class Lightcurve:
                     F,
                     c="red",
                     zorder=-999,
-                    s=200,
-                    label="fitted T, F",
+                    s=100,
+                    label="Fitted T, F",
                 )
 
+
+
+            # ! IMPORTANT! If using the smooth bpl, the smooth factor
+            #              changes the true location of the end of the plateau
+            #              by subtracting log10(2)/S from F. This comes naturally
+            #              from f(t=T) = F - log(2)/S
+            if self.model.name == "smooth broken power law":
+                T, F, a1, a2, S = self.params.values()
+                ax_fit.scatter(
+                    T,
+                    F-np.log10(2)/10**S,
+                    c="red",
+                    zorder=-999,
+                    s=150,
+                    label="Fitted T, F",
+                )
+
+            fit_xlim = ax_fit.get_xlim()
+            fit_ylim = ax_fit.get_ylim()
+
+
+            # plot fit (outside bounds)
+            if sum(~self.mask) > 0:
+                if not isinstance(self.sigma, int):
+                    ax_fit.errorbar(
+                        self.orig_xdata[~self.mask],
+                        self.orig_ydata[~self.mask],
+                        self.orig_yerr[~self.mask],
+                        fmt="o",
+                        color="k",
+                        ms=5,
+                        alpha=0.2,
+                        **data_kwargs,
+                    )
+                else:
+                    ax_fit.scatter(
+                        self.orig_xdata[~self.mask],
+                        self.orig_ydata[~self.mask],
+                        color="k",
+                        s=5,
+                        alpha=0.2,
+                        **data_kwargs,
+                    )
+
+            ax_fit.set_xlim(fit_xlim)
+            ax_fit.set_ylim(fit_ylim)
             ax_fit.legend(frameon=False)
             ax_fit.set_title(f"{self.name} Fit")
             ax_fit.set_ylabel("log Flux (erg cm$^{-2}$ s$^{-1})$")
@@ -614,10 +653,10 @@ class Lightcurve:
 
             if not isinstance(self.sigma, int):
                 ax_residual.errorbar(
-                    self.xdata, residuals, self.yerr, fmt="o", color="k", **fit_kwargs
+                    self.xdata, residuals, self.yerr, ms=5, fmt="o", color="k", **fit_kwargs
                 )
             else:
-                ax_residual.scatter(self.xdata, residuals, color="k", **fit_kwargs)
+                ax_residual.scatter(self.xdata, residuals, s=5, color="k", **fit_kwargs)
 
             residual_ylim = ax_residual.get_ylim()
 
@@ -630,6 +669,7 @@ class Lightcurve:
                         yerr=self.orig_yerr[~self.mask],
                         fmt="o",
                         color="k",
+                        ms=5,
                         alpha=0.2,
                         **data_kwargs,
                     )
@@ -638,13 +678,17 @@ class Lightcurve:
                         self.orig_xdata[~self.mask],
                         full_residuals[~self.mask],
                         color="k",
+                        s=5,
                         alpha=0.2,
                         **data_kwargs,
                     )
 
-                ax_residual.set_xlim(0.8 * self.xdata.min(), 1.1 * self.xdata.max())
-                ax_residual.set_ylim(residual_ylim)
 
+                # ax_residual.set_xlim(0.8 * self.xdata.min(), 1.1 * self.xdata.max())
+                # ax_residual.set_ylim(residual_ylim)
+
+            ax_residual.set_xlim(fit_xlim)
+            ax_residual.set_ylim(residual_ylim)
             ax_residual.set_xlabel("log T (sec)")
             ax_residual.set_ylabel("residuals")
             plt.setp(ax_fit.get_xticklabels(), visible=False)
