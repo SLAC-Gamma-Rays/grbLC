@@ -17,7 +17,7 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
     """
     This monstrosity returns what line a header is at
     """
-    with open(path, "r") as f:
+    with open(path) as f:
         lines = f.readlines()
 
     if isinstance(n, int) and n > len(lines):
