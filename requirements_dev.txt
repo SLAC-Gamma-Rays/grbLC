@@ -15,7 +15,6 @@ scipy
 pandas
 glob2
 astropy
-dustmaps
 plotly
 ipython
 PyPDF2

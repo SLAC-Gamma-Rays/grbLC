@@ -11,12 +11,11 @@ from setuptools import setup
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
-requirements = ["requests", "matplotlib", "numpy", "astroquery",
-                "scipy", "pandas", "glob2", "astropy", "dustmaps",
-                "plotly", "ipython", "PyPDF2", "numdifftools", "lmfit",
-                "ads", "emcee", "corner"]
+with open("requirements.txt") as requirements_file:
+    requirements = requirements_file.readlines()
 
-test_requirements = []
+with open("requirements_dev.txt") as requirements_test_file:
+    test_requirements = requirements_test_file.readlines()
 
 # Thank you Andy Casey for this nice versioning method
 major, minor1, minor2, release, serial = sys.version_info
