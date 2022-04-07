@@ -357,7 +357,6 @@ class OutlierPlot:
         elif key in ["s", "strip"]:
             self.queue.append(["s", self.currpt, self.prevpt])
             self._insert(self.currpt)
-            self._insert(self.currpt)
             self._inc()
             self._save()
         elif key in ["u", "undo"]:
