@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.10"]
     runs-on: ${{ matrix.os }}
 
 
@@ -30,6 +30,11 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         pip install -r requirements.txt
+        
+    - name: Reset sfd directory
+      run: |
+        python -c "from grblc.convert.sfd.config import config;config.reset()"
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
