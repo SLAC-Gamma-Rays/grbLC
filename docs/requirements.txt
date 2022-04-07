@@ -18,4 +18,4 @@ sphinx-math-dollar
 numdifftools
 emcee
 corner
-progressbar
+progressbar2
