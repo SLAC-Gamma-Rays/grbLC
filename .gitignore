@@ -103,5 +103,7 @@ ENV/
 
 # IDE settings
 .vscode/
-adsgrb/__init__.py
 .DS_Store
+
+# grblc settings
+grblc/convert/extinction_maps

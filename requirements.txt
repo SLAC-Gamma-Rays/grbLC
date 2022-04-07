@@ -6,7 +6,6 @@ scipy
 pandas
 glob2
 astropy
-dustmaps
 plotly
 ipython
 PyPDF2
@@ -15,3 +14,4 @@ lmfit
 ads
 emcee
 corner
+progressbar2
