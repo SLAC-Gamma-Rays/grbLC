@@ -14,3 +14,4 @@ lmfit
 ads
 emcee
 corner
+progressbar
