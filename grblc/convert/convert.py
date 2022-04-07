@@ -51,7 +51,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     """
 
     from astropy.coordinates import SkyCoord
-    from dustmaps.sfd import SFDQuery
+    from .sfd.sfd import SFDQuery
 
     sfd = SFDQuery()
 
@@ -161,7 +161,8 @@ def toFlux(
     KeyError
         If a bandpass is not found in :py:data:`grblc.constants.photometry`.
     """
-    assert A_b != 0 ^ grb ^ (ra and dec), "Must provide either A_b or grb or ra, dec"
+    assert bool(A_b != 0) ^ bool(grb) ^ bool(ra and dec), "Must provide either A_b or grb or ra, dec"
+    _check_dust_maps()
 
     band = re.sub(r"(\'|_|\\|\(.+\))", "", band)
     band = re.sub(r"(?<![A-Za-z])([mw]\d{1})", r"uv\1", band)
@@ -434,12 +435,8 @@ def _check_dust_maps():
 
     data_dir = os.path.join(os.path.dirname(__file__), "extinction_maps")
     if not os.path.exists(os.path.join(data_dir, "sfd")):
-        import dustmaps.sfd
-        from dustmaps.config import config
-
-        config["data_dir"] = data_dir
-        dustmaps.sfd.fetch()
-
+        from .sfd import sfd
+        sfd.fetch()
 
 # sets directory to the current working directory, or whatever folder you're currently in
 directory = os.getcwd()
