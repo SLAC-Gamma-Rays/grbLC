@@ -242,7 +242,7 @@ def serialize_skycoord(o):
     Returns:
         A dictionary that can be passed to :obj:`json.dumps`.
     """
-    representation = o.representation.get_name()
+    representation = o.representation_type.get_name()
     frame = o.frame.name
 
     r = o.represent_as('spherical')
@@ -250,7 +250,7 @@ def serialize_skycoord(o):
     d = dict(
         _type='astropy.coordinates.SkyCoord',
         frame=frame,
-        representation=representation,
+        representation_type=representation,
         lon=r.lon,
         lat=r.lat)
 
@@ -276,7 +276,7 @@ def deserialize_skycoord(d):
     return coords.SkyCoord(
         *args,
         frame=d['frame'],
-        representation='spherical')
+        representation_type='spherical')
 
 
 def get_encoder(ndarray_mode='b64'):
