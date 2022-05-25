@@ -14,7 +14,18 @@ from .constants import photometry
 
 
 def _angstromToHz(ang: float):
-    """Simple conversion to hertz from wavelengths in angstroms"""
+    '''Converts a wavelength in angstroms to a frequency in Hz
+
+    Parameters
+    ----------
+    ang : float
+        the wavelength in angstroms
+
+    Returns
+    -------
+        the frequency in Hz of a given wavelength in angstroms.
+
+    '''
     return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
 
 
@@ -112,7 +123,8 @@ def toFlux(
         for the flux, assuming there is error on the magnitude and photon index and no covariance
         between the two values, is as follows:
 
-        $$\sigma = \left|{\rm Flux}\right| \sqrt{(\frac{\sigma_m}{2.5} \log10)^2 + \left(\sigma_\beta\log{\left(\frac{\lambda_X}{\lambda_R}\right)}\right)^2},$$
+        $$\sigma = \left|{\rm Flux}\right| \sqrt{(\frac{\sigma_m}{2.5} \log10)^2 +
+        \left(\sigma_\beta\log{\left(\frac{\lambda_X}{\lambda_R}\right)}\right)^2},$$
 
         where $\sigma_i$ denotes the standard error on $i$.
 
@@ -259,7 +271,7 @@ def convertGRB(
 
     except ValueError as error:
         raise error
-    except IndexError as error:
+    except IndexError:
         raise ImportError(message=f"Couldn't find GRB table at {filename}.")
 
     # grab photon index, trigger time, and position in sky of GRB
