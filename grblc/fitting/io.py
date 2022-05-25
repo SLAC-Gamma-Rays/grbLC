@@ -45,9 +45,10 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
 
     h = df.columns
 
+
     # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
     # ... so maybe change the h in [not isfloat(x) for x in h] to the second row???
-    if isinstance(h, pd.Int64Index) or sum(isfloat(x) for x in h) >= 0.3 * len(h) // 1:
+    if isinstance(h, type(pd.Index([], dtype=int))) or sum(isfloat(x) for x in h) >= 0.3 * len(h) // 1:
         if debug:
             print("Some are floats...")
 
@@ -65,7 +66,7 @@ def check_datatype(filename):
     Given a filename, try and guess what dataset the data comes from
     (e.g., Si, Kann, Oates, etc.)
 
-    For example, a file named '*_Oates.txt' will be interpreted as data in the same format
+    For example, a file named `*_Oates.txt` will be interpreted as data in the same format
     as Sam Oates' data.
 
     """
