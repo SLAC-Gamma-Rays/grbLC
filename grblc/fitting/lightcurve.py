@@ -961,15 +961,15 @@ class Lightcurve:
             res.params["F"].stderr = params["F"].stderr = newFerr
 
         if detailed:
-            print(lf.fit_report(self.res, show_correl=False))
+            print(lf.fit_report(res, show_correl=False))
         else:
             print(
                 "\n".join(
                     [
                         "\t".join(
-                            map(str, [x, self.params[x].value, self.params[x].stderr])
+                            map(str, [x, params[x].value, params[x].stderr])
                         )
-                        for x in self.params
+                        for x in params
                     ]
                 )
             )
