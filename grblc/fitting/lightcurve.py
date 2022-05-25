@@ -898,7 +898,7 @@ class Lightcurve:
         errF = self.res.params["F"].stderr
         F = self.res.params["F"].value
         if self.model.slug == "smooth_bpl":
-            errS = 10**self.res.params["S"].stderr * np.log(10)
+            errS = 10**self.res.params["S"].stderr * np.log(10) if self.res.params["S"].stderr is not None else 0
             S = 10**self.res.params["S"].value
             newF = F - np.log(2)/S
             newerrF = np.sqrt(errF*errF + errS*errS*np.log(2)/S/S)
@@ -906,7 +906,7 @@ class Lightcurve:
             t = self.res.params["t"].value
             T = self.res.params["T"].value
             errT = self.res.params["T"].stderr
-            errt = self.res.params["t"].stderr
+            errt = self.res.params["t"].stderr if self.res.params["t"].vary else 0
             newerrF = np.sqrt(errF*errF + (errT*errT + errt*errt)*10**(2*(t-T))/np.log(10)**2)
             newF = F - 10**(t-T)/np.log(10)
 
@@ -959,7 +959,6 @@ class Lightcurve:
             newF, newFerr = self.apply_flux_corr()
             res.params["F"].value = params["F"].value = newF
             res.params["F"].stderr = params["F"].stderr = newFerr
-
         if detailed:
             print(lf.fit_report(res, show_correl=False))
         else:
