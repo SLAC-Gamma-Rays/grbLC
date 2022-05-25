@@ -538,6 +538,9 @@ class Lightcurve:
         show : bool, optional
             Whether you want `plt.show()` to be ran. If not true, the figures will be returned
             as a dictionary, by default True
+        fix_flux : bool, optional
+            If provided, will apply the flux correction to the flux at the end of the plateau.
+            If not provided, will default to what user set in the constructor of the Lightcurve class.
         corner_kwargs : dict, optional
             Additional arguments to pass to :py:meth:`corner.corner`, by default {}
         chisq_kwargs : dict, optional
@@ -916,7 +919,7 @@ class Lightcurve:
             self.fix_flux = False
         return newF, newerrF
 
-    def print_fit(self, detailed=False):
+    def print_fit(self, detailed=False, fix_flux=None):
         """
             Print a fit report to `stdout`.
 
@@ -925,7 +928,9 @@ class Lightcurve:
         detailed : bool, optional
             Whether you'd like the full-on fit report, or a simplified version with
             the necessaries, by default False
-
+        fix_flux : bool, optional
+            If provided, will apply the flux correction to the flux at the end of the plateau.
+            If not provided, will default to what user set in the constructor of the Lightcurve class.
 
         Example:
 
@@ -944,9 +949,12 @@ class Lightcurve:
                 print("="*10 + f"detailed={detailed}" + "="*10)
                 lc.print_fit(detailed=detailed)
         """
+        if fix_flux is None:
+            fix_flux = self.fix_flux
+
         res = deepcopy(self.res)
         params = deepcopy(self.params)
-        if self.fix_flux:
+        if fix_flux:
             newF, newFerr = self.apply_flux_corr()
             res.params["F"].value = params["F"].value = newF
             res.params["F"].stderr = params["F"].stderr = newFerr
