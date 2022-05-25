@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import warnings
+from copy import deepcopy
 from functools import reduce
 from typing import Dict
 
@@ -18,6 +20,7 @@ from .model import Model
 
 class Lightcurve:
     _name_placeholder = "unknown grb"
+    _flux_fixed_inplace = False
 
     def __init__(
         self,
@@ -29,6 +32,7 @@ class Lightcurve:
         data_space: str = "log",
         name: str = None,
         model: Model = None,
+        fix_flux: bool = False,
         attrs: Dict[str, np.ndarray] = {},
     ):
         """The main module for fitting lightcurves.
@@ -60,6 +64,11 @@ class Lightcurve:
             provided.
         model : :py:class:`Model`, optional
             :py:class:`Model` to use in lightcurve fitting, by default None
+        fix_flux : bool, optional
+            In some fits, the actual flux at the end of the plateau is not the fitted value
+            F. This applies the necessary corrections to the fitted values to account for
+            this discrepancy. Note this only works for the :py:meth:`Model.W07` and
+            :py:meth:`Model.SMOOTH_BPL` models.
         attrs : dict, optional
             A :py:class:`dict` of array_like objects with length (n,) with
             any additional attributes (e.g., band) for each datapoint, by default {}.
@@ -96,12 +105,14 @@ class Lightcurve:
         if model is not None:
             self.set_model(model)
 
+        self.fix_flux = fix_flux
+
     def set_bounds(
         self, bounds=None, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
     ):
         """Sets the bounds on the xdata and ydata to (1) plot and (2) fit with. Either
             provide bounds or xmin, xmax, ymin, ymax. Assumes data is already in log
-            space. If :py:method:`Lightcurve.set_data` has been called, then the data
+            space. If :py:meth:`Lightcurve.set_data` has been called, then the data
             has already been converted to log space.
 
         Parameters
@@ -143,7 +154,7 @@ class Lightcurve:
             Data stored in :py:class:`Lightcurve` objects are always in logarithmic
             space; the parameter ``data_space`` is only used to convert data to log space
             if it is not already in such. If your data is in linear space [i.e., your
-            time data is sec, and not $log$(sec)], then you should set ``data_space``
+            time data is sec, and not log(sec)], then you should set ``data_space``
             to ``lin``.
 
         Parameters
@@ -206,6 +217,8 @@ class Lightcurve:
             self.name = model.name
 
         self.set_bounds(self.model.bounds)
+
+        self._flux_fixed_inplace = False
 
     def read_data(self, filename: str):
         """
@@ -298,7 +311,7 @@ class Lightcurve:
                 logF[~mask],
                 xerr=logTerr[~mask] if logTerr is not None else logTerr,
                 yerr=logFerr[~mask] if logFerr is not None else logFerr,
-                color="k",
+                color="grey",
                 fmt=".",
                 ms=10,
                 alpha=0.2,
@@ -311,12 +324,10 @@ class Lightcurve:
         ax.set_ylabel("log F (erg cm$^{-2}$ s$^{-1}$)")
         ax.set_title(self.name)
 
-        if save:
-            savefig_kwargs = dict(
-                fname = self.slug
-            )
-
-
+        # if save:
+        #     savefig_kwargs = dict(
+        #         fname = self.slug
+        #     )
 
         plt.show()
 
@@ -336,11 +347,13 @@ class Lightcurve:
         """
             Fits the lightcurve data to the model. There are two steps in this process:
 
-            1. Minimize the residuals using `Nelder-Mead` with
-               `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_
-            2. Probe the posterior distribution using `emcee <https://emcee.readthedocs.io/en/stable/>`_, a Markov-Chain Monte Carlo Python
-               package, using the best-fit parameters from step 1 as the starting point. This is optional (via the ``run_mcmc`` parameter),
-               but recommended, as it gives a better view of the errors on the best-fit parameters.
+                #. Minimize the residuals using `Nelder-Mead` with
+                    :scipydoc:`optimize.minimize`
+
+                #. Probe the posterior distribution using `emcee <https://emcee.readthedocs.io/en/stable/>`_, a
+                    Markov-Chain Monte Carlo Python package, using the best-fit parameters from step 1 as the starting
+                    point. This is optional (via the ``run_mcmc`` parameter), but recommended, as it gives a better view
+                    of the errors on the best-fit parameters.
 
         Parameters
         ----------
@@ -352,11 +365,11 @@ class Lightcurve:
             [description], by default False
         minimize_kwargs : dict, optional
             Keyword arguments to pass to
-            `scipy.minimize <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize>`_,
+            :scipydoc:`optimize.minimize`,
             by default {}
         emcee_kwargs : dict, optional
             Keyword arguments to pass to
-            `lmfit.Minimizer.emcee <https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.Minimizer.emcee>`_ by default {}
+            `lmfit.Minimizer.emcee <https://lmfit.github.io/lmfit-py/fitting.html#lmfit.minimizer.Minimizer.emcee>`_, by default {}
 
         Returns
         -------
@@ -381,8 +394,23 @@ class Lightcurve:
         assert len(p0) == len(
             self.model
         ), f"Initial guess not the same length as the number of arguments to {self.model.name}"
+        p0 = np.copy(p0)
+        for i, p in enumerate(self.model):
+            if not(p0[i] > self.model[p].min and p0[i] < self.model[p].max):
+                warnings.warn(f"Initial guess {p}={p0[i]} may not be on or outside the " \
+                              f"bounds ({self.model[p].min} < {p0[i]} ({p}) < {self.model[p].max}). Moving " \
+                              f"'{p}' slightly inwards by 1e-5.", UserWarning, stacklevel=2)
+                if np.isinf([self.model[p].min, self.model[p].max]).any():
+                    if np.isinf(self.model[p].min):
+                        p0[i] = self.model[p].max - 1e-5
+                    elif np.isinf(self.model[p].max):
+                        p0[i] = self.model[p].min + 1e-5
+                    elif abs(self.model[p].min - p0[i]) < abs(self.model[p].max - p0[i]):
+                        p0[i] = self.model[p].min + 1e-5
+                    else:
+                        p0[i] = self.model[p].max - 1e-5
+        self._flux_fixed_inplace = False
 
-        self.p0 = p0
         self.sigma = np.sqrt(
             np.sum(
                 [err ** 2 for err in [self.xerr, self.yerr] if err is not None],
@@ -466,6 +494,7 @@ class Lightcurve:
         show_chisq=False,
         save_plots=None,
         show=True,
+        fix_flux=None,
         corner_kwargs={},
         chisq_kwargs={},
         fig_kwargs={},
@@ -479,9 +508,13 @@ class Lightcurve:
             will call this function.
 
             This function can:
+
                 * Print the best-fit parameters and their errors. (`print_res`)
+
                 * Show the fit to the data. (`show_plot`)
+
                 * Show the corner plot of the posterior distribution of the parameters. (`show_corner`)
+
                 * Show the $\Delta\chi^2$ confidence intervals of the fit. (`show_chisq`)
 
         Parameters
@@ -546,6 +579,11 @@ class Lightcurve:
 
         """
         assert getattr(self, "res", None) is not None, "No fit results found to show."
+        if getattr(self, "_flux_fixed_inplace", False):
+            warnings.warn("Flux corrections have been applied inplace, meaning that "
+                          "these fit results will not be accurately displayed.")
+        if fix_flux is None:
+            fix_flux = self.fix_flux
 
         if show_plot or detailed:
             # create figure
@@ -570,17 +608,41 @@ class Lightcurve:
             else:
                 ax_fit.scatter(self.xdata, self.ydata, s=5, color="k", **fit_kwargs)
 
-
             x_vals = np.linspace(0.8 * self.xdata.min(), 1.1 * self.xdata.max(), 100)
             y_vals = self.model(x_vals, *self.params.valuesdict().values())
             ax_fit.plot(x_vals, y_vals, ls="-", color="r", label="fit")
 
+            # ! IMPORTANT! If using the willingale, the t factor
+            #              changes the true location of the end of the plateau
+            #              by subtracting 10^(t-T)/log(10) from F. This comes naturally
+            #              from f(t=T) = F - 10^(t-T)/log(10)
+            if self.model.slug == "w07":
+                T, F, a, t = self.params.values()
+                ax_fit.scatter(
+                    T,
+                    self.apply_flux_corr()[0] if fix_flux else F,
+                    c="red",
+                    zorder=-998,
+                    s=150,
+                    label="Fitted T, F",
+                )
 
-            if self.model.name in [
-                "Willingale 2007",
-                "simple broken power law",
-            ]:
+            # ! IMPORTANT! If using the smooth bpl, the smooth factor
+            #              changes the true location of the end of the plateau
+            #              by subtracting log10(2)/S from F. This comes naturally
+            #              from f(t=T) = F - log(2)/S
+            elif self.model.slug == "smooth_bpl":
+                T, F, a1, a2, S = self.params.values()
+                ax_fit.scatter(
+                    T,
+                    self.apply_flux_corr()[0] if fix_flux else F,
+                    c="red",
+                    zorder=-999,
+                    s=150,
+                    label="Fitted T, F",
+                )
 
+            else:
                 # plot fitted T and F
                 T, F, *__ = self.params.values()
                 ax_fit.scatter(
@@ -592,26 +654,8 @@ class Lightcurve:
                     label="Fitted T, F",
                 )
 
-
-
-            # ! IMPORTANT! If using the smooth bpl, the smooth factor
-            #              changes the true location of the end of the plateau
-            #              by subtracting log10(2)/S from F. This comes naturally
-            #              from f(t=T) = F - log(2)/S
-            if self.model.name == "smooth broken power law":
-                T, F, a1, a2, S = self.params.values()
-                ax_fit.scatter(
-                    T,
-                    F-np.log10(2)/10**S,
-                    c="red",
-                    zorder=-999,
-                    s=150,
-                    label="Fitted T, F",
-                )
-
             fit_xlim = ax_fit.get_xlim()
             fit_ylim = ax_fit.get_ylim()
-
 
             # plot fit (outside bounds)
             if sum(~self.mask) > 0:
@@ -621,7 +665,7 @@ class Lightcurve:
                         self.orig_ydata[~self.mask],
                         self.orig_yerr[~self.mask],
                         fmt="o",
-                        color="k",
+                        color="grey",
                         ms=5,
                         alpha=0.2,
                         **data_kwargs,
@@ -630,7 +674,7 @@ class Lightcurve:
                     ax_fit.scatter(
                         self.orig_xdata[~self.mask],
                         self.orig_ydata[~self.mask],
-                        color="k",
+                        color="grey",
                         s=5,
                         alpha=0.2,
                         **data_kwargs,
@@ -668,7 +712,7 @@ class Lightcurve:
                         full_residuals[~self.mask],
                         yerr=self.orig_yerr[~self.mask],
                         fmt="o",
-                        color="k",
+                        color="grey",
                         ms=5,
                         alpha=0.2,
                         **data_kwargs,
@@ -677,12 +721,11 @@ class Lightcurve:
                     ax_residual.scatter(
                         self.orig_xdata[~self.mask],
                         full_residuals[~self.mask],
-                        color="k",
+                        color="grey",
                         s=5,
                         alpha=0.2,
                         **data_kwargs,
                     )
-
 
                 # ax_residual.set_xlim(0.8 * self.xdata.min(), 1.1 * self.xdata.max())
                 # ax_residual.set_ylim(residual_ylim)
@@ -740,7 +783,7 @@ class Lightcurve:
 
             paramspace = np.array(
                 [p + m * perr for m in multiplier]
-            )  # shape is (len(multiplier), 4)
+            )  # shape is (len(multiplier), len(params))
 
             best_chisq = chisq(self.xdata, self.ydata, self.sigma, self.model, p)
 
@@ -794,7 +837,7 @@ class Lightcurve:
                 plt.show()
 
         if print_res or detailed:
-            print(lf.fit_report(self.res, show_correl=False))
+            self.print_fit(detailed)
 
         if bool(save_plots):
             savekwargs = dict(
@@ -828,6 +871,51 @@ class Lightcurve:
 
         return func(*args, **kwargs)
 
+    def apply_flux_corr(self, inplace=False):
+        '''
+        Applies a correction to the best-fit flux at the end of
+        the plateau.
+
+        Parameters
+        ----------
+        res
+            the result of the fit
+        inplace, optional
+            If True, the correction will be update the flux and flux error _inside_ the Lightcurve object.
+            Note that this may make Lightcurve.show_fit() give incorrect results.
+        '''
+        assert getattr(self, "res", None) is not None, "No fit has been done"
+
+        if self.model.slug not in ["w07", "smooth_bpl"]:
+            warnings.warn(f"Lightcurve.fix_flux is set to true, but model '{self.model.slug}' is not 'W07' or 'smooth_bpl.'" \
+                           "Skipping...", UserWarning, stacklevel=2)
+            return self.res.params["F"].value, self.res.params["F"].stderr
+
+        errF = self.res.params["F"].stderr
+        F = self.res.params["F"].value
+        if self.model.slug == "smooth_bpl":
+            errS = 10**self.res.params["S"].stderr * np.log(10)
+            S = 10**self.res.params["S"].value
+            newF = F - np.log(2)/S
+            newerrF = np.sqrt(errF*errF + errS*errS*np.log(2)/S/S)
+        elif self.model.slug == "w07":
+            t = self.res.params["t"].value
+            T = self.res.params["T"].value
+            errT = self.res.params["T"].stderr
+            errt = self.res.params["t"].stderr
+            newerrF = np.sqrt(errF*errF + (errT*errT + errt*errt)*10**(2*(t-T))/np.log(10)**2)
+            newF = F - 10**(t-T)/np.log(10)
+
+        if inplace:
+            assert getattr(self, "_flux_fixed", False), "Flux already fixed in place."
+            self.res.params["F"].value = newF
+            self.res.params["F"].stderr = newerrF
+            newF = self.res.params["F"].value
+            newerrF = self.res.params["F"].stderr
+            self._flux_fixed_inplace = True
+            self.fix_flux = False
+        return newF, newerrF
+
     def print_fit(self, detailed=False):
         """
             Print a fit report to `stdout`.
@@ -856,8 +944,12 @@ class Lightcurve:
                 print("="*10 + f"detailed={detailed}" + "="*10)
                 lc.print_fit(detailed=detailed)
         """
-
-        assert getattr(self, "res", None) is not None, "No fit results found."
+        res = deepcopy(self.res)
+        params = deepcopy(self.params)
+        if self.fix_flux:
+            newF, newFerr = self.apply_flux_corr()
+            res.params["F"].value = params["F"].value = newF
+            res.params["F"].stderr = params["F"].stderr = newFerr
 
         if detailed:
             print(lf.fit_report(self.res, show_correl=False))
@@ -897,7 +989,7 @@ class Lightcurve:
         savefig_kwargs = dict(
             fname=filename,
             dpi=plt.rcParams["savefig.dpi"],
-            metadata={f"Creator": f"grbLC v{__version__}"},
+            metadata={"Creator": f"grbLC v{__version__}"},
         )
         if bool(kwargs):
             savefig_kwargs.update(kwargs)
@@ -943,11 +1035,15 @@ class Lightcurve:
             (`lin`) space.
 
             Each dictionary contains the following keys:
+
                 #. `time_sec` : The time of the datapoint in seconds (xdata)
+
                 #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
+
                 #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$
                 (yerr)
-                #. **attrs : Any additional attributes of the datapoint as given in the
+
+                #. `**attrs` : Any additional attributes of the datapoint as given in the
                 instantiation of the :py:class:`Lightcurve` object.
 
         Parameters
@@ -1009,6 +1105,7 @@ class Lightcurve:
             linear (`lin`) space.
 
             Each DataFrame contains the following columns:
+
                 #. `time_sec` : The time of the datapoint in seconds (xdata)
                 #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
                 #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$ (yerr)
