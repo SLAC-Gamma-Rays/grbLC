@@ -483,6 +483,7 @@ class Lightcurve:
         if show:
             self.show_fit()
 
+
         return self.res
 
     def show_fit(
@@ -840,7 +841,7 @@ class Lightcurve:
                 plt.show()
 
         if print_res or detailed:
-            self.print_fit(detailed)
+            self.print_fit(detailed, fix_flux)
 
         if bool(save_plots):
             savekwargs = dict(
