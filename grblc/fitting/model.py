@@ -1,10 +1,11 @@
 import inspect
+from copy import deepcopy
+from functools import reduce
 from typing import Callable
 from typing import Dict
 from typing import List
 
 import numpy as np
-
 
 def chisq(x, y, sigma, model, p, return_reduced=False):
     r"""A function to calculate the chi-squared value of a given proposed solution:
@@ -52,13 +53,14 @@ def chisq(x, y, sigma, model, p, return_reduced=False):
 def _w07(x, T, F, alpha, t):
 
     before = lambda x: (
-        -t * 10 ** (-x) + alpha - alpha * 10 ** (x - T) + F * np.log(10)
+        -10 ** (t-x) + alpha - alpha * 10 ** (x - T) + F * np.log(10)
     ) / np.log(10)
 
-    after = lambda x: F + T * alpha - x * alpha - t * 10 ** (-x) / np.log(10)
+    after = lambda x: F + T * alpha - x * alpha - 10 ** (t-x) / np.log(10)
 
     vals = np.piecewise(x, [x < T, x >= T], [before, after])
     return vals
+
 
 # modified and simplified so T and F are logarithmic inputs
 # to avoid numerical overflow issues.
@@ -70,6 +72,7 @@ def _simple_bpl(x, T, F, alpha1, alpha2):
     vals = np.piecewise(x, [x < T, x >= T], [before, after])
 
     return vals
+
 
 # modified and simplified so T and F are logarithmic inputs
 # to avoid numerical overflow issues.
@@ -87,7 +90,8 @@ class Parameter:
         vary: bool = True,
         plot_fmt: str = None,
     ):
-        """Parameter class for use with the :class:`Model` class.
+        """
+        Parameter class for use with the :class:`Model` class.
                 This class is used to store the information about a parameter in a model.
                 Information includes the name, description, parameter priors, and whether
                 the parameter is to be varied in fitting.
@@ -119,7 +123,7 @@ class Parameter:
         self.vary = vary
 
     def __repr__(self):
-        return f"<grblc Parameter> {self.name}: {self.description}. min={self.min}, max={self.max}, vary={self.vary}"
+        return f"<grblc Parameter> {self.name}=[{self.min}, {self.max}], vary={self.vary}"
 
 
 class Model:
@@ -142,7 +146,7 @@ class Model:
             Name to the function, by default the variable name of `func`
         slug : str, optional
             The shortened and simplified name of the function, by default `name`
-        func_args : Dict[str, Parameter], optional
+        func_args : List[Parameter], optional
             Function arguments in the form of a list of :class:`Parameter`, by default None
         bounds : list, optional
             Bounds by which `x` may be varied in fitting, by default ``[-np.inf, np.inf, -np.inf, np.inf]``
@@ -163,7 +167,7 @@ class Model:
             for p in func_args:
                 if p.name not in func_argspec:
                     raise ValueError(
-                        f"{p.name} is not a valid argument for the {self.name} model. Expected one of {func_argspec}."
+                        f"'{p.name}' is not a valid argument for the {self.name} model. Expected one of {func_argspec}."
                     )
 
             self.__func_args = {p.name: p for p in func_args}
@@ -204,21 +208,6 @@ class Model:
     def func_args(self) -> Dict[str, Parameter]:
         return self.__func_args
 
-    def __call__(self, x: np.ndarray, *p, **kwargs):
-        return self.func(x, *p[: len(self)], **kwargs)
-
-    def __getitem__(self, key):
-        return self.func_args[key]
-
-    def __iter__(self):
-        return iter(self.func_args)
-
-    def __len__(self):
-        return len(self.func_args)
-
-    def __repr__(self) -> str:
-        return f"<grbLC> Model({self.name})"
-
     @classmethod
     def W07(cls, vary_t=True):
         r"""Willingale et al. (2007) model
@@ -227,7 +216,10 @@ class Model:
 
             Taken from his paper, it is as follows:
 
-            $$f(t) = \left \{ \begin{array}{ll}\displaystyle{F_i \exp{\left ( \alpha_i \left( 1 - \frac{t}{T_i} \right) \right )} \exp{\left (- \frac{t_i}{t} \right )}} & {\rm for} \ \ t < T_i \\ ~ & ~ \\ \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_i} \exp{\left ( - \frac{t_i}{t} \right )}} & {\rm for} \ \ t \ge T_i, \\\end{array} \right .$$
+            $$f(t) = \left \{ \begin{array}{ll}\displaystyle{F_i \exp{\left ( \alpha_i \left( 1 - \frac{t}{T_i} \right)
+            \right )} \exp{\left (- \frac{t_i}{t} \right )}} & {\rm for} \ \ t < T_i \\ ~ & ~ \\
+            \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_i} \exp{\left ( - \frac{t_i}{t} \right )}} &
+            {\rm for} \ \ t \ge T_i, \\\end{array} \right .$$
 
             where the transition from the exponential to the power law occurs at the
             point ($T_i$, $F_i$), $\alpha$ determines the temporal decay index of the
@@ -336,7 +328,7 @@ class Model:
                 * $F_i$ : Uniform(-20, 2)
                 * $\alpha_1$ : Uniform(-5, 5)
                 * $\alpha_2$ : Uniform(-5, 5)
-                * $S$ : Uniform(-inf, inf)
+                * $S$ : Uniform(-10, 2)
 
         Returns
         -------
@@ -392,13 +384,13 @@ class Model:
                 Parameter(
                     "alpha2",
                     "temporal decay index of end power law",
-                    min=0,
+                    min=-20,
                     max=20,
                     plot_fmt=r"$\alpha_2$",
                 ),
                 Parameter(
                     "S",
-                    "smoothing factor",
+                    "smoothing factor in log scale",
                     min=-10,
                     max=2,
                 ),
@@ -488,3 +480,72 @@ class Model:
                 ),
             ],
         )
+
+class Models:
+    r"""Collection of models to fit together."""
+
+    def __init__(self, models:List[Model]):
+        assert len(models) > 0, "Must have at least one model."
+        assert all(isinstance(m, Model) for m in models), "All elements must be models."
+
+        self.models = [deepcopy(m) for m in models]
+
+        arg_names, model_idx = np.concatenate([[list(model.func_args.keys()), [idx]*len(model)] for idx,model in enumerate(self.models)], axis=1)
+        arg_names = list(arg_names)
+        model_idx = list(map(int, model_idx))
+        # make sure no collisions in model parameters
+        if len(set(arg_names)) != len(arg_names):
+            for idx, (name, model_id) in enumerate(zip(arg_names, model_idx)):
+                if arg_names.count(name) > 1:
+                    # warnings.warn(f"{name} is used in multiple models. Renaming parameters in ascending order.")
+                    new_name = name + str(arg_names[:idx].count(name) + 1)
+
+                    self.models[model_id].func_args[new_name] = self.models[model_id].func_args.pop(name)
+                    self.models[model_id].func_args[new_name].name = new_name
+
+        merge_dict = lambda d1, d2: {**d1, **d2}
+        self.__func_args = reduce(merge_dict, [m.func_args for m in self.models])
+        xmin, ymin = [min([models[i].bounds[j] for i in range(len(models))]) for j in [0, 2]]
+        xmax, ymax = [max([models[i].bounds[j] for i in range(len(models))]) for j in [1, 3]]
+        self.bounds = [xmin, xmax, ymin, ymax]
+
+        self.name = " + ".join(model.name for model in self.models)
+        self.slug = "+".join([model.slug for model in self.models])
+
+
+    def __call__(self, x: np.ndarray, *p, **kwargs):
+        targs = 0
+        ans = np.zeros_like(x, dtype=float)
+        p = np.ravel(p)
+        for model in self.models:
+            nargs = len(model)
+            ans += model(x, *p[targs:targs+nargs], **kwargs)
+            targs += nargs
+
+        return ans
+
+    __func = __call__
+
+    @property
+    def func_args(self) -> Dict[str, Parameter]:
+        return self.__func_args
+
+    def __getitem__(self, key):
+        return self.func_args[key]
+
+    def __iter__(self):
+        return iter(self.func_args)
+
+    def __len__(self):
+        return len(self.func_args)
+
+    def __repr__(self) -> str:
+        return f"<grbLC> Models({self.name})"
+
+    @property
+    def func(self) -> Callable:
+        return self.__func
+
+    @property
+    def func_args(self) -> Dict[str, Parameter]:
+        return self.__func_args
