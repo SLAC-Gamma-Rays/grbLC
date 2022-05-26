@@ -1,19 +1,20 @@
-import re
-import os
 import json
-import glob2
+import os
+import re
 import shutil
 import tarfile
+
+import glob2
 import requests
-from .parser import (
-    check_table,
-    check_sentence,
-    get_final_tables_txt,
-    get_final_sentences_txt,
-    get_final_txt,
-    final_tables_to_csv,
-    final_sentences_to_csv,
-)
+
+from .parser import check_sentence
+from .parser import check_table
+from .parser import final_sentences_to_csv
+from .parser import final_tables_to_csv
+from .parser import get_final_sentences_txt
+from .parser import get_final_tables_txt
+from .parser import get_final_txt
+
 
 class Scraper:
 
@@ -230,7 +231,7 @@ class Scraper:
 
         # Get the *_final.txt
         get_final_txt(grb, allData_tables, allData_sentences, self.__output_path__)
-        return 
+        return
 
     # We will move these functions back to grb_lookup after they are finished.
     def final_tables_to_csv(self, grb):

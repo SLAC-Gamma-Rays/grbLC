@@ -1,7 +1,9 @@
-from functools import reduce
-import glob2
-import re
 import os
+import re
+from functools import reduce
+
+import glob2
+
 from .convert import get_dir
 
 

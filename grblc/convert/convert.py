@@ -62,6 +62,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     """
 
     from astropy.coordinates import SkyCoord
+
     from .sfd.sfd import SFDQuery
 
     sfd = SFDQuery()

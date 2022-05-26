@@ -1,8 +1,14 @@
-import requests, re, os, sys
+import concurrent.futures
+import os
+import re
+import sys
+import warnings
+
+import requests
+from ads import SearchQuery
+
 from .config import read_apikey
 from .ECHO import SynchronizedEcho
-import concurrent.futures, warnings
-from ads import SearchQuery
 
 
 def getArticles(finds, threading=True, debug=False):

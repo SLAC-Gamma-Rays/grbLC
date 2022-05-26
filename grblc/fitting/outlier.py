@@ -1,5 +1,4 @@
 import os
-import re
 
 import numpy as np
 import pandas as pd
@@ -27,9 +26,8 @@ class OutlierPlot:
         hover_labels: list = None,
         legend_label: str = None,
     ):
-        assert isinstance(filename, str) ^ isinstance(
-            data, (dict, pd.DataFrame)
-        ), "Must provide either a filename or data"
+        assert isinstance(filename, str) ^ isinstance( data, (dict, pd.DataFrame) ), \
+                                                "Must provide either a filename or data"
         if isinstance(data, dict):
             data = pd.DataFrame(data)
 
@@ -74,17 +72,15 @@ class OutlierPlot:
         if hover is None:
             kwargs = dict(hover_data=list(map(str, self.df.columns[3:])))
         else:
-            assert all(
-                h in self.df.columns for h in hover
-            ), "Hover data supplied not in attributes"
+            assert all( h in self.df.columns for h in hover ), \
+                            "Hover data supplied not in attributes"
 
             kwargs = dict(hover_data=hover)
 
         # color will default to the band column in the dataframe
         if legend_label is not None:
-            assert (
-                legend_label in self.df.columns
-            ), f"Legend label {legend_label} not an attribute."
+            assert ( legend_label in self.df.columns ), \
+                    f"Legend label {legend_label} not an attribute."
             color = legend_label
         elif "band" in self.df.columns:
             color = "band"
