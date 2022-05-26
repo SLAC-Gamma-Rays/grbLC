@@ -483,8 +483,13 @@ class Lightcurve:
         if show:
             self.show_fit()
 
+        res = deepcopy(self.res)
+        if self.fix_flux:
+            newF, newFerr = self.apply_flux_corr()
+            res.params["F"].value = newF
+            res.params["F"].stderr = newFerr
 
-        return self.res
+        return res
 
     def show_fit(
         self,

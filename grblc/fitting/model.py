@@ -298,8 +298,8 @@ class Model:
                 Parameter(
                     "t",
                     "log time at peak (log sec)",
-                    min=0,
-                    max=np.inf,
+                    min=-5,
+                    max=10,
                     vary=vary_t,
                 ),
             ],
