@@ -146,7 +146,7 @@ class SFDWebQuery(WebDustMap):
 def fetch():
     """
     Downloads the Schlegel, Finkbeiner & Davis (1998) dust map, placing it in
-    the data directory for `dustmap`.
+    the data directory for `sfd`.
     """
     doi = '10.7910/DVN/EWCNL5'
 
