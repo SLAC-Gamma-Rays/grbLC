@@ -108,3 +108,4 @@ ENV/
 # grblc settings
 grblc/convert/extinction_maps
 *.code-workspace
+*.ipynb
