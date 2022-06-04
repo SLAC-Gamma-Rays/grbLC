@@ -15,7 +15,7 @@ photometry = {
     "K": [21900, 0.64e-20, "UKIRT K"],
     # SDSS filters on the AB system
     # from Fukugita et al. (1996) // http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
-    # * in angstrom (Å) | erg- cm-2 s-1 Hz-1
+    # * in angstrom (Å) | erg- cm-2 s-1 Hz-1 | host extinction band
     "u": [3560, 3631e-23, "SDSS u"],
     "g": [4830, 3631e-23, "SDSS g"],
     "r": [6260, 3631e-23, "SDSS r"],
@@ -23,16 +23,16 @@ photometry = {
     "z": [9100, 3631e-23, "SDSS z"],
     # Swift UVOT filters
     # from Poole et al. (2008) // https://academic.oup.com/mnras/article/383/2/627/993537
-    # * in angstrom | erg cm-2 s-1 Å-1
+    # * in angstrom (Å) | erg cm-2 s-1 Å-1 | host extinction band
     "u_swift": [3465, 1.5e-16, "Swift u"],
     "b_swift": [4392, 1.32e-16, "Swift b"],
     "v_swift": [5468, 2.61e-16, "Swift v"],
-    "uvw1_swift": [2600, None, "Swift uvw1"],
-    "uvw2_swift": [1928, None, "Swift uvw2"],
-    "uvm2_swift": [2246, None, "Swift uvm2"],
+    "uvw1_swift": [2600, 4.3e-16, "Swift uvw1"],
+    "uvw2_swift": [1928, 6.0e-16, "Swift uvw2"],
+    "uvm2_swift": [2246, 7.5e-16, "Swift uvm2"],
     # Additional various bands
     # from https://coolwiki.ipac.caltech.edu/index.php/Central_wavelengths_and_zero_points
-    # * in angstrom (Å) | erg cm-2 s-1 Hz-1
+    # * in angstrom (Å) | erg cm-2 s-1 Hz-1 | host extinction band
     "Rc": [6550, 3080e-23, "CTIO R"],  # Cousins R, not Johnson R!
     "Ic": [7996, 2432.84e-23, "CTIO I"],  # Cousins R, not Johnson R!
     "Ks": [16620, 666.7e-23, "UKIRT K"],  # K sharp, not Johnson K!
@@ -44,3 +44,5 @@ table_path = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt"
 )
 ebv2A_b_df = pd.read_table(table_path, comment="#", index_col=0)
+
+__all__ = ["photometry", "ebv2A_b_df"]
