@@ -39,7 +39,8 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx_math_dollar",
     "jupyter_sphinx",
-    "sphinx_rtd_theme"
+    # "sphinx_rtd_theme"
+    # "sphinx_press_theme",
     # "myst_parser",
 ]
 
@@ -122,7 +123,7 @@ os.environ["PYTHONPATH"] = ":".join((package_path, os.environ.get("PYTHONPATH", 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "press"
 
 # html_sidebars = {
 #     "**": [

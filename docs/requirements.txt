@@ -19,3 +19,4 @@ numdifftools
 emcee
 corner
 progressbar2
+sphinx_press_theme
