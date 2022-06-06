@@ -27,9 +27,9 @@ photometry = {
     "u_swift": [3465, 1.5e-16, "Swift u"],
     "b_swift": [4392, 1.32e-16, "Swift b"],
     "v_swift": [5468, 2.61e-16, "Swift v"],
-    "uvw1_swift": [2600, 4.3e-16, "Swift uvw1"],
-    "uvw2_swift": [1928, 6.0e-16, "Swift uvw2"],
-    "uvm2_swift": [2246, 7.5e-16, "Swift uvm2"],
+    "uvw1_swift": [2684, 981e-23, "Swift uvw1"],
+    "uvw2_swift": [2086, 760e-23, "Swift uvw2"],
+    "uvm2_swift": [2246, 770e-23, "Swift uvm2"],
     # Additional various bands
     # from https://coolwiki.ipac.caltech.edu/index.php/Central_wavelengths_and_zero_points
     # * in angstrom (Å) | erg cm-2 s-1 Hz-1 | host extinction band
