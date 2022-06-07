@@ -234,7 +234,7 @@ def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
             for record in records:
                 linktype = record["link_type"]
                 link = record["url"]
-                if "PDF" in linktype and not "doi.org" in link and not "$" in link:
+                if "PDF" in linktype and "doi.org" not in link and "$" not in link:
                     # switch any arxiv url to export.arxiv.org so we don't get locked out
                     url = link.replace("arxiv.org", "export.arxiv.org")
                     q = requests.get(url, stream=True, headers=pdf_header)
@@ -245,7 +245,7 @@ def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
                     return
         except:
             linktype = deserialized["link_type"]
-            if "PDF" in linktype and not "doi.org" in link and not "$" in link:
+            if "PDF" in linktype and "doi.org" not in link and "$" not in link:
                 # switch any arxiv url to export.arxiv.org so we don't get locked out
                 url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
                 q = requests.get(url, stream=True, headers=pdf_header)

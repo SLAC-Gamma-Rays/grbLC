@@ -5,7 +5,6 @@ from functools import reduce
 import glob2
 import numpy as np
 import pandas as pd
-from astropy import constants as const
 from astropy import units as u
 from astropy.time import Time
 
