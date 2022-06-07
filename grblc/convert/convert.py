@@ -12,23 +12,6 @@ from astropy.time import Time
 from .constants import ebv2A_b_df
 from .constants import photometry
 
-
-def _angstromToHz(ang: float):
-    '''Converts a wavelength in angstroms to a frequency in Hz
-
-    Parameters
-    ----------
-    ang : float
-        the wavelength in angstroms
-
-    Returns
-    -------
-        the frequency in Hz of a given wavelength in angstroms.
-
-    '''
-    return (const.c / (ang * u.angstrom).to(u.m)).to(u.Hz).value
-
-
 def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     r"""A function that returns the galactic extinction correction
        at a given position for a given band.
@@ -63,7 +46,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
 
     from astropy.coordinates import SkyCoord
 
-    from .sfd.sfd import SFDQuery
+    from .sfd import SFDQuery
 
     sfd = SFDQuery()
 
@@ -90,9 +73,9 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     # this factor is A_b / E(B-V)
     factor = ebv2A_b_df["3.1"][bandpass]
 
-    A_b = ebv * factor
+    a_b = ebv * factor
 
-    return A_b  # [mag]
+    return a_b  # [mag]
 
 
 def toFlux(
@@ -174,11 +157,11 @@ def toFlux(
     KeyError
         If a bandpass is not found in :py:data:`grblc.constants.photometry`.
     """
-    assert bool(A_b != 0) ^ bool(grb) ^ bool(ra and dec), "Must provide either A_b or grb or ra, dec"
+    # assert bool(A_b != 0) ^ bool(grb) ^ bool(ra and dec), "Must provide either A_b or grb or ra, dec"
     _check_dust_maps()
 
     band = re.sub(r"(\'|_|\\|\(.+\))", "", band)
-    band = re.sub(r"(?<![A-Za-z])([mw]\d{1})", r"uv\1", band)
+    band = re.sub(r"(?<![A-Za-z])([mw]\d)", r"uv\1", band)
     if source == "uvot":
         band += "_swift"
     band = band if band != "v" else "V"
@@ -198,27 +181,21 @@ def toFlux(
 
     # convert from flux density in another band to R!
     f_R = f_x * (lambda_x / lambda_R) ** (-beta)
-    f_lam_or_nu = f_R
+    f_nu = f_R * (u.erg / u.cm ** 2 / u.s / u.Hz)
 
-    if "swift" in band.lower():
-        # If flux density is given as f_lambda (erg / cm2 / s / Å)
-        lam_or_nu = lambda_R * (u.angstrom)
-        f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.angstrom)
-    else:
-        # If flux density is given as f_nu (erg / cm2 / s / Hz)
-        lam_or_nu = _angstromToHz(lambda_R) * (u.Hz)
-        f_lam_or_nu = f_lam_or_nu * (u.erg / u.cm ** 2 / u.s / u.Hz)
+    # If flux density is given as f_nu (erg / cm2 / s / Hz)
+    nu = (lambda_R * u.AA).to(u.Hz, equivalencies=u.spectral())
 
-    flux = (lam_or_nu * f_lam_or_nu * 10 ** (-(mag + A_b) / 2.5)).value
+    flux = (nu * f_nu * 10 ** (-(mag + A_b) / 2.5)).value
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
     fluxerr = abs(flux) * np.sqrt(
-        (magerr * np.log(10 ** (0.4))) ** 2
-        + (photon_index_err * np.log(lambda_x / lambda_R)) ** 2
+        (magerr * np.log(10 ** (0.4))) ** 2 +
+        (photon_index_err * np.log(lambda_x / lambda_R)) ** 2
     )
 
-    assert flux >= 0, "Error computing flux."
-    assert fluxerr >= 0, "Error computing flux error."
+    assert np.all(flux >= 0), "Error computing flux."
+    assert np.all(fluxerr >= 0), "Error computing flux error."
     return flux, fluxerr
 
 
@@ -304,8 +281,8 @@ def convertGRB(
 
         except KeyError:
             raise ImportError(
-                f"{GRB} isn't currently supported and it's trigger time, photon index,"
-                + "and position must be manually provided."
+                f"{GRB} isn't currently supported and it's trigger time," \
+                 " photon index, and position must be manually provided."
             )
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
@@ -332,13 +309,13 @@ def convertGRB(
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
             flux, flux_err = toFlux(
-                magnitude,
                 band,
-                ra,
-                dec,
+                magnitude,
                 mag_err,
-                photon_index=photon_index,
-                photon_index_err=photon_index_err,
+                photon_index,
+                photon_index_err,
+                ra=ra,
+                dec=dec,
             )
         except KeyError as error:
             print(error)
