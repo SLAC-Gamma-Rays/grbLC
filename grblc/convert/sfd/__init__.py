@@ -22,5 +22,6 @@
 # This file has been modified by S. Young to change naming
 # to `sfd` instead of `dustmaps`
 #
+from sfd import *
+
 from . import config
-from . import sfd
