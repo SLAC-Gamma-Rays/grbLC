@@ -2,11 +2,12 @@ import os.path
 import re
 from functools import reduce
 
+import astropy.units as u
 import glob2
 import numpy as np
-import pandas as pd
-from astropy import units as u
 from astropy.time import Time
+from pandas import DataFrame
+from pandas import read_csv
 
 from .constants import ebv2A_b_df
 from .constants import photometry
@@ -76,7 +77,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
 
     return a_b  # [mag]
 
-
+@np.vectorize
 def toFlux(
     band: str,
     mag: float,
@@ -166,6 +167,7 @@ def toFlux(
     band = band if band != "v" else "V"
 
     # determine index type for conversion of f_nu to R band
+    # $\beta = \Gamma - 1$
     beta = photon_index - 1
 
     try:
@@ -176,7 +178,7 @@ def toFlux(
 
     # get correction for galactic extinction to be added to magnitude if not already supplied
     if A_b == 0:
-        A_b = ebv2A_b(grb, bandpass_for_ebv, ra=ra, dec=dec)
+        A_b = ebv2A_b(grb, bandpass_for_ebv, ra, dec)
 
     # convert from flux density in another band to R!
     f_R = f_x * (lambda_x / lambda_R) ** (-beta)
@@ -203,7 +205,7 @@ def convertGRB(
     GRB: str,
     battime: str = "",
     index: float = 0,
-    index_type: str = "",
+    index_err: float = 0,
     use_nick: bool = False,
     debug: bool = False,
 ):
@@ -237,7 +239,7 @@ def convertGRB(
         global directory
         glob_path = reduce(os.path.join, (directory, "**", f"{GRB}_magnitude.txt"))
         filename, *__ = glob2.glob(glob_path)
-        mag_table = pd.read_csv(
+        mag_table = read_csv(
             filename,
             delimiter=r"\t+|\s+",
             names=names,
@@ -251,13 +253,16 @@ def convertGRB(
     except IndexError:
         raise ImportError(message=f"Couldn't find GRB table at {filename}.")
 
-    # grab photon index, trigger time, and position in sky of GRB
+    # grab photon index and trigger time
     if battime and index:
         starttime = Time(battime)
+        photon_index = index
+        photon_index_err = index_err
+        ra, dec = "", ""
     else:
         try:
-            bat_spec_df = pd.read_csv(
-                os.path.join(__file__, "grb_attrs.txt"),
+            bat_spec_df = read_csv(
+                os.path.join(os.path.dirname(__file__), "grb_attrs.txt"),
                 delimiter="\t+|\\s+",
                 index_col=0,
                 header=0,
@@ -280,8 +285,8 @@ def convertGRB(
 
         except KeyError:
             raise ImportError(
-                f"{GRB} isn't currently supported and it's trigger time," \
-                 " photon index, and position must be manually provided."
+                f"{GRB} isn't in our database and it's trigger time" \
+                 " and photon index must be manually provided."
             )
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band")}
@@ -313,6 +318,7 @@ def convertGRB(
                 mag_err,
                 photon_index,
                 photon_index_err,
+                grb=GRB,
                 ra=ra,
                 dec=dec,
             )
@@ -349,12 +355,12 @@ def convertGRB(
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
         save_path = os.path.join(os.path.dirname(filename), f"{GRB}_converted_flux.txt")
-        pd.DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
+        DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
     else:
         save_path = os.path.join(
             os.path.dirname(filename), f"{GRB}_converted_flux_DEBUG.txt"
         )
-        pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
+        DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
 
 
 # small setter to set the main conversion directory
