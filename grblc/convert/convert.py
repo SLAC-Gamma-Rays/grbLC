@@ -84,7 +84,7 @@ def toFlux(
     magerr: float = 0,
     photon_index: float = 1,
     photon_index_err: float = 0,
-    A_b: float = 0,
+    A_b: float = None,
     grb: str = None,
     ra: str = None,
     dec: str = None,
@@ -177,7 +177,7 @@ def toFlux(
         raise KeyError(f"Band '{band}' is not currently supported.")
 
     # get correction for galactic extinction to be added to magnitude if not already supplied
-    if A_b == 0:
+    if A_b == None:
         A_b = ebv2A_b(grb, bandpass_for_ebv, ra, dec)
 
     # convert from flux density in another band to R!
@@ -207,6 +207,7 @@ def convertGRB(
     index: float = 0,
     index_err: float = 0,
     use_nick: bool = False,
+    ftol=None,
     debug: bool = False,
 ):
     # make sure we have dust maps downloaded for calculating galactic extinction
@@ -324,6 +325,9 @@ def convertGRB(
             )
         except KeyError as error:
             print(error)
+            continue
+
+        if ftol is not None and flux_err/flux > ftol:
             continue
 
         # convert UT to a time delta since trigger time
