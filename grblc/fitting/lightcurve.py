@@ -220,6 +220,36 @@ class Lightcurve:
 
         self._flux_fixed_inplace = False
 
+    def exclude_range(self, xs=(), ys=(), data_space="log"):
+        """
+        `exclude_range` takes a range of x and y values and excludes them from the data
+        of the current lightcurve.
+
+        Parameters
+        ----------
+        xs : tuple of form (xmin, xmax), optional
+            Range along the x-axis to exclude.
+        ys : tuple of form (ymin, ymax), optional
+            Range along the y-axis to exclude.
+        data_space : str, {log, lin}, optional
+            Whether you'd like to exclude in logarithmic or linear space, by default 'log'.
+        """
+        if xs == [] and ys == []:
+            return
+        if xs == ():
+            xs = (-np.inf, np.inf)
+        if ys == ():
+            ys = (-np.inf, np.inf)
+        assert len(xs) == 2 and len(ys) == 2, "xs and ys must be tuples of length 2"
+
+        xmin, xmax = xs
+        ymin, ymax = ys
+        xmask = (xmin <= self.orig_xdata) & (self.orig_xdata <= xmax)
+        self.mask &= ~xmask
+        ymask = (ymin <= self.orig_ydata) & (self.orig_ydata <= ymax)
+        self.mask &= ~ymask
+        self.set_data(self.xdata, self.ydata, self.xerr, self.yerr, data_space=data_space)
+
     def read_data(self, filename: str):
         """
             Reads in data from a file. The data must be in the correct format.
