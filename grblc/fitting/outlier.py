@@ -8,11 +8,12 @@ from IPython.display import clear_output
 from IPython.display import display
 from plotly.graph_objects import FigureWidget
 
-from ..convert import get_dir
+from ..util import get_dir
 from .constants import grb_regex
 from .io import check_header
 from .lightcurve import Lightcurve
 
+__all__ = ["OutlierPlot"]
 
 class OutlierPlot:
     _name_placeholder = "unknown grb"

@@ -7,6 +7,8 @@ from typing import List
 
 import numpy as np
 
+__all__ = ["chisq", "Model", "Models"]
+
 def chisq(x, y, sigma, model, p, return_reduced=False):
     r"""A function to calculate the chi-squared value of a given proposed solution:
 
@@ -32,7 +34,7 @@ def chisq(x, y, sigma, model, p, return_reduced=False):
     Returns
     -------
     numpy.ndarray
-        :math:`\chi^2` for each point in the dataset, along with the reduced $\chi^2$ value (if return_reduced=True)
+        :math:`\chi^2` for each point in the dataset, along with the reduced \(\chi^2\) value (if return_reduced=True)
     """
 
     x = np.asarray(x)
@@ -216,24 +218,24 @@ class Model:
 
             Taken from his paper, it is as follows:
 
-            $$f(t) = \left \{ \begin{array}{ll}\displaystyle{F_i \exp{\left ( \alpha_i \left( 1 - \frac{t}{T_i} \right)
+            \[f(t) = \left \{ \begin{array}{ll}\displaystyle{F_i \exp{\left ( \alpha_i \left( 1 - \frac{t}{T_i} \right)
             \right )} \exp{\left (- \frac{t_i}{t} \right )}} & {\rm for} \ \ t < T_i \\ ~ & ~ \\
             \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_i} \exp{\left ( - \frac{t_i}{t} \right )}} &
-            {\rm for} \ \ t \ge T_i, \\\end{array} \right .$$
+            {\rm for} \ \ t \ge T_i, \\\end{array} \right .\]
 
             where the transition from the exponential to the power law occurs at the
-            point ($T_i$, $F_i$), $\alpha$ determines the temporal decay index of the
-            power law, and $t_i$ is the time of the initial rise of the lightcurve.
+            point (\(T_i\), \(F_i\)), \(\alpha\) determines the temporal decay index of the
+            power law, and \(t_i\) is the time of the initial rise of the lightcurve.
 
             As implemented, log space is used for the time (sec) and flux
-            (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
-            afterglow plateau phase ends at 10,000 seconds corresponds to a $T_i$ of 5.
+            (erg cm\(^{-2}\) s\(^{-1}\)). This means that for a light curve in which the
+            afterglow plateau phase ends at 10,000 seconds corresponds to a \(T_i\) of 5.
 
             Pre-defined priors on these parameters are:
-                * $T_i$ : Uniform(1e-10, 10)
-                * $F_i$ : Uniform(-20, 2)
-                * $\alpha$ : Uniform(0, 5)
-                * $t$ : Uniform(0, inf)
+                * \(T_i\) : Uniform(1e-10, 10)
+                * \(F_i\) : Uniform(-20, 2)
+                * \(\alpha\) : Uniform(0, 5)
+                * \(t\) : Uniform(0, inf)
 
         Parameters
         ----------
@@ -255,10 +257,10 @@ class Model:
 
             import matplotlib.pyplot as plt
             import numpy as np
-            import grblc
+            from grblc.fitting import Model
             %matplotlib inline
 
-            w07 = grblc.Model.W07()
+            w07 = Model.W07()
             x = np.linspace(2, 8, 100)
             T, F, alpha, t = 5, -12, 1.5, 1
             y = w07(x, T, F, alpha, t)
@@ -312,23 +314,23 @@ class Model:
 
             The function is as follows:
 
-            $$f(t) = F_i \left (\left (\frac{t}{T_i} \right )^{S\alpha_1} + \left (\frac{t}{T_i} \right )^{S \alpha_2} \right )^{-\frac{1}{S}}$$
+            \[f(t) = F_i \left (\left (\frac{t}{T_i} \right )^{S\alpha_1} + \left (\frac{t}{T_i} \right )^{S \alpha_2} \right )^{-\frac{1}{S}}\]
 
             where the transition from the exponential to the power law occurs at the
-            point ($T_i$, $F_i$), $\alpha_1$ determines the temporal decay index of
-            the initial power law, and $\alpha_2$ is the temporal decay index of the
-            final power law, and $S$ is the smoothing factor.
+            point (\(T_i\), \(F_i\)), \(\alpha_1\) determines the temporal decay index of
+            the initial power law, and \(\alpha_2\) is the temporal decay index of the
+            final power law, and \(S\) is the smoothing factor.
 
             As implemented, log space is used for the time (sec) and flux
-            (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
-            afterglow plateau phase ends at 10,000 seconds corresponds to a $T_i$ of 5.
+            (erg cm\(^{-2}\) s\(^{-1}\)). This means that for a light curve in which the
+            afterglow plateau phase ends at 10,000 seconds corresponds to a \(T_i\) of 5.
 
             Pre-defined priors on these parameters are::
-                * $T_i$ : Uniform(1e-10, 10)
-                * $F_i$ : Uniform(-20, 2)
-                * $\alpha_1$ : Uniform(-5, 5)
-                * $\alpha_2$ : Uniform(-5, 5)
-                * $S$ : Uniform(-10, 2)
+                * \(T_i\) : Uniform(1e-10, 10)
+                * \(F_i\) : Uniform(-20, 2)
+                * \(\alpha_1\) : Uniform(-5, 5)
+                * \(\alpha_2\) : Uniform(-5, 5)
+                * \(S\) : Uniform(-10, 2)
 
         Returns
         -------
@@ -342,17 +344,17 @@ class Model:
 
             import matplotlib.pyplot as plt
             import numpy as np
-            import grblc
+            from grblc.fitting import Model
             %matplotlib inline
 
-            sbpl = grblc.Model.SMOOTH_BPL()
+            sbpl = Model.SMOOTH_BPL()
             x = np.linspace(2, 8, 100)
             T, F, alpha1, alpha2, S = p = 5, -12, -0.1, 1.5, 0.5
             y = sbpl(x, *p)
             plt.plot(x, y)
             plt.title(sbpl.name)
             plt.xlabel("log Time (s)")
-            plt.ylabel("log Flux (erg cm$^{-2}$ s$^{-1}$)")
+            plt.ylabel("log Flux (erg cm\(^{-2}\) s\(^{-1}\))")
             plt.show()
 
 
@@ -404,21 +406,21 @@ class Model:
 
             The function is as follows:
 
-            $$f(t) = \left \{ \begin{array}{ll} \displaystyle{F_i \left (\frac{t}{T_i} \right)^{-\alpha_1} } & {\rm for} \ \ t < T_i \\ \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_2} } & {\rm for} \ \ t \ge T_i, \\ \end{array} \right . $$
+            \[f(t) = \left \{ \begin{array}{ll} \displaystyle{F_i \left (\frac{t}{T_i} \right)^{-\alpha_1} } & {\rm for} \ \ t < T_i \\ \displaystyle{F_i \left ( \frac{t}{T_i} \right )^{-\alpha_2} } & {\rm for} \ \ t \ge T_i, \\ \end{array} \right . \]
 
             where the transition from the exponential to the power law occurs at the point
-            ($T_i$, $F_i$), $\alpha_1$ determines the temporal decay index of the initial
-            power law, and $\alpha_2$ is the temporal decay index of the final power law.
+            (\(T_i\), \(F_i\)), \(\alpha_1\) determines the temporal decay index of the initial
+            power law, and \(\alpha_2\) is the temporal decay index of the final power law.
 
             As implemented, log space is used for the time (sec) and flux
-            (erg cm$^{-2}$ s$^{-1}$). This means that for a light curve in which the
-            afterglow plateau phase ends at 10,000 seconds corresponds to a $T_i$ of 5.
+            (erg cm\(^{-2}\) s\(^{-1}\)). This means that for a light curve in which the
+            afterglow plateau phase ends at 10,000 seconds corresponds to a \(T_i\) of 5.
 
             Pre-defined priors on these parameters are:
                 * T : Uniform(1e-10, 10)
                 * F : Uniform(-20, 2)
-                * $\alpha_1$ : Uniform(-5, 5)
-                * $\alpha_2$ : Uniform(-5, 5)
+                * \(\alpha_1\) : Uniform(-5, 5)
+                * \(\alpha_2\) : Uniform(-5, 5)
 
         Returns
         -------
@@ -432,10 +434,9 @@ class Model:
 
             import matplotlib.pyplot as plt
             import numpy as np
-            import grblc
-            %matplotlib inline
+            from grblc.fitting import Model
 
-            sbpl = grblc.Model.SIMPLE_BPL()
+            sbpl = Model.SIMPLE_BPL()
             x = np.linspace(2, 8, 100)
             T, F, alpha1, alpha2 = p = 5, -12, -0.1, 1.5
             y = sbpl(x, *p)

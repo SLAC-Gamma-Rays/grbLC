@@ -4,7 +4,7 @@ from functools import reduce
 
 import glob2
 
-from .convert import get_dir
+from ..util import get_dir
 
 
 def fix_format():
