@@ -10,6 +10,7 @@ from astropy.time import Time
 from ..util import get_dir
 from .constants import ebv2A_b_df
 from .constants import photometry
+from .sfd import data_dir
 
 def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     r"""A function that returns the galactic extinction correction
