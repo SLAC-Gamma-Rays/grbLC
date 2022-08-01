@@ -24,9 +24,9 @@ photometry = {
     # Swift UVOT filters
     # from SVO Filter Profile Service (Rodrigo, C., Solano, E., 2020) //
     # http://svo2.cab.inta-csic.es/theory/fps3/pavosa.php?oby=id&fid=Swift/UVOT.UVM2#Swift/UVOT.UVM2
-    "u_swift": [3520, 1480e-23, "Swift_u"],
-    "b_swift": [4346, 4060e-23, "Swift_b"],
-    "v_swift": [5411, 3636e-23, "Swift_v"],
+    "u_swift": [3520, 1480e-23, "Swift u"],
+    "b_swift": [4346, 4060e-23, "Swift b"],
+    "v_swift": [5411, 3636e-23, "Swift v"],
     "uvw1_swift": [2684, 981e-23, "Swift uvw1"],
     "uvw2_swift": [2086, 760e-23, "Swift uvw2"],
     "uvm2_swift": [2246, 770e-23, "Swift uvm2"],
@@ -35,8 +35,16 @@ photometry = {
     "Rc": [6550, 3080e-23, "CTIO R"],  # Cousins R, not Johnson R!
     "Ic": [7996, 2432.84e-23, "CTIO I"],  # Cousins R, not Johnson R!
     "Ks": [16620, 666.7e-23, "UKIRT K"],  # K sharp, not Johnson K!
-    "Z": [8817, 2232e-23, "SDSS z"],
     "Y": [10305, 2026e-23, "DES Y"],
+    # GROND/SDSS primed (air) wavelengths
+    # from https://articles.adsabs.harvard.edu/pdf/1996AJ....111.1748F #corrected for atmospheric extinction
+    "u'": [3580, 3631e-23, "SDSS u"],
+    "g'": [4754, 3631e-23, "SDSS g"],
+    "r'": [6204, 3631e-23, "SDSS r"],
+    "i'": [7698, 3631e-23, "SDSS i"],
+    "z'": [9665, 3631e-23, "SDSS z"],
+    
+    # Not supported: v, h, y, q, Z, clear, n/a, none, white points
 }
 
 table_path = os.path.join(
