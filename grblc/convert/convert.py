@@ -173,10 +173,10 @@ def toFlux(
         band ='B'
     elif band == 'VJ':
         band ='V'
-    elif band == 'RJ':
+    elif band == 'RJ' or band == 'RB':
         band ='R'
-    elif band == 'RB':
-        band ='R'
+    elif band == 'CR':
+        band = 'Rc'
     else:
         band = band
 
@@ -365,10 +365,10 @@ def get_dir():
 
 
 # Converts all magnitude tables that are in the path format of
-# get_dir()/*_flux/<GRB>.txt
+# get_dir()/*_mag/<GRB>.txt
 def convert_all(debug=False):
     # grab all filepaths for LCs in magnitude
-    filepaths = glob2.glob(reduce(os.path.join, (get_dir(), "*_flux", "*.txt")))
+    filepaths = glob2.glob(reduce(os.path.join, (get_dir(), "*_mag", "*.txt")))
     grbs = [
         os.path.split(f)[1][:-4]
         for f in filepaths
@@ -435,10 +435,10 @@ def flux_to_R(
         band ='B'
     elif band == 'VJ':
         band ='V'
-    elif band == 'RJ':
+    elif band == 'RJ' or band == 'RB':
         band ='R'
-    elif band == 'RB':
-        band ='R'
+    elif band == 'CR':
+        band = 'Rc'
     else:
         band = band
 
@@ -462,6 +462,7 @@ def flux_to_R(
 
 def convertGRB_to_R(
     GRB: str,
+    author: str = "",
     filename: str = None,
     beta: float = 0,
     beta_err: float = 0,
@@ -495,7 +496,7 @@ def convertGRB_to_R(
     except IndexError:
         raise ImportError(message=f"Couldn't find GRB table at {filename}.")
 
-    converted = {k: [] for k in ("time_sec", "flux_R", "flux_err_R", "band", "source")}
+    converted = {k: [] for k in ("time_sec", "flux_R", "flux_err_R", "band_init", "band_norm", "source")}
 
     for __, row in flux_table.iterrows():
 
@@ -524,11 +525,12 @@ def convertGRB_to_R(
         converted["time_sec"].append(time_sec)
         converted["flux_R"].append(flux_R)
         converted["flux_err_R"].append(flux_err_R)
-        converted["band"].append('R')
+        converted["band_init"].append(band)
+        converted["band_norm"].append('R')
         converted["source"].append(source)
 
         save_path = os.path.join(
-            os.path.dirname(filename), f"{GRB}_converted_flux_R.txt"
+            os.path.dirname(filename), f"{GRB}_{author}_converted_flux_R.txt"
         )
         DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
 
