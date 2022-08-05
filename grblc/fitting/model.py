@@ -83,8 +83,8 @@ def _sbpl(x, T, F, alpha1, alpha2, S):
 
 
 # Power law
-def _pl(x, T, F, alpha):
-    return F - alpha*(x-T)
+def _pl(x, F, alpha):
+    return F - alpha*x
 
 
 
@@ -542,14 +542,8 @@ class Model:
             func=_pl,
             func_args=[
                 Parameter(
-                    "T",
-                    "log time at end of prompt (log sec)",
-                    min=1e-5,
-                    max=10,
-                ),
-                Parameter(
                     "F",
-                    "log flux at end of prompt  (log erg cm^-2 s^-1)",
+                    "log flux at the peak of prompt  (log erg cm^-2 s^-1)",
                     min=-20,
                     max=-2,
                 ),
