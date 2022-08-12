@@ -1,7 +1,6 @@
 import os.path
 import re
 from functools import reduce
-from types import NoneType
 
 import astropy.units as u
 import glob2
@@ -83,7 +82,7 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
 def toFlux(
     band: str,
     mag: float,
-    magerr: float = 0,
+    mag_err: float = 0,
     beta: float = 1,
     beta_err: float = 0,
     A_b: float = None,
@@ -132,7 +131,7 @@ def toFlux(
         from :py:data:`grblc.constants.photometry`.
     grb : str
         GRB name.
-    magerr : float, optional
+    mag_err : float, optional
         Error on the magnitude, by default 0
     photon_index : float, optional
         Photon index $\Gamma$ ($\Gamma = \beta + 1$), by default 1
@@ -159,15 +158,11 @@ def toFlux(
     # assert bool(A_b != 0) ^ bool(grb) ^ bool(ra and dec), "Must provide either A_b or grb or ra, dec"
     _check_dust_maps()
 
-    if band == 'v':
-        band ='V'
-    if band == 'h':
-        band ='H'
-    elif band == 'Z':
-        band ='z'
-    elif band == 'y':
-        band ='Y'
-    elif band == 'UJ':
+    # conversion between magnitude systems http://astroweb.case.edu/ssm/ASTR620/mags.html
+    # unsupported Gunn magnitude system
+    # U_AB, u_AB unsupported
+    vega = 'Vega'
+    if band == 'UJ': # When J or B is an abbreviation for Johnson or Bessel
         band ='U'
     elif band == 'BJ':
         band ='B'
@@ -177,6 +172,45 @@ def toFlux(
         band ='R'
     elif band == 'CR':
         band = 'Rc'
+    elif band == 'V_AB':
+        band = 'V'
+        mag += 0.044
+    elif band == 'B_AB':
+        band = 'B'
+        mag += 0.163
+    elif band == 'R_AB':
+        band = 'R'
+        mag -= 0.055
+    elif band == 'I_AB':
+        band = 'I'
+        mag -= 0.309
+    elif band == 'g_AB':
+        band = 'g'
+        mag += 0.013
+    elif band == 'r_AB':
+        band = 'R'
+        mag += 0.226
+    elif band == 'i_AB':
+        band = 'i'
+        mag += 0.296
+    elif band == "u'_AB":
+        band = "u'"
+    elif band == "g'_AB":
+        band = "g'"
+    elif band == "r'_AB":
+        band = "r'"
+    elif band == "i'_AB":
+        band = "i'"
+    elif band == "z'_AB":
+        band = "z'"
+    elif band == "Rc_AB":
+        band = "Rc"
+        mag -= 0.117
+    elif band == 'Ic_AB':
+        band = "Ic"
+        mag -= 0.342
+    elif vega.casefold() in band.casefold():
+        band = band.split(sep='_')[0] # Vega and Johnson are same http://astro.vaporia.com/start/vegasystem.html
     else:
         band = band
 
@@ -200,17 +234,17 @@ def toFlux(
     flux = (nu * F_nu * 10 ** (-(mag + A_b) / 2.5)).value
 
     # see https://youngsam.me/files/error_prop.pdf for derivation
-    if magerr == 0:
-        fluxerr = 0
+    if mag_err == 0:
+        flux_err = 0
     else:
-        fluxerr = (flux) * np.sqrt(
-            (magerr * np.log(10 ** (0.4))) ** 2 +
+        flux_err = (flux) * np.sqrt(
+            (mag_err * np.log(10 ** (0.4))) ** 2 +
             (beta_err * np.log(lambda_x / lambda_R)) ** 2
         )
 
     assert np.all(flux >= 0), "Error computing flux."
-    assert np.all(fluxerr >= 0), "Error computing flux error."
-    return flux, fluxerr
+    assert np.all(flux_err >= 0), "Error computing flux error."
+    return flux, flux_err
 
 
 
@@ -264,6 +298,7 @@ def convertGRB(
             engine="python",
             encoding="ISO-8859-1"
         )
+        print(mag_table.head())
     except ValueError as error:
         raise error
     except IndexError:

@@ -43,8 +43,11 @@ photometry = {
     "r'": [6204, 3631e-23, "SDSS r"],
     "i'": [7698, 3631e-23, "SDSS i"],
     "z'": [9665, 3631e-23, "SDSS z"],
-    
-    # Not supported: v, h, y, q, Z, clear, n/a, none, white points
+    # Not supported: v, h, y, q, Z, clear, n/a, none, unfiltered white points, HST
+    "v": [5450, 3.636e-20, "Landolt V"],
+    "h": [16300, 1.021e-20, "UKIRT H"],
+    "y":[10305, 2026e-23, "DES Y"],
+    "Z": [9665, 3631e-23, "SDSS z"],
 }
 
 table_path = os.path.join(
