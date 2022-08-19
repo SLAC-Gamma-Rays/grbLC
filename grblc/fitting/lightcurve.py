@@ -1,9 +1,10 @@
-import os
 import re
 import sys
 import warnings
 from copy import deepcopy
 from functools import reduce
+from os import path
+from os import makedirs
 from typing import Dict
 
 import lmfit as lf
@@ -12,11 +13,14 @@ import numpy as np
 import pandas as pd
 from matplotlib.figure import Figure
 
-from . import io
-from ..convert import get_dir
-from .model import chisq
-from .model import Model
+from collections import OrderedDict as odict
 
+from . import io
+from ..util import get_dir
+from .model import chisq
+from .model import Model, Parameter
+
+__all__ = ["Lightcurve"]
 
 class Lightcurve:
     _name_placeholder = "unknown grb"
@@ -41,7 +45,7 @@ class Lightcurve:
             Data stored in :py:class:`Lightcurve` objects are always in logarithmic
             space; the parameter ``data_space`` is only used to convert data to log space
             if it is not already in such. If your data is in linear space [i.e., your
-            time data is sec, and not $log$(sec)], then you should set ``data_space``
+            time data is sec, and not \(log\)(sec)], then you should set ``data_space``
             to ``lin``.
 
 
@@ -93,7 +97,7 @@ class Lightcurve:
             self.set_data(*self.read_data(filename), data_space=data_space)
         else:
             self.filename = reduce(
-                os.path.join,
+                path.join,
                 [
                     get_dir(),
                     "lightcurves",
@@ -284,13 +288,13 @@ class Lightcurve:
             .. jupyter-execute::
 
                 import numpy as np
-                import grblc
+                from grblc.fitting import Model, Lightcurve
 
-                model = grblc.Model.W07(vary_t=False)
+                model = Model.W07(vary_t=False)
                 xdata = np.linspace(0, 10, 15)
                 yerr = np.random.normal(0, 0.5, len(xdata))
                 ydata = model(xdata, 5, -12, 1.5, 0) + yerr
-                lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
+                lc = Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
                 lc.show_data()
 
 
@@ -318,9 +322,10 @@ class Lightcurve:
         logFerr = self.orig_yerr
 
         mask = (logT >= xmin) & (logT <= xmax) & (logF >= ymin) & (logF <= ymax)
-
-        # plot all data points inside xmin and xmax in black
-        ax.errorbar(
+        mask_min=np.where(mask ==True)[0][0]
+        if np.isfinite(xmax) and np.isfinite(ymin):
+            mask_max=xmax
+            ax.errorbar(
             logT[mask],
             logF[mask],
             xerr=logTerr[mask] if logTerr is not None else logTerr,
@@ -329,8 +334,13 @@ class Lightcurve:
             fmt=".",
             ms=10,
             zorder=0,
-        )
-
+            )
+            print(ymin, logF[-1])
+        else:
+            mask_max=np.where(mask==True)[0][-1]
+        # plot all data points inside xmin and xmax in black
+            ax.errorbar(logT[mask_min:mask_max], logF[mask_min:mask_max], logFerr[mask_min:mask_max], fmt=".", ms=10, color="k", zorder=0,)
+            ax.errorbar(logT[mask_max], logF[mask_max], logFerr[mask_max], fmt=".", ms=10, color="k", zorder=0)
         ax_xlim = ax.get_xlim()
         ax_ylim = ax.get_ylim()
 
@@ -464,7 +474,7 @@ class Lightcurve:
         self.params.add_many(*param_details)
 
         minimizer = lf.Minimizer(self._res, self.params, nan_policy="propagate")
-
+            
         # solve first with robust Nelder-Mead
         self.res = mi1 = minimizer.minimize(method="leastsq", **minimize_kwargs)
         self.params = self.res.params
@@ -495,11 +505,8 @@ class Lightcurve:
             highest_prob = np.argmax(self.res.lnprob)
             highest_prob_loc = np.unravel_index(highest_prob, self.res.lnprob.shape)
             mle_soln = self.res.chain[highest_prob_loc]
-            
-            i = 0
-            for name in self.params:
+            for i, name in enumerate(self.params):
                 if self.params[name].vary:
-                    
                     self.params[name].value = mle_soln[i]
 
                     # also, calculate standard errors from emcee
@@ -512,8 +519,6 @@ class Lightcurve:
                     errm = abs(median - quantiles[0])
 
                     self.params[name].stderr = np.mean([errp, errm])
-
-                    i+=1
 
         if show:
             self.show_fit()
@@ -536,6 +541,7 @@ class Lightcurve:
         save_plots=None,
         show=True,
         fix_flux=None,
+        model_name=None,
         corner_kwargs={},
         chisq_kwargs={},
         fig_kwargs={},
@@ -556,7 +562,7 @@ class Lightcurve:
 
                 * Show the corner plot of the posterior distribution of the parameters. (`show_corner`)
 
-                * Show the $\Delta\chi^2$ confidence intervals of the fit. (`show_chisq`)
+                * Show the \(\Delta\chi^2\) confidence intervals of the fit. (`show_chisq`)
 
         Parameters
         ----------
@@ -571,7 +577,7 @@ class Lightcurve:
             Whether to show the corner plot. Can only be used when `use_mcmc` was set
             to True when calling :py:meth:`Lightcurve.fit`, by default False
         show_chisq : bool, optional
-            Whether to show $\Delta\chi^2$ confidence intervals, by default False
+            Whether to show \(\Delta\chi^2\) confidence intervals, by default False
         save_plots : bool or str, optional
             If `bool`, whether to save the plots or not in a folder in the current
             directory called `plots`. If `str`, the directory and filename to save plots
@@ -582,10 +588,12 @@ class Lightcurve:
         fix_flux : bool, optional
             If provided, will apply the flux correction to the flux at the end of the plateau.
             If not provided, will default to what user set in the constructor of the Lightcurve class.
+        model_name : str
+            If provided, will create directory to save information.
         corner_kwargs : dict, optional
             Additional arguments to pass to :py:meth:`corner.corner`, by default {}
         chisq_kwargs : dict, optional
-            Additional arguments to pass to ``plt.plot`` for the $\Delta\chi^2$
+            Additional arguments to pass to ``plt.plot`` for the \(\Delta\chi^2\)
             confidence interval plots, by default {}
         fig_kwargs : dict, optional
             Additional arguments to pass to ``plt.figure`` when showing the
@@ -611,13 +619,13 @@ class Lightcurve:
         .. jupyter-execute::
 
             import numpy as np
-            import grblc
+            from grblc.fitting import Model, Lightcurve
 
-            model = grblc.Model.W07(vary_t=False)
+            model = Model.W07()
             xdata = np.linspace(0, 10, 15)
             yerr = np.random.normal(0, 0.5, len(xdata))
             ydata = model(xdata, 5, -12, 1.5, 0) + yerr
-            lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
+            lc = Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
             lc.fit(p0=[4.5, -12.5, 1, 0])
             lc.show_fit(detailed=True)
 
@@ -643,15 +651,20 @@ class Lightcurve:
                 gridspec[0], sharex=ax_residual, **fit_ax_kwargs
             )
             plot_fig.subplots_adjust(hspace=0)
+            
+            x_uplim=max(self.xdata)
 
             # plot fit (within bounds first)
             if not isinstance(self.sigma, (int, float)):
                 ax_fit.errorbar(
                     self.xdata, self.ydata, self.yerr, fmt="o", ms=5, color="k", **fit_kwargs
                 )
+                for i in range(len(self.xdata)):
+                    ax_fit.errorbar(self.xdata[i], self.ydata[i], self.yerr[i], fmt="o", ms=5, color="k", **fit_kwargs)
             else:
-                ax_fit.scatter(self.xdata, self.ydata, s=5, color="k", **fit_kwargs)
-
+                ax_fit.errorbar(
+                    self.xdata, self.ydata, self.yerr, fmt="o", ms=5, color="k", **fit_kwargs
+                )
             x_vals = np.linspace(0.8 * self.xdata.min(), 1.1 * self.xdata.max(), 100)
             y_vals = self.model(x_vals, *self.params.valuesdict().values())
             ax_fit.plot(x_vals, y_vals, ls="-", color="r", label="fit")
@@ -675,7 +688,7 @@ class Lightcurve:
             #              changes the true location of the end of the plateau
             #              by subtracting log10(2)/S from F. This comes naturally
             #              from f(t=T) = F - log(2)/S
-            elif self.model.slug == "sbpl":
+            elif self.model.slug == "smooth_bpl":
                 T, F, a1, a2, S = self.params.values()
                 ax_fit.scatter(
                     T,
@@ -685,21 +698,6 @@ class Lightcurve:
                     s=150,
                     label="Fitted T, F",
                 )
-
-            elif self.model.slug == 'bpl':
-                # plot fitted T and F
-                T, F, *__ = self.params.values()
-                ax_fit.scatter(
-                    T,
-                    F,
-                    c="red",
-                    zorder=-999,
-                    s=100,
-                    label="Fitted T, F",
-                )
-
-            else:
-                pass
 
             fit_xlim = ax_fit.get_xlim()
             fit_ylim = ax_fit.get_ylim()
@@ -885,13 +883,12 @@ class Lightcurve:
 
         if print_res or detailed:
             self.print_fit(detailed, fix_flux)
-
         if bool(save_plots):
             savekwargs = dict(
                 filename=save_plots if isinstance(save_plots, str) else None
             )
             for fig in self.figs:
-                self._savefig(self.figs[fig], suffix=fig, **savekwargs)
+                self._savefig(self.figs[fig], suffix=fig, **savekwargs, model_name=model_name)
 
         if not show:
             return self.figs
@@ -933,14 +930,14 @@ class Lightcurve:
         '''
         assert getattr(self, "res", None) is not None, "No fit has been done"
 
-        if self.model.slug not in ["w07", "sbpl"]:
+        if self.model.slug not in ["w07", "smooth_bpl"]:
             warnings.warn(f"Lightcurve.fix_flux is set to true, but model '{self.model.slug}' is not 'W07' or 'smooth_bpl.'" \
                            "Skipping...", UserWarning, stacklevel=2)
             return self.res.params["F"].value, self.res.params["F"].stderr
 
         errF = self.res.params["F"].stderr
         F = self.res.params["F"].value
-        if self.model.slug == "sbpl":
+        if self.model.slug == "smooth_bpl":
             errS = 10**self.res.params["S"].stderr * np.log(10) if self.res.params["S"].stderr is not None else 0
             S = 10**self.res.params["S"].value
             newF = F - np.log(2)/S
@@ -981,13 +978,13 @@ class Lightcurve:
         .. jupyter-execute::
 
             import numpy as np
-            import grblc
+            from grblc.fitting import Model, Lightcurve
 
-            model = grblc.Model.W07(vary_t=False)
+            model = Model.W07(vary_t=False)
             xdata = np.linspace(0, 10, 15)
             yerr = np.random.normal(0, 0.5, len(xdata))
             ydata = model(xdata, 5, -12, 1.5, 0) + yerr
-            lc = grblc.Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
+            lc = Lightcurve(xdata=xdata, ydata=ydata, yerr=yerr, model=model)
             lc.fit(p0=[4.5, -12.5, 1, 0], run_mcmc=False)
             for detailed in [False, True]:
                 print("="*10 + f"detailed={detailed}" + "="*10)
@@ -1015,27 +1012,45 @@ class Lightcurve:
                     ]
                 )
             )
+            
+    
+    def save_fitting(self, detailed=False, model_name=None, suffix=None):
+        FILE_DIR = path.join(path.dirname(get_dir()), "plots/"+ self.name + "/" + model_name)
+        if not path.exists(FILE_DIR):
+            makedirs(FILE_DIR)
+        suffix = "_" + suffix if suffix is not None else ""
+        filename = path.join(FILE_DIR, self.name + "_" + model_name + suffix + ".txt")
+        res = deepcopy(self.res)
+        params = deepcopy(self.params)
+        with open(filename, "w") as f:
+            print(self.name, model_name, "\n", file=f)
+            print(lf.fit_report(res, show_correl=False), file=f)
+        
 
-    def _savefig(self, fig, filename=None, suffix=None, format="pdf", **kwargs):
+    def _savefig(self, fig, model_name=None, filename=None, suffix=None, format="pdf", **kwargs):
         assert isinstance(fig, Figure), "figs must be a matplotlib Figure."
 
         suffix = "_" + suffix if suffix is not None else ""
 
         if filename is None:
-            FILE_DIR = os.path.join(os.path.dirname(get_dir()), "plots")
+            FILE_DIR = path.join(path.dirname(get_dir()), "plots/" + self.name + "/" + model_name)
 
-            if not os.path.exists(FILE_DIR):
-                os.mkdir(FILE_DIR)
+            if not path.exists(FILE_DIR):
+                makedirs(FILE_DIR)
 
-            filename = os.path.join(
+            filename = path.join(
                 FILE_DIR,
                 "{}{}.{}".format(
                     self.name.replace(" ", "_").replace(".", "p"), suffix, format
                 ),
             )
         else:
+            FILE_DIR = path.join(path.dirname(get_dir()), "plots/"+ self.name + "/" + model_name)
+
+            if not path.exists(FILE_DIR):
+                makedirs(FILE_DIR)
             *fn, extension = filename.split(".")
-            filename = ".".join(fn) + suffix + "." + extension
+            filename = path.join(FILE_DIR, self.name + "_" + model_name +  ".".join(fn) + suffix + "." + extension)
 
         savefig_kwargs = dict(
             fname=filename,
@@ -1048,7 +1063,7 @@ class Lightcurve:
         fig.savefig(**savefig_kwargs)
 
     def _check_dir(self):
-        if not os.path.exists(self.dir):
+        if not path.exists(self.dir):
             best_params = self.model.func_args
             best_err = [param + "_err" for param in best_params]
             best_guesses = [param + "_guess" for param in best_params]
@@ -1089,9 +1104,9 @@ class Lightcurve:
 
                 #. `time_sec` : The time of the datapoint in seconds (xdata)
 
-                #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
+                #. `flux` : The flux of the datapoint in erg cm\(^{-2}\) s\(^{-1}\) (ydata)
 
-                #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$
+                #. `flux_err` : The flux error of the datapoint in erg cm\(^{-2}\) s\(^{-1}\)
                 (yerr)
 
                 #. `**attrs` : Any additional attributes of the datapoint as given in the
@@ -1158,8 +1173,8 @@ class Lightcurve:
             Each DataFrame contains the following columns:
 
                 #. `time_sec` : The time of the datapoint in seconds (xdata)
-                #. `flux` : The flux of the datapoint in erg cm$^{-2}$ s$^{-1}$ (ydata)
-                #. `flux_err` : The flux error of the datapoint in erg cm$^{-2}$ s$^{-1}$ (yerr)
+                #. `flux` : The flux of the datapoint in erg cm\(^{-2}\) s\(^{-1}\) (ydata)
+                #. `flux_err` : The flux error of the datapoint in erg cm\(^{-2}\) s\(^{-1}\) (yerr)
                 #. **attrs : Any additional attributes of the datapoint as given in the
                              instantiation of the :py:class:`Lightcurve` object.
 
@@ -1237,8 +1252,8 @@ def _readfile(filename):
 
 version_regex = re.compile('__version__ = "(.*?)"')
 contents = _readfile(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "__init__.py"
+    path.join(
+        path.dirname(path.dirname(path.abspath(__file__))), "__init__.py"
     )
 )
 __version__ = version_regex.findall(contents)[0]
