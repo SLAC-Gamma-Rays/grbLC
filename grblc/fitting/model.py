@@ -48,7 +48,10 @@ def chisq(x, y, sigma, model, p, return_reduced=False):
 # modified so T and F are logarithmic inputs
 # to avoid numerical overflow issues
 def _w07(x, T, F, alpha, t):
-
+    if t > T:
+        tmp=t
+        t=T
+        T=tmp
     before = lambda x: (
         -10 ** (t-x) + alpha - alpha * 10 ** (x - T) + F * np.log(10)
     ) / np.log(10)
@@ -132,13 +135,23 @@ def _w07_sbpl(x, T_p, F_p, alpha_p, t_p, T_a, F_a, alpha_a1, alpha_a2, S_a, tt):
     return vals
 
 
-def _w07_pl(x, T_p, F_p, alpha_p, t_p, F_a, alpha_a, tt):
+def _w07_pl(x, F_p, alpha_p, t, alpha_1, t0, t1):
 
-    p1 = T_p, F_p, alpha_p, t_p
-    p2 = F_a, alpha_a
+    if t0 > t1:
+        tmp=t0
+        t0=t1
+        t1=tmp
 
-    cond = [(x < tt), (x >= tt)]
-    func = [_w07(x[x<tt],*p1), _pl(x[x>=tt],*p2)]
+    F_a = F_p + t0 * alpha_p - t1 * alpha_p - 10**(t-t1) / np.log(10)
+    before = lambda x: (
+        -10 ** (t-x) + alpha_p - alpha_p * 10 ** (x - t0) + F_p * np.log(10)
+    ) / np.log(10)
+
+    middle = lambda x: F_p + t0 * alpha_p - x * alpha_p - 10 ** (t-x) / np.log(10)
+    after = lambda x: F_a - alpha_1 * (x - t1)
+
+    cond = [(x < t0), (x >= t0) * (x < t1), (x >= t1)]
+    func = [before, middle, after]
     vals = np.piecewise(x, cond, func)
 
     return vals
@@ -183,16 +196,47 @@ def _pl_sbpl(x, F_p, alpha_p, t1, F_a, alpha_a1, alpha_a2, S_a, t0):
     return vals
     
 
-def _w07_bpl_pl(x, T_p, F_p, alpha_p, T_a, F_a, alpha_a1, alpha_a2, t_p, F_d, alpha_d, tt, tf):
+def _w07_bpl_pl(x, F_p, alpha_p, alpha_1, alpha_2, alpha_3, t0, t1, t2, t3, t):
+    if t0 > t1:
+        tmp=t0
+        t0=t1
+        t1=tmp
+    if t1 > t2:
+        tmp=t1
+        t1=t2
+        t2=tmp
+    if t2 > t3:
+        tmp=t2
+        t2=t3
+        t3=tmp
+    if t0 > t1:
+        tmp=t0
+        t0=t1
+        t1=tmp
+    if t1 > t2:
+        tmp=t1
+        t1=t2
+        t2=tmp
+    if t0 > t1:
+        tmp=t0
+        t0=t1
+        t1=tmp
+        
 
-    p1 = T_p, F_p, alpha_p, t_p
-    p2 = T_a, F_a, alpha_a1, alpha_a2
-    p3 = F_d, alpha_d
+    F_a = F_p + t0 * alpha_p - t1 * alpha_p - 10**(t-t1) / np.log(10)
+    F_d = F_a - alpha_1 * (t2 - t1)
+    F_d2=F_d - alpha_2 * (t3-t2)
+    before = lambda x: (
+        -10 ** (t-x) + alpha_p - alpha_p * 10 ** (x - t0) + F_p * np.log(10)
+    ) / np.log(10)
 
-    cond = [(x < tf) * (x < tt), (x >= tf) * (x < tt), (x >= tt)]
-    func = [_w07(x[(x<tf) * (x<tt)], *p1) + _bpl(tf, *p2) - _w07(tf, *p1), _bpl(x[(x>=tf) * (x<tt)],*p2), _pl(x[x>=tt],*p3) + _bpl(tt, *p2) - _pl(tt, *p3)]
-    F_p = F_p + _bpl(tf, *p2) - _w07(tf, *p1)
-    F_d = F_d + _bpl(tt, *p2) - _pl(tt, *p3)
+    middle = lambda x: F_p + t0 * alpha_p - x * alpha_p - 10 ** (t-x) / np.log(10)
+    middle2 = lambda x: F_a - alpha_1 * (x - t1)
+    middle3 = lambda x: F_d - alpha_2 * (x - t2)
+    after = lambda x: F_d2 - alpha_3 * (x - t3)
+
+    cond = [(x < t0), (x >= t0) * (x < t1), (x >= t1) * (x < t2), (x >= t2)*(x<t3), (x >= t3)]
+    func = [before, middle, middle2, middle3, after]
     vals = np.piecewise(x, cond, func)
 
     return vals
@@ -424,8 +468,8 @@ class Model:
                 Parameter(
                     "t",
                     "log time at peak (log sec)",
-                    min=-1,
-                    max=10,
+                    min=-1e-8,
+                    max=5,
                     vary=vary_t,
                 )
             ]
@@ -697,8 +741,8 @@ class Model:
                 Parameter(
                     "t",
                     "log time at peak (log sec)",
-                    min=-1,
-                    max=10,
+                    min=-1e-8,
+                    max=5,
                     vary=vary_t,
                 )
             ]
@@ -779,7 +823,7 @@ class Model:
                 Parameter(
                     "tt",
                     "beginning of plateau",
-                    min=-1,
+                    min=-1e-8,
                     max=10,
                 )
             ]
@@ -794,17 +838,10 @@ class Model:
             func=_w07_pl,
             func_args=[
                 Parameter(
-                    "T_p",
-                    "log time at peak of prompt (log sec)",
-                    min=0,
-                    max=10,
-                    plot_fmt=r"$T_p$",
-                ),
-                Parameter(
                     "F_p",
                     "log flux at peak of prompt (log erg/cm^2/s)",
                     min=-18,
-                    max=-8,
+                    max=-2,
                     plot_fmt=r"$F_p$",
                 ),
                 Parameter(
@@ -815,32 +852,31 @@ class Model:
                     plot_fmt=r"$\alpha_p$",
                 ),
                 Parameter(
-                    "t_p",
+                    "t",
                     "log time at peak (log sec)",
-                    min=-1,
-                    max=10,
+                    min=-1e-8,
+                    max=5,
                     vary=vary_t,
-                    plot_fmt=r"$t_p$",
+                    plot_fmt=r"$t$",
                 ),
                 Parameter(
-                    "F_a",
-                    "log flux at end of plateau  (log erg cm^-2 s^-1)",
-                    min=-18,
-                    max=-8,
-                    plot_fmt=r"$F_a$",
-                ),
-                Parameter(
-                    "alpha_a",
+                    "alpha_1",
                     "temporal decay index of initial power law",
                     min=0,
                     max=7,
                     plot_fmt=r"$\alpha_(a1)$",
                 ),
                 Parameter(
-                    "tt",
+                    "t0",
                     "beginning of plateau",
-                    min=-1,
+                    min=0,
                     max=10,
+                ),
+                Parameter(
+                    "t1",
+                    "beginning of plateau",
+                    min=0,
+                    max=5,
                 )
             ]
         )
@@ -891,7 +927,7 @@ class Model:
                 Parameter(
                     "tt",
                     "log time at peak (log sec)",
-                    min=-1,
+                    min=-1e-8,
                     max=10,
                     vary=vary_t,
                     plot_fmt=r"$tt$",
@@ -1067,22 +1103,15 @@ class Model:
     @classmethod
     def W07_SIMPLE_BPL_POWER_LAW(cls, vary_t=True):
         return cls(
-            name="Willingale 2007 + Simple broken power law",
+            name="Willingale 2007 + Simple broken power law + power law",
             slug="w07+bpl+pl",
             func=_w07_bpl_pl,
             func_args=[
                 Parameter(
-                    "T_p",
-                    "log time at peak of prompt (log sec)",
-                    min=0,
-                    max=10,
-                    plot_fmt=r"$T_p$",
-                ),
-                Parameter(
                     "F_p",
                     "log flux at peak of prompt (log erg/cm^2/s)",
                     min=-18,
-                    max=-8,
+                    max=-2,
                     plot_fmt=r"$F_p$",
                 ),
                 Parameter(
@@ -1093,66 +1122,58 @@ class Model:
                     plot_fmt=r"$\alpha_p$",
                 ),
                 Parameter(
-                    "t_p",
-                    "log time at peak (log sec)",
-                    min=-1,
-                    max=10,
-                    vary=vary_t,
-                    plot_fmt=r"$t_p$",
-                ),
-                Parameter(
-                    "T_a",
-                    "log time at end of plateau (log sec)",
-                    min=0,
-                    max=10,
-                    plot_fmt=r"$T_p$",
-                ),
-                Parameter(
-                    "F_a",
-                    "log flux at end of plateau  (log erg cm^-2 s^-1)",
-                    min=-18,
-                    max=-8,
-                    plot_fmt=r"$F_p$",
-                ),
-                Parameter(
-                    "alpha_a1",
+                    "alpha_1",
                     "temporal decay index of initial power law",
                     min=0,
                     max=7,
                     plot_fmt=r"$\alpha_(a1)$",
                 ),
                 Parameter(
-                    "alpha_a2",
+                    "alpha_2",
                     "temporal decay index of end power law",
                     min=0,
                     max=7,
                     plot_fmt=r"$\alpha_(a2)$",
                 ),
                 Parameter(
-                    "F_d",
-                    "log flux at end of plateau  (log erg cm^-2 s^-1)",
-                    min=-18,
-                    max=-8,
-                    plot_fmt=r"$F_d$",
-                ),
-                Parameter(
-                    "alpha_d",
-                    "temporal decay index of power law",
+                    "alpha_3",
+                    "temporal decay index of end power law",
                     min=0,
                     max=7,
-                    plot_fmt=r"$\alpha_d$",
+                    plot_fmt=r"$\alpha_(a3)$",
                 ),
                 Parameter(
-                    "tt",
-                    "beginning of plateau",
-                    min=-1,
+                    "t0",
+                    "log time at prompt (log sec)",
+                    min=0,
+                    max=10,
+                    plot_fmt=r"$t_0$",
+                ),
+                Parameter(
+                    "t1",
+                    "log time at begininng of plateau (log sec)",
+                    min=0,
+                    max=10,
+                    plot_fmt=r"$t_1$",
+                ),
+                Parameter(
+                    "t2",
+                    "log time at end of plateau (log sec)",
+                    min=0,
                     max=10,
                 ),
                 Parameter(
-                    "tf",
-                    "end of plateau",
-                    min=-1,
+                    "t3",
+                    "log time at end of plateau (log sec)",
+                    min=0,
                     max=10,
+                ),
+                Parameter(
+                    "t",
+                    "log time at peak (log sec)",
+                    min=-1e-8,
+                    max=5,
+                    vary=vary_t
                 )
             ]
         )
@@ -1198,7 +1219,7 @@ class Model:
                     "temporal decay index of end power law",
                     min=0,
                     max=7,
-                    plot_fmt=r"$\alpha_(a2)$",
+                    plot_fmt=r"$\alpha_(a3)$",
                 ),
                 Parameter(
                     "t0",
