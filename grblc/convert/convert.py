@@ -1,19 +1,144 @@
 import os.path
-import re
 from functools import reduce
+import re
 
 import astropy.units as u
-import glob2
 import numpy as np
 from astropy.time import Time
 from pandas import DataFrame
 from pandas import read_csv
 
-from .constants import ebv2A_b_df
-from .constants import photometry
+#from .constants import *
 from .sfd import data_dir
 
-def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
+path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
+path2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "reddening.txt")
+filters = read_csv(path1, sep='\t', header=0, index_col=None)
+factors = read_csv(path2, sep='\t', header=0, index_col=0)
+
+
+def count(str1, str2): 
+    
+    str1 = re.sub(r"[\u02BB\u02BC\u066C\u2018\u201A\u275B\u275C\u0027\u02B9\u02BB\u02BC\u02BE\u02C8\u02EE\u0301\u0313\u0315\u055A\u05F3\u07F4\u07F5\u1FBF\u2018\u2019\u2032\uA78C\uFF07]", "p", str1)
+    str2 = re.sub(r"[\u02BB\u02BC\u066C\u2018\u201A\u275B\u275C\u0027\u02B9\u02BB\u02BC\u02BE\u02C8\u02EE\u0301\u0313\u0315\u055A\u05F3\u07F4\u07F5\u1FBF\u2018\u2019\u2032\uA78C\uFF07]", "p", str2)
+    
+    c, j = 0,0
+    for i in str1:    
+        if str2.find(i)>= 0 and j == str1.find(i): 
+            c += 1
+        j+=1
+    
+    if len(str1)>0:
+        match = c/len(str1)*100
+    else:
+        match = 0
+
+    return match
+
+def stripcount(str1, str2): 
+
+    str1 = ''.join(i for i in str1 if i.isalnum()).lower() ## removes special characters
+    str2 = ''.join(i for i in str2 if i.isalnum()).lower()
+    
+    c, j = 0,0
+    for i in str1:    
+        if str2.find(i)>= 0 and j == str1.find(i): 
+            c += 1
+        j+=1
+    
+    if len(str1)>0:
+        match = c/len(str1)*100
+    else:
+        match = 0
+
+    return match
+
+def calibration(band: str, system: str, telescope: str):
+
+    ## initialising
+
+    sep = ['-','_','.',',']
+
+    j = 0
+    for i in sep:
+        if i in band:
+            bandpass, filter = band.split(i)
+            if len(filter) > len(bandpass):
+                filter, bandpass = band.split(i)
+            j += 1
+    
+    if j == 0:
+        filter = band
+        bandpass = 'Johnson/Cousins/SDSS/UKIDSS/MKO/Swift'
+        
+    if filter == 'CV': ## CV clear callibrated as V
+        filter ='V'
+    elif filter == 'CR': ## CR clear callibrated as R
+        filter ='R'
+
+    ## match filters then bandpass then telescope
+
+    for m, n in zip(filters.index, filters['filter_id']):
+
+        grblc_obs, grblc_tel, grblc_pass, grblc_fil = str(n).split(".")
+
+        if grblc_pass == "":
+            grblc_pass = grblc_obs
+
+        match1 = count(grblc_fil, filter)
+        match2 = stripcount(grblc_pass, bandpass)
+        match3 = stripcount(grblc_obs+grblc_tel, telescope)
+
+        filters.loc[m, 'match1'] = match1
+        filters.loc[m, 'match2'] = match2
+        filters.loc[m, 'match3'] = match3
+
+        if len(filters[filters['match3'] > 0]) == 0:
+
+            telescope = 'Gen/GCPD/Cat'
+
+            match1 = count(grblc_fil, filter)
+            match2 = stripcount(grblc_pass, bandpass)
+            match3 = stripcount(grblc_obs+grblc_tel, telescope)
+
+            filters.loc[m, 'match1'] = match1
+            filters.loc[m, 'match2'] = match2
+            filters.loc[m, 'match3'] = match3
+
+            if len(filters[filters['match3'] > 0]) == 0:
+                raise KeyError(
+                    f"No matching telescopes."
+                )
+
+        filters.loc[m, 'match'] = (match1/2) + (match2/4) + (match3/4)
+    
+    matched = filters[filters['match1'] == 100]
+
+    if len(matched) == 0:
+        matched = filters[filters['match1'] >= 50]
+        if len(matched) == 0:
+            raise KeyError(
+                f"No matching filters."
+            )
+    
+    index = matched.index[matched['match'] == max(matched['match'])].to_list()[0]
+
+    filter_id = filters.loc[index,'filter_id']
+    lam = filters.loc[index,'lambda_eff']
+    lam_round = round(lam, -1)
+
+    if "AB" in system or "SDSS" in system:
+            zp = 3631e-23
+    else:
+            zp = np.float64(filters.loc[index,'zp_v'])*10**-23
+
+    # this factor is A_b / E(B-V)
+    R_v = factors.loc[lam_round, 'Rv']
+
+    return lam, zp, R_v, filter_id
+
+
+def ebv(grb: str, ra="", dec=""):
     r"""A function that returns the galactic extinction correction
        at a given position for a given band.
 
@@ -71,21 +196,39 @@ def ebv2A_b(grb: str, bandpass: str, ra="", dec=""):
     # see https://astronomy.swin.edu.au/cosmos/i/interstellar+reddening for an explanation of what this is
     ebv = sfd(skycoord)
 
-    # this factor is A_b / E(B-V)
-    factor = ebv2A_b_df["3.1"][bandpass]
+    return ebv
 
-    a_b = ebv * factor
 
-    return a_b  # [mag]
+@np.vectorize
+def toMag(
+    system: str,
+    fnu: float,
+    fnu_err: float = 0
+):
+
+    if system == 'AB':
+        c = -48.6
+    elif system == 'ST':
+        c = 8.9
+    else: # Anyother is assumed to be Johnson
+        c = 0.03
+
+    mag = -2.5 * np.log10(fnu) + c 
+    mag_err = 2.5 * fnu_err / (fnu * np.log(10))
+    
+    return mag, mag_err
+
 
 @np.vectorize
 def toFlux(
     band: str,
+    system: str,
+    telescope: str,
+    extcorr: float,
     mag: float,
     mag_err: float = 0,
     beta: float = 1,
     beta_err: float = 0,
-    A_b: float = None,
     grb: str = None,
     ra: str = None,
     dec: str = None
@@ -155,74 +298,21 @@ def toFlux(
     KeyError
         If a bandpass is not found in :py:data:`grblc.constants.photometry`.
     """
-    # assert bool(A_b != 0) ^ bool(grb) ^ bool(ra and dec), "Must provide either A_b or grb or ra, dec"
+    assert bool(extcorr != 0) ^ bool(grb) ^ bool(ra and dec), "Must provide either extcorr or grb or ra, dec"
     _check_dust_maps()
 
-    # conversion between magnitude systems http://astroweb.case.edu/ssm/ASTR620/mags.html
-    # unsupported Gunn magnitude system
-    # U_AB, u_AB unsupported
-    vega = 'Vega'
-    if band == 'UJ': # When J or B is an abbreviation for Johnson or Bessel
-        band ='U'
-    elif band == 'BJ':
-        band ='B'
-    elif band == 'VJ':
-        band ='V'
-    elif band == 'RJ' or band == 'RB':
-        band ='R'
-    elif band == 'CR':
-        band = 'Rc'
-    elif band == 'V_AB':
-        band = 'V'
-        mag += 0.044
-    elif band == 'B_AB':
-        band = 'B'
-        mag += 0.163
-    elif band == 'R_AB':
-        band = 'R'
-        mag -= 0.055
-    elif band == 'I_AB':
-        band = 'I'
-        mag -= 0.309
-    elif band == 'g_AB':
-        band = 'g'
-        mag += 0.013
-    elif band == 'r_AB':
-        band = 'R'
-        mag += 0.226
-    elif band == 'i_AB':
-        band = 'i'
-        mag += 0.296
-    elif band == "u'_AB":
-        band = "u'"
-    elif band == "g'_AB":
-        band = "g'"
-    elif band == "r'_AB":
-        band = "r'"
-    elif band == "i'_AB":
-        band = "i'"
-    elif band == "z'_AB":
-        band = "z'"
-    elif band == "Rc_AB":
-        band = "Rc"
-        mag -= 0.117
-    elif band == 'Ic_AB':
-        band = "Ic"
-        mag -= 0.342
-    elif vega.casefold() in band.casefold():
-        band = band.split(sep='_')[0] # Vega and Johnson are same http://astro.vaporia.com/start/vegasystem.html
-    else:
-        band = band
-
     try:
-        lambda_R, *__ = photometry["R"]  # lambda_R in angstrom
-        lambda_x, F_x, bandpass_for_ebv = photometry[band]
+        lambda_R, *__ = calibration("Johnson.R", system, "Gen") # lambda_R in angstrom # telescope shpuld be standardised
+        lambda_x, F_x, R_v, filter_id = calibration(band, system, telescope)
     except KeyError:
-        raise KeyError(f"Band '{band}' is not currently supported.")
+        raise KeyError(f"Band '{band}' of telescope '{telescope}' is not currently supported.")
 
     # get correction for galactic extinction to be added to magnitude if not already supplied
-    if A_b == None:
-        A_b = ebv2A_b(grb, bandpass_for_ebv, ra, dec)
+    
+    if extcorr == 'y' or True:
+        A_b = 0
+    if extcorr == 'n' or 'nan' or 'None' or False:
+        A_b = R_v * ebv(grb, ra, dec)
 
     # convert from flux density in another band to R!
     F_R = F_x * (lambda_x / lambda_R) ** (-beta)
@@ -231,33 +321,63 @@ def toFlux(
     # If flux density is given as F_nu (erg / cm2 / s / Hz)
     nu = (lambda_R * u.AA).to(u.Hz, equivalencies=u.spectral())
 
+    if "Johnson".lower() in system.lower() and "V" in band:
+        mag += 0.03
+
     flux = (nu * F_nu * 10 ** (-(mag + A_b) / 2.5)).value
 
-    # see https://youngsam.me/files/error_prop.pdf for derivation
     if mag_err == 0:
         flux_err = 0
     else:
         flux_err = (flux) * np.sqrt(
             (mag_err * np.log(10 ** (0.4))) ** 2 +
             (beta_err * np.log(lambda_x / lambda_R)) ** 2
-        )
+        ) ## see https://youngsam.me/files/error_prop.pdf for derivation
 
     assert np.all(flux >= 0), "Error computing flux."
     assert np.all(flux_err >= 0), "Error computing flux error."
-    return flux, flux_err
+    return flux, flux_err, filter_id
 
+
+@np.vectorize
+def toFlux_R(
+    band: str,
+    system: str,
+    telescope: str,
+    flux_x: float,
+    flux_err_x: float = 0,
+    beta: float = 1,
+    beta_err: float = 0
+):
+
+    try:
+        lambda_R, *__ = calibration("R", system, telescope) # lambda_R in angstrom
+        lambda_x, *__ = calibration(band, system, telescope)
+    except KeyError:
+        raise KeyError(f"Band '{band}' is not currently supported.")
+
+    # convert flux in another band to R
+    flux_R = flux_x * (lambda_x / lambda_R) ** (-beta)
+
+    flux_err_R = flux_R * np.sqrt(
+        (flux_err_x / flux_x) ** 2 +
+        (beta_err * np.log(lambda_x / lambda_R)) ** 2
+    )
+
+    assert np.all(flux_R >= 0), "Error computing flux."
+    assert np.all(flux_err_R >= 0), "Error computing flux error."
+    return flux_R, flux_err_R
 
 
 # main conversion function to call
 def convertGRB(
     GRB: str,
-    author: str = "",
     filename: str = None,
+    author: str = "",
     ra: str = "",
     dec: str = "",
     beta: float = 0,
     beta_err: float = 0,
-    extcorr: bool = False,
     ftol = None,
     debug: bool = False,
 ):
@@ -270,6 +390,9 @@ def convertGRB(
         "mag": np.float64,
         "mag_err": np.float64,
         "band": str,
+        "system": str,
+        "telescope": str,
+        "extcorr": str,
         "source": str,
     }
     names = list(dtype.keys())
@@ -294,20 +417,14 @@ def convertGRB(
             names=names,
             dtype=dtype,
             index_col=None,
-            header=None,
+            header=0,
             engine="python",
             encoding="ISO-8859-1"
         )
-        print(mag_table.head())
     except ValueError as error:
         raise error
     except IndexError:
         raise ImportError(message=f"Couldn't find GRB table at {filename}.")
-
-    if extcorr == True:
-        ext = 0
-    if extcorr == False:
-        ext = None
 
     converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band_init", "band_norm", "source")}
 
@@ -318,34 +435,45 @@ def convertGRB(
                 "time_sec",
                 "flux",
                 "flux_err",
-                "band",
-                "logF",
-                "logT",
-                "mag",
-                "mag_err",
+                #"logF",
+                #"logT",
+                #"mag",
+                #"mag_err",
+                "band_norm",
+                "band_init",
+                "band_match",
+                "telescope",
+                "system",
+                "extcorr",
+                "source"
             )
         }
 
     for __, row in mag_table.iterrows():
 
         time_sec = row["time_sec"]
-        magnitude = row["mag"]
+        mag = row["mag"]
         mag_err = row["mag_err"]
         band = row["band"]
+        system = row["system"]
+        telescope = row["telescope"]
+        extcorr = row["extcorr"]
         source = row["source"]
 
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
-            flux, flux_err = toFlux(
-                band,
-                magnitude,
-                mag_err,
-                beta,
-                beta_err,
-                A_b=ext,
+            flux, flux_err, filter_id = toFlux(
+                band=band,
+                system=system,
+                telescope=telescope,
+                extcorr=extcorr,
+                mag=mag,
+                mag_err=mag_err,
+                beta=beta,
+                beta_err=beta_err,
                 grb=GRB,
                 ra=ra,
-                dec=dec,
+                dec=dec
             )
         except KeyError as error:
             print(error)
@@ -363,17 +491,22 @@ def convertGRB(
 
         # verbosity if you want it
         if debug:
-            logF = np.log10(flux)
-            logT = np.log10(time_sec)
+            #logF = np.log10(flux)
+            #logT = np.log10(time_sec)
             converted_debug["time_sec"].append(time_sec)
             converted_debug["flux"].append(flux)
             converted_debug["flux_err"].append(flux_err)
-            converted_debug["logF"].append(logF)
-            converted_debug["logT"].append(logT)
-            converted_debug["mag"].append(magnitude)
-            converted_debug["mag_err"].append(mag_err)
-            converted["band_init"].append(band)
-            converted["band_norm"].append('R')
+            #converted_debug["logF"].append(logF)
+            #converted_debug["logT"].append(logT)
+            #converted_debug["mag"].append(mag)
+            #converted_debug["mag_err"].append(mag_err)
+            converted_debug["band_norm"].append('R')
+            converted_debug["band_init"].append(band)
+            converted_debug["band_match"].append(filter_id)
+            converted_debug["telescope"].append(telescope)
+            converted_debug["system"].append(system)
+            converted_debug["extcorr"].append(extcorr)
+            converted_debug["source"].append(source)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
@@ -386,116 +519,7 @@ def convertGRB(
         DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
 
 
-# small setter to set the main conversion directory
-def set_dir(dir):
-    global directory
-    directory = os.path.abspath(dir)
-    return directory
-
-
-# getter to return conversion directory
-def get_dir():
-    global directory
-    return directory
-
-
-# Converts all magnitude tables that are in the path format of
-# get_dir()/*_mag/<GRB>.txt
-def convert_all(debug=False):
-    # grab all filepaths for LCs in magnitude
-    filepaths = glob2.glob(reduce(os.path.join, (get_dir(), "*_mag", "*.txt")))
-    grbs = [
-        os.path.split(f)[1][:-4]
-        for f in filepaths
-        if os.path.split(f)[1].count("flux") == 0
-        and "trigger" not in f
-        and "spectral_index" not in f
-    ]
-
-    converted = []
-    unsupported = 0
-    unsupported_names = []
-    pts_skipped = 0
-    for GRB in grbs:
-        try:
-            convertGRB(GRB, debug=debug)
-            converted.append(GRB)
-        except ImportError as error:
-            unsupported += 1
-            unsupported_names.append(GRB)
-            print(error)
-            pass
-        except KeyError as error:
-            pts_skipped += 1
-            print(str(error).strip('"'))
-            pass
-        except Exception as error:
-            print(GRB)
-            raise error
-
-    print(
-        "\n" + "=" * 30 + "\nStats\nUnsupported:",
-        unsupported,
-        "\nTotal:",
-        len(grbs),
-        "\nSuccessfully Converted:",
-        len(converted),
-        "\nPoints skipped",
-        pts_skipped,
-    )
-
-    with open(os.path.join(get_dir(), "unsupported.txt"), "w") as f:
-        f.write("\n".join(unsupported_names))
-
-@np.vectorize
-def flux_to_R(
-    band: str,
-    flux_x: float,
-    flux_err_x: float = 0,
-    beta: float = 1,
-    beta_err: float = 0
-):
-
-    if band == 'v':
-        band ='V'
-    if band == 'h':
-        band ='H'
-    elif band == 'Z':
-        band ='z'
-    elif band == 'y':
-        band ='Y'
-    elif band == 'UJ':
-        band ='U'
-    elif band == 'BJ':
-        band ='B'
-    elif band == 'VJ':
-        band ='V'
-    elif band == 'RJ' or band == 'RB':
-        band ='R'
-    elif band == 'CR':
-        band = 'Rc'
-    else:
-        band = band
-
-    try:
-        lambda_R, *__ = photometry["R"]  # lambda_R in angstrom
-        lambda_x, *__ = photometry[band]
-    except KeyError:
-        raise KeyError(f"Band '{band}' is not currently supported.")
-
-    # convert flux in another band to R
-    flux_R = flux_x * (lambda_x / lambda_R) ** (-beta)
-
-    flux_err_R = flux_R * np.sqrt(
-        (flux_err_x / flux_x) ** 2 +
-        (beta_err * np.log(lambda_x / lambda_R)) ** 2
-    )
-
-    assert np.all(flux_R >= 0), "Error computing flux."
-    assert np.all(flux_err_R >= 0), "Error computing flux error."
-    return flux_R, flux_err_R
-
-def convertGRB_to_R(
+def normaliseGRB_to_R(
     GRB: str,
     author: str = "",
     filename: str = None,
@@ -543,7 +567,7 @@ def convertGRB_to_R(
 
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
-            flux_R, flux_err_R = flux_to_R(
+            flux_R, flux_err_R = toFlux_R(
                 band,
                 flux_x,
                 flux_err_x,
@@ -558,14 +582,107 @@ def convertGRB_to_R(
             continue
 
         converted["time_sec"].append(time_sec)
-        converted["flux_R"].append(flux_R)
-        converted["flux_err_R"].append(flux_err_R)
+        converted["flux"].append(flux_R)
+        converted["flux_err"].append(flux_err_R)
         converted["band_init"].append(band)
         converted["band_norm"].append('R')
         converted["source"].append(source)
 
         save_path = os.path.join(
-            os.path.dirname(filename), f"{GRB}_{author}_converted_flux_R.txt"
+            os.path.dirname(filename), f"{GRB}_{author}_normalised_flux.txt"
+        )
+        DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
+
+
+def convertGRB_f2F(
+    GRB: str,
+    filename: str,
+    author: str = "",
+    scale: str = "mu",
+    ra: str = "",
+    dec: str = "",
+    beta: float = 0,
+    beta_err: float = 0,
+    extcorr: bool = False,
+    ftol = None,
+    debug: bool = False,
+):
+
+    # assign column names and datatypes before importing
+    dtype = {
+        "time_sec": str,
+        "fnu_x": np.float64,
+        "fnu_err_x": np.float64,
+        "band": str,
+        "source": str,
+    }
+    names = list(dtype.keys())
+
+    # try to import magnitude table to convert
+    try:
+        global directory
+        fnu_table = read_csv(
+            filename,
+            delimiter=r"\t+|\s+",
+            names=names,
+            dtype=dtype,
+            index_col=None,
+            header=None,
+            engine="python",
+        )
+    except ValueError as error:
+        raise error
+    except IndexError:
+        raise ImportError(message=f"Couldn't find GRB table at {filename}.")
+
+    if extcorr == True:
+        ext = 0
+    if extcorr == False:
+        ext = None
+
+    converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band_init", "band_norm", "source")}
+
+    for __, row in fnu_table.iterrows():
+
+        time_sec = row["time_sec"]
+        fnu_x = row["fnu_x"]
+        fnu_err_x = row["fnu_err_x"]
+        band = row["band"]
+        source = row["source"]
+
+        # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
+        try:
+            mag, mag_err = toMag(
+                fnu_x,
+                fnu_err_x,
+            )
+            flux, flux_err = toFlux(
+                band,
+                mag,
+                mag_err,
+                beta,
+                beta_err,
+                A_b=ext,
+                grb=GRB,
+                ra=ra,
+                dec=dec,
+            )
+        except KeyError as error:
+            print(error)
+            continue
+
+        if ftol is not None and flux_err/flux> ftol:
+            continue
+
+        converted["time_sec"].append(time_sec)
+        converted["flux"].append(flux)
+        converted["flux_err"].append(flux_err)
+        converted["band_init"].append(band)
+        converted["band_norm"].append('R')
+        converted["source"].append(source)
+
+        save_path = os.path.join(
+            os.path.dirname(filename), f"{GRB}_{author}_converted_flux.txt"
         )
         DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
 
@@ -575,6 +692,7 @@ def _check_dust_maps():
     if not os.path.exists(os.path.join(data_dir(), "sfd")):
         from .sfd import sfd
         sfd.fetch()
+
 
 # sets directory to the current working directory, or whatever folder you're currently in
 directory = os.getcwd()
