@@ -1015,7 +1015,7 @@ class Lightcurve:
             
     
     def save_fitting(self, detailed=False, model_name=None, suffix=None):
-        FILE_DIR = path.join(path.dirname(get_dir()), "plots/"+ self.name + "/" + model_name)
+        FILE_DIR = path.join(path.abspath(get_dir()), "plots/"+ self.name + "/" + model_name)
         if not path.exists(FILE_DIR):
             makedirs(FILE_DIR)
         suffix = "_" + suffix if suffix is not None else ""
