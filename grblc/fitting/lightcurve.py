@@ -1033,7 +1033,7 @@ class Lightcurve:
         suffix = "_" + suffix if suffix is not None else ""
 
         if filename is None:
-            FILE_DIR = path.join(path.dirname(get_dir()), "plots/" + self.name + "/" + model_name)
+            FILE_DIR = path.join(path.abspath(get_dir()), "plots/" + self.name + "/" + model_name)
 
             if not path.exists(FILE_DIR):
                 makedirs(FILE_DIR)
@@ -1045,7 +1045,7 @@ class Lightcurve:
                 ),
             )
         else:
-            FILE_DIR = path.join(path.dirname(get_dir()), "plots/"+ self.name + "/" + model_name)
+            FILE_DIR = path.join(path.abspath(get_dir()), "plots/"+ self.name + "/" + model_name)
 
             if not path.exists(FILE_DIR):
                 makedirs(FILE_DIR)
