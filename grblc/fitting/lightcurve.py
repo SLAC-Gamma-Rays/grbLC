@@ -505,7 +505,9 @@ class Lightcurve:
             highest_prob = np.argmax(self.res.lnprob)
             highest_prob_loc = np.unravel_index(highest_prob, self.res.lnprob.shape)
             mle_soln = self.res.chain[highest_prob_loc]
-            for i, name in enumerate(self.params):
+            
+            i = 0
+            for name in self.params:
                 if self.params[name].vary:
                     self.params[name].value = mle_soln[i]
 
@@ -519,6 +521,8 @@ class Lightcurve:
                     errm = abs(median - quantiles[0])
 
                     self.params[name].stderr = np.mean([errp, errm])
+                    
+                    i+=1
 
         if show:
             self.show_fit()
