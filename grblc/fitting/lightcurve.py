@@ -784,7 +784,9 @@ class Lightcurve:
 
             if show:
                 plt.show()
-
+            else:
+                plt.close()
+                
         if (show_corner or detailed) and (getattr(self.res, "flatchain")) is not None:
             import corner
 
@@ -804,7 +806,9 @@ class Lightcurve:
 
             if show:
                 plt.show()
-
+            else:
+                plt.close()
+                
         if show_chisq or detailed:  # and getattr(self.res, "flatchain") is not None:
 
             num_varied = sum(self.params[p].vary for p in self.params)
@@ -880,7 +884,9 @@ class Lightcurve:
 
             if show:
                 plt.show()
-
+            else:
+                plt.close()
+                
         if print_res or detailed:
             self.print_fit(detailed, fix_flux)
         if bool(save_plots):
