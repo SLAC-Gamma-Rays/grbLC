@@ -2,46 +2,78 @@ import os
 
 import pandas as pd
 
-photometry = {
-    # The usual Landolt UBVRI & UKIRT JHK system
-    # from Bessell et al. (1998)http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
-    # * in angstrom (Å) | erg cm-2 s-1 Hz-1 | host extinction band
-    "U": [3600, 1.79e-20, "Landolt U"],
-    "B": [4380, 4.063e-20, "Landolt B"],
-    "V": [5450, 3.636e-20, "Landolt V"],
-    "R": [6410, 3.064e-20, "Landolt R"],
-    "I": [7980, 2.416e-20, "Landolt I"],
-    "J": [12200, 1.589e-20, "UKIRT J"],
-    "H": [16300, 1.021e-20, "UKIRT H"],
-    "K": [21900, 0.64e-20, "UKIRT K"],
-    # SDSS filters on the AB system
-    # from Fukugita et al. (1996) // http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
-    "u": [3560, 3631e-23, "SDSS u"],
-    "g": [4830, 3631e-23, "SDSS g"],
-    "r": [6260, 3631e-23, "SDSS r"],
-    "i": [7670, 3631e-23, "SDSS i"],
-    "z": [9100, 3631e-23, "SDSS z"],
-    # Swift UVOT filters
-    # from SVO Filter Profile Service (Rodrigo, C., Solano, E., 2020) //
-    # http://svo2.cab.inta-csic.es/theory/fps3/pavosa.php?oby=id&fid=Swift/UVOT.UVM2#Swift/UVOT.UVM2
-    "u_swift": [3520, 1480e-23, "Swift_u"],
-    "b_swift": [4346, 4060e-23, "Swift_b"],
-    "v_swift": [5411, 3636e-23, "Swift_v"],
-    "uvw1_swift": [2684, 981e-23, "Swift uvw1"],
-    "uvw2_swift": [2086, 760e-23, "Swift uvw2"],
-    "uvm2_swift": [2246, 770e-23, "Swift uvm2"],
-    # Additional various bands
-    # from https://coolwiki.ipac.caltech.edu/index.php/Central_wavelengths_and_zero_points
-    "Rc": [6550, 3080e-23, "CTIO R"],  # Cousins R, not Johnson R!
-    "Ic": [7996, 2432.84e-23, "CTIO I"],  # Cousins R, not Johnson R!
-    "Ks": [16620, 666.7e-23, "UKIRT K"],  # K sharp, not Johnson K!
-    "Z": [8817, 2232e-23, "SDSS z"],
-    "Y": [10305, 2026e-23, "DES Y"],
+
+defaultshift_toAB={
+            "U":[0.800527],
+            "B":[-0.107512],
+            "BM":[-0.107512],
+            "V":[0.006521],
+            "VM":[0.006521],
+            "R":[0.190278],
+            "unfiltered":[0.190278],
+            "clear":[0.190278],
+            "N":[0.190278],
+            "lum":[0.190278],
+            "RM":[0.190278],
+            "TR-rgb":[0.190278],
+            "IR-cut":[0.190278],
+            "CR":[0.190278],
+            "CV":[0.006521],
+            "I":[0.431372],
+            "Rc":[0.117],
+            "Ic":[0.342],
+            "Bj":[1.344],
+            "Vj":[0.006521],
+            "Uj":[0.800527],
+            "u":[0.9],
+            "g":[-0.125],
+            "g_Gunn":[-0.013],
+            "r":[0.119],
+            "r_Gunn":[-0.226], #https://lweb.cfa.harvard.edu/~dfabricant/huchra/ay145/mags.html
+            "i":[0.332],
+            "i_Gunn":[-0.296], #https://lweb.cfa.harvard.edu/~dfabricant/huchra/ay145/mags.html
+            "z":[0.494],
+            "z_Gunn":[0.494], #https://lweb.cfa.harvard.edu/~dfabricant/huchra/ay145/mags.html
+            "up":[0], #p='
+            "gp":[-0.125],
+            "rp":[0.119],
+            "ip":[0.332],
+            "zp":[0.494],
+            "H":[1.344],
+            "J":[0.87],
+            "K":[1.815],
+            "Ks":[1.814],
+            "Kp":[1.84],
+            "K'":[1.815], 
+            "Z":[0.489],
+            "Y":[0.591],
+            "q":[0.190278],
+            "w":[0.8],
+            "F220W":[1.683496],
+            "F250W":[1.495635],
+            "F330W":[1.097],
+            "F344N":[1.151053],
+            "F435W":[-0.129],
+            "F475W":[-0.122],
+            "F502N":[-0.083596],
+            "F550M":[0.024283],
+            "F555W":[-0.03],
+            "F606W":[0.063],
+            "F625W":[0.14],
+            "F658N":[0.376572],
+            "F660N":[0.278863],
+            "F775W":[0.364],
+            "F814W":[0.4],
+            "F850LP":[0.494],
+            "F892N":[0.487505]
 }
 
-table_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt"
-)
-ebv2A_b_df = pd.read_table(table_path, comment="#", index_col=0)
+path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
+path2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "reddening.txt")
+path3 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt")
 
-__all__ = ["photometry", "ebv2A_b_df"]
+filters = pd.read_csv(path1, sep='\s+', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
+adps = pd.read_csv(path2, sep='\t', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
+schafly = pd.read_csv(path3, sep='\t', header=0, index_col='lambda_eff')
+
+__all__ = ["filters", "adps", "schafly", "defaultshift_toAB"]
