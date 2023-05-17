@@ -19,7 +19,7 @@ def read_apikey():
     except:
         ImportError(
             f"""API key not found in {DEV_KEY_DIR}. Either set adsgrb.config.token manually or consider
-calling ads.set_apikey() to save the API key onto your system, bypassing the need to set your API key after
+calling adsgrb.set_apikey() to save the API key onto your system, bypassing the need to set your API key after
 each import. Your key can be found here: https://ui.adsabs.harvard.edu/user/settings/token."""
         )
 
