@@ -3,8 +3,10 @@ import re
 
 import numpy as np
 import pandas as pd
+import astropy.units as u
 
 from .constants import *
+from grblc.evolution import io
 from .sfd import data_dir
 
 path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
@@ -275,8 +277,6 @@ def calibration(band: str, telescope: str):
 
     ## Step 4: in case of no match, resort to generics
 
-    #standard = ['Johnson', 'Cousins', 'Bessel', 'Special', 'Tyson', 'SDSS', 'SuperSDSS', 'Stromgren', 'MKO', 'UKIRT', 'UKIDSS', 'PS1']
-
     if len(probablefilters) == 0:
       for id in matched_fil.index:
 
@@ -426,41 +426,21 @@ def correctGRB(
     grb: str,
     ra: str,
     dec: str,
-    filename: str = None,
+    path: str = None,
     save_in_folder: str = None,
     debug: bool = False,
 ):
-
-    # assign column names and datatypes before importing
-    dtype = {
-        'time_sec': np.float64,
-        'mag': np.float64,
-        'mag_err': np.float64,
-        'band': str,
-        'system': str,
-        'telescope': str,
-        'extcorr': str,
-        'source': str,
-    }
-    names = list(dtype.keys())
+    
+    assert bool(grb and ra and dec), "Must provide either grb name or location."
 
     # try to import magnitude table to convert
     try:
         global directory
-        mag_table = pd.read_csv(
-            filename,
-            delimiter=r'\t+|\s+',
-            names=names,
-            dtype=dtype,
-            index_col=None,
-            header=0,
-            engine='python',
-            encoding='ISO-8859-1'
-        )
+        mag_table = io.read_data(path, approximate_band=True)
     except ValueError as error:
         raise error
     except IndexError:
-        raise ImportError(message=f"Couldn't find grb table at {filename}.")
+        raise ImportError(message=f"Couldn't find grb table at {path}.")
 
     converted = {k: [] for k in ('time_sec', 'mag', 'mag_err', 'band', 'system', 'telescope', 'extcorr', 'source')}
 

@@ -28,7 +28,7 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
 
     try:
         # attempt importing the datafile with the header "n"
-        df = pd.read_csv(path, delimiter=r"\t+|\s+", header=n, engine="python")
+        data = pd.read_csv(path, delimiter=r"\t+|\s+", header=n, engine="python")
     except pd.errors.ParserError as pe:
         if debug:
             print("ParserError:", pe)
@@ -44,7 +44,7 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
             print(os.path.split(path)[-1], "is empty?")
             return -1
 
-    h = df.columns
+    h = data.columns
 
 
     # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
@@ -60,46 +60,72 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
         return n  # <-- the final stop in our recursion journey
 
 
-def read_data(path, header=-999, debug=False):
-    data = {}
-
-    if debug:
-        print("First 10 Lines:\n", "".join(open(path).readlines()[:10]))
+def read_data(path, header=-999, approximate_band=False):
 
     header = check_header(path) if header==-999 else header
 
     if header == -1:
         return
+    
+    dtype = {
+        "time_sec": np.float64,
+        "mag": np.float64,
+        "mag_err": np.float64,
+        "band": str,
+        "system": str,
+        "telescope": str,
+        "extcorr": str,
+        "source": str
+        }
 
-    df = pd.read_csv(path, delimiter=r"\t+|\s+", header=header, engine="python")
-    header = h = df.columns
-
-    time = df[h[0]]
-    mag = df[h[1]]
-    mag_err = df[h[2]]
-    band = df[h[3]]
-    system = df[h[4]]	
-    telescope = df[h[5]]
-    extcorr = df[h[6]]	
-    source = df[h[7]]
-
+    data = pd.read_csv(path, sep=r"\t+|\s+", 
+                  dtype=dtype,
+                  names=list(dtype.keys()),
+                  header=header, 
+                  index_col=None,
+                  engine="python").sort_values(by=['time_sec'])## correct
 
     try:
-        logtime = np.log10(time)
+        data['time_sec'] = np.log10(data['time_sec'])
     except Exception as e:
-        print("Issue with logT calculation:", time, e)
+        print("Issue with logT calculation: ", e)
 
-    if all(time > 0) and all(mag_err > 0):
-        data["time_sec"] = logtime
-        data["flux"] = mag
-        data["flux_err"] = mag_err
-        data["band"] = band
-        data['system'] = system
-        data['telescope'] = telescope
-        data['extcorr'] = extcorr
-        data['source'] = source
-    else:
-        raise ImportError("Some logT's are < 0... Ahh!")
+    data = data.reset_index(drop=True)
+
+    if approximate_band:
+        for j, filter in zip(data.index, data.band):
+            if filter=="u'":
+                data.loc[j, filter]="u"
+            if filter=="g'":
+                data.loc[j, filter]="g"            
+            if filter=="r'":
+                data.loc[j, filter]="r"
+            if filter=="i'":
+                data.loc[j, filter]="i"            
+            if filter=="z'":
+                data.loc[j, filter]="z"            
+            if filter=="BJ":
+                data.loc[j, filter]="B"            
+            if filter=="VJ":
+                data.loc[j, filter]="V"
+            if filter=="UJ":
+                data.loc[j, filter]="U"            
+            if filter=="RM":
+                data.loc[j, filter]="R"             
+            if filter=="BM":
+                data.loc[j, filter]="B"
+            if filter=="UM":
+                data.loc[j, filter]="U"            
+            if filter=="KS":
+                data.loc[j, filter]="K"  
+            if filter=="Ks":
+                data.loc[j, filter]="K"     
+            if filter=="K'":
+                data.loc[j, filter]="K" 
+            if filter=="Kp":
+                data.loc[j, filter]="K" 
+
+    
 
     return pd.DataFrame(data)
 
