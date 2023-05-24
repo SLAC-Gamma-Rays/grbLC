@@ -4,24 +4,40 @@ import re
 import numpy as np
 import pandas as pd
 
-#from .constants import *
+from .constants import *
 from .sfd import data_dir
 
 path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
 path2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "reddening.txt")
 path3 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt")
 
-filters = pd.read_csv(path1, sep='\t', header=0, index_col=0)
-adps = pd.read_csv(path2, sep='\t', header=0, index_col=0)
-schafly = pd.read_csv(path3, sep='\t', header=0, index_col='lam_round')
 
-# functions to count % match between two strings. stripcount() excludes special characters
+# count functions
 
 def count(str1, str2): 
+    '''
+    Counts how much percentage two strings match. 
+    
+    Input:
+    ------
+    str1, str2: strings
+    
+    Output:
+    ------
+    match: percentage match
+    '''
     
     str1 = re.sub(r"[\u02BB\u02BC\u066C\u2018\u201A\u275B\u275C\u0027\u02B9\u02BB\u02BC\u02BE\u02C8\u02EE\u0301\u0313\u0315\u055A\u05F3\u07F4\u07F5\u1FBF\u2018\u2019\u2032\uA78C\uFF07]", "p", str1)
     str2 = re.sub(r"[\u02BB\u02BC\u066C\u2018\u201A\u275B\u275C\u0027\u02B9\u02BB\u02BC\u02BE\u02C8\u02EE\u0301\u0313\u0315\u055A\u05F3\u07F4\u07F5\u1FBF\u2018\u2019\u2032\uA78C\uFF07]", "p", str2)
     
+    diff = len(str1) - len(str2)
+    if diff < 0:
+      temp = str1
+      str1 = str2
+      str2 = temp
+    else:
+      pass
+
     c, j = 0,0
     for i in str1:    
         if str2.find(i)>= 0 and j == str1.find(i): 
@@ -35,10 +51,30 @@ def count(str1, str2):
 
     return match
 
+
 def stripcount(str1, str2): 
+    '''
+    Counts how much percentage two strings match excluding special characters 
+    
+    Input:
+    ------
+    str1, str2: strings
+    
+    Output:
+    ------
+    match: percentage match excluding special characters
+    '''
 
     str1 = ''.join(i for i in str1 if i.isalnum()).lower() ## removes special characters
     str2 = ''.join(i for i in str2 if i.isalnum()).lower()
+
+    diff = len(str1) - len(str2)
+    if diff < 0:
+      str1 = str1 + ("-"*diff)
+    elif diff > 0:
+      str2 = str2 + ("-"*diff)
+    else:
+      pass
     
     c, j = 0,0
     for i in str1:    
@@ -53,107 +89,236 @@ def stripcount(str1, str2):
 
     return match
 
-def calibration(band: str, system: str, telescope: str):
 
-    ## initialising
+def count_hst(str1, str2):
+    '''
+    count() and stripcount() are not sequential leading to strings like F606W and F066W having 100% match. 
+    This function place emphasis on the numerical order which is important for HST-like filters.
+    
+    Input:
+    ------
+    str1, str2: strings
+    
+    Output:
+    ------
+    match: percentage match excluding special characters
+    '''
+    wave1 = re.findall("\d+", str1)
+    wave2 = re.findall("\d+", str2)
+    if wave1 == wave2:
+        str1="".join(re.findall("[a-zA-Z]+", str1))
+        str2="".join(re.findall("[a-zA-Z]+", str2))
+        match = count(str1, str2)
+    else:
+        match = 0
 
+    return match
+
+
+# function to match filter and telescope info to get band wavelength, zeropoint and extinction correction
+
+def calibration(band: str, telescope: str):
+
+    ## Step 1: initialising data input
+
+    ## finding the bandpass and filter in data
+    
     sep = ['-','_','.',',']
 
     j = 0
     for i in sep:
         if i in band:
             bandpass, filter = band.split(i)
-            if filter.lower in ["unfiltered", "clear"]:
-                filter = 'C'
+            if filter.lower in ['unfiltered', 'clear']:
+                filter = 'clear'
             else:
                 if len(filter) > len(bandpass):
                     filter, bandpass = band.split(i)
             j += 1
-    
     if j == 0:
         filter = band
-        bandpass = 'Johnson/Cousins/SDSS/UKIDSS/MKO/Swift'
+        bandpass = ''
+
+    ## assumptions
+
+    assume_R = ['-', '—', '|', '\\', '/', '35', '145', 'P-', 'P—', 'P|', 'P\\', 'P/', 'P', 'polarised', 'polarized', 'unfiltered', 'clear', 'CR', 'lum', 'N', 'IR-cut', 'TR-rgb', 'RM'] # q
+
+    for i in assume_R:
+      if filter.casefold() == i:
+        filter = 'Rc' ## Gendre's suggestion
+    
+    if filter == 'CV': ## CV clear calibrated as V
+      filter ='V'
+    
+    if filter == 'BJ':
+      filter = 'B'
+
+    if filter == 'VJ':
+      filter = 'V'        
         
-    if filter == 'CV': ## CV clear callibrated as V
-        filter ='V'
-    elif filter == 'CR': ## CR clear callibrated as R
-        filter ='R'
-    elif "P" in filter: ## Polarised is taken as clear
-        filter = 'C'
+    if filter == 'UJ':
+      filter = 'U'
+    
+    if filter == 'BM':
+      filter = 'B'    
+    
+    if filter == 'UM':
+      filter = 'U'  
 
-    ## match filters then bandpass then telescope
+    ## formatting
+    
+    if filter == 'KS':
+      filter = 'Ks'
+    
+    if filter == 'IC':
+      filter = 'Ic'
+    
+    if filter == 'RC':
+      filter = 'Rc'
+    
+    if filter == 'UB':
+      filter = 'U'
+    
+    if "'" in filter:
+        filter = filter.replace("'","p")
+        
+    if "*" in filter:
+        filter = filter.replace("*","p")
+    
+    if "+" in telescope:
+      telescope=telescope.split("+")[0]
+    
+    if "'" in filter:
+        filter = filter.replace("'","p")
+        
+    if "*" in filter:
+        filter = filter.replace("*","p")
+    
+    if "+" in telescope:
+      telescope=telescope.split("+")[0]
 
-    for id in filters.index:
-        grblc_fil = str(id).split(".")[3]
+    ## finding the observatory, telescope, instrument in data
 
-        match1 = count(grblc_fil, filter)
-        filters.loc[id, 'match1'] = match1
+    observatory, telescope, instrument = telescope.split('/') 
 
-    matched = filters[filters['match1'] == 100]
-    if len(matched) == 0:
-        matched = filters[filters['match1'] >= 50]
-        if len(matched) == 0:
-            raise KeyError(
-                f"No matching filters."
-            )
+    if instrument == 'CCD':
+      instrument = 'None'
 
-    for id in matched.index:
-        grblc_obs, grblc_tel, grblc_pass = str(id).split(".")[0:3]
-        if grblc_pass == "":
-            grblc_pass = grblc_obs
+    if "." in telescope:
+      telescope=telescope.replace(".", ",")
 
-        match2 = stripcount(grblc_pass, bandpass)
-        matched.loc[id, 'match2'] = match2
 
-    matched = matched[matched['match2'] > 0]
-    if len(matched) == 0:
+    ## Step 2: checking if the data filter exists in grblc filters
+
+    for id in filters.index:       
+      grblc_fil = str(id).split(".")[-1]
+      if len(filter) >= 5:
+        filters.loc[id, 'match_fil'] = count_hst(grblc_fil, filter)
+      else:
+        if grblc_fil == filter:
+          filters.loc[id, 'match_fil'] = 100
+        else:
+          filters.loc[id, 'match_fil'] = count(grblc_fil, filter)
+
+    matched_fil = filters.loc[filters['match_fil'] == 100]
+    if len(matched_fil) == 0 and len(filter) <= 2:
+      matched_fil = filters.loc[filters['match_fil'] >= 50]
+      if len(matched_fil) == 0:
         raise KeyError(
-            f"No matching filters."
-        )
+            f"No matching filters.")
+    elif len(matched_fil) == 0 and len(filter) > 2:
+       raise KeyError(
+            f"No matching filters.")
+      
+    ## Step 3: finding exact matches in observatory, telescope, instrument
 
-    for id in matched.index:
-        grblc_obs, grblc_tel = str(id).split(".")[0:2]
-        if grblc_pass == "":
-            grblc_pass = grblc_obs
+    probablefilters = []
+    
+    for id in matched_fil.index:
+      
+      grblc_obs, grblc_tel, grblc_ins, *__ = str(id).split(".")
+        
+      if grblc_obs.casefold() == observatory.casefold():
 
-        match3 = stripcount(grblc_obs+grblc_tel, telescope)
-        matched.loc[id, 'match3'] = match3
+        matched_fil.loc[id, 'match_obs'] = 'found'
 
-    matched = matched[matched['match3'] > 0]
-    if len(matched) == 0:
-        telescope = 'Gen/GCPD/Cat'
+        match_tel =  count(grblc_tel.casefold(), telescope.casefold())
+        match_ins =  count(grblc_ins.casefold(), instrument.casefold())
 
-        for id in matched.index:
-            grblc_obs, grblc_tel = str(id).split(".")[0:2]
-            if grblc_pass == "":
-                grblc_pass = grblc_obs
-            match3 = stripcount(grblc_obs+grblc_tel, telescope)
-            matched.loc[id, 'match3'] = match3
+        if match_tel == 100:
+          matched_fil.loc[id, 'match_tel'] = 1
+          if match_ins == 100:
+            matched_fil.loc[id, 'match_ins'] = match_ins
+          elif match_ins >= 50:
+            matched_fil.loc[id, 'match_ins'] = match_ins
+          else:
+            matched_fil.loc[id, 'match_ins'] = match_ins
 
-    matched = matched[matched['match3'] > 0]
-    if len(matched) == 0:
-        raise KeyError
+        elif match_tel >= 50:
+            matched_fil.loc[id, 'match_tel'] = 2
+            matched_fil.loc[id, 'match_ins'] = match_ins
 
-    matched['match'] = (matched['match1']/2) + (matched['match2']/4) + (matched['match3']/4)
-    index = matched.index[matched['match'] == max(matched['match'])].to_list()[0]
+        else:
+          matched_fil.loc[id, 'match_tel'] = 3
+          matched_fil.loc[id, 'match_ins'] = None
 
-    lam = matched.loc[index,'lambda_eff']
+      else:
+         matched_fil.loc[id, 'match_obs'] = None
+         matched_fil.loc[id, 'match_tel'] = None
+         matched_fil.loc[id, 'match_ins'] = None
+
+    matched_obs =  matched_fil.loc[matched_fil['match_obs'] == 'found']
+    if len(matched_obs) != 0:
+      matched_tel = matched_obs.loc[matched_obs['match_tel'] == np.max(matched_obs['match_tel'])]
+      matched_tel =  matched_tel.sort_values(by=['match_ins'])
+      probablefilters = list(matched_tel.index)
+
+    ## Step 4: in case of no match, resort to generics
+
+    #standard = ['Johnson', 'Cousins', 'Bessel', 'Special', 'Tyson', 'SDSS', 'SuperSDSS', 'Stromgren', 'MKO', 'UKIRT', 'UKIDSS', 'PS1']
+
+    if len(probablefilters) == 0:
+      for id in matched_fil.index:
+
+        grblc_obs = str(id).split(".")[0]
+
+        if grblc_obs.casefold()=='average':
+          matched_fil.loc[id, 'match_status'] = 1
+
+        elif grblc_obs.casefold()=='generic':
+          matched_fil.loc[id, 'match_status'] = 2
+          
+        elif grblc_obs.casefold()=='gcpd':
+          matched_fil.loc[id, 'match_status'] = 3
+
+        elif grblc_obs.casefold()=='catalog':
+          matched_fil.loc[id, 'match_status'] = 4
+
+        else:
+          matched_fil.loc[id, 'match_status'] = None
+
+      matched_gen =  matched_fil.sort_values(by=['match_status'], na_position='last')
+      probablefilters = list(matched_gen.index)
+
+    correctfilter = probablefilters[0]
+    
+    try:
+      lam = float(matched_fil.loc[correctfilter,'lambda_eff'])
+    except TypeError:
+      lam = float(matched_fil.loc[correctfilter,'lambda_eff'][0])
+    
     lam_round = round(lam, -1)
 
-    if "AB" in system or "SDSS" in system:
-            zp = 3631e-23
-    else:
-            zp = np.float64(matched.loc[index,'zp_v'])*10**-23
+    shift_toAB = matched_fil.loc[correctfilter,'mag_fromVega_toAB']
 
-    # this factor is A_x / E(B-V)
     try:
         coeff = schafly.loc[lam_round, '3.1']
-        ext = 'Schafly+11'
+        coeff_source = "Schafly+11"
     except KeyError:
         coeff = adps.loc[lam_round, 'coeff']
-        ext = 'APDS+02'
-
-    return lam, zp, coeff, index, ext
+        coeff_source = "APDS+02"
+    
+    return lam, shift_toAB, coeff, correctfilter, coeff_source
 
 
 def ebv(grb: str, ra="", dec=""):
@@ -217,250 +382,166 @@ def ebv(grb: str, ra="", dec=""):
     return ebv
 
 
+# conversion for mag in AB and corrected for extinction
 @np.vectorize
-def toMag(
-    system: str,
-    fnu: float,
-    fnu_err: float = 0
-):
+def toAB(grb: str,
+         ra: str,
+         dec: str,
+         band: str,
+         system: str,
+         extcorr: str,
+         telescope: str,
+         mag: float):
 
-    if system == 'AB':
-        c = -48.6
-    elif system == 'ST':
-        c = 8.9
-    else: # Anyother is assumed to be Johnson
-        c = 0.03
+    try:
+        lambda_x, shift_toAB, coeff, filter_id, coeff_source = calibration(band, telescope)
+    except KeyError:
+        raise KeyError(f"Band '{band}' of telescope '{telescope}' is not currently supported.")
 
-    mag = -2.5 * np.log10(fnu) + c 
-    mag_err = 2.5 * fnu_err / (fnu * np.log(10))
-    
-    return mag, mag_err
+    # get correction for galactic extinction to be added to magnitude if not already supplied
+    if extcorr == 'y':
+        mag_corr = mag    
+    else:
+        A_x = coeff * ebv(grb, ra, dec)
+        mag_corr = mag - A_x
+
+    if 'ab' or 'sdss' or 'panstarrs' in system.casefold:
+        mag_corr = mag_corr
+    else:
+        if shift_toAB != 'notfound':
+            mag_corr = mag_corr + float(shift_toAB)
+                    
+        else:
+            for i in defaultshift_toAB.keys():
+                if band==i:
+                    shiftAB=defaultshift_toAB[i]
+                    break
+            mag_corr = mag_corr + float(shiftAB)
+
+    return mag_corr, filter_id, coeff_source
 
 
 # main conversion function to call
-def convertGRB(
-    GRB: str,
+def correctGRB(
+    grb: str,
+    ra: str,
+    dec: str,
     filename: str = None,
-    ra: str = "",
-    dec: str = "",
-    beta: float = 0,
-    beta_err: float = 0,
-    ftol = None,
+    save_in_folder: str = None,
     debug: bool = False,
 ):
-    # make sure we have dust maps downloaded for calculating galactic extinction
-    _check_dust_maps()
 
     # assign column names and datatypes before importing
     dtype = {
-        "time_sec": np.float64,
-        "mag": np.float64,
-        "mag_err": np.float64,
-        "band": str,
-        "system": str,
-        "telescope": str,
-        "extcorr": str,
-        "source": str,
+        'time_sec': np.float64,
+        'mag': np.float64,
+        'mag_err': np.float64,
+        'band': str,
+        'system': str,
+        'telescope': str,
+        'extcorr': str,
+        'source': str,
     }
     names = list(dtype.keys())
-    #if use_nick:
-    #    names.insert(0, "nickname")  # add nickname column
-    #    dtype["nickname"] = str  # add nickname type
-
-    """ will import data using the following headers
-    IF: use_nick = False
-    | date | time_sec | mag | mag_err | band |
-    OR
-    IF: use_nick = True
-    | nickname | date_sec | exp | mag | mag_err | band |
-    """
 
     # try to import magnitude table to convert
     try:
         global directory
         mag_table = pd.read_csv(
             filename,
-            delimiter=r"\t+|\s+",
+            delimiter=r'\t+|\s+',
             names=names,
             dtype=dtype,
             index_col=None,
             header=0,
-            engine="python",
-            encoding="ISO-8859-1"
+            engine='python',
+            encoding='ISO-8859-1'
         )
     except ValueError as error:
         raise error
     except IndexError:
-        raise ImportError(message=f"Couldn't find GRB table at {filename}.")
+        raise ImportError(message=f"Couldn't find grb table at {filename}.")
 
-    converted = {k: [] for k in ("time_sec", "flux", "flux_err", "band_init", "band_norm", "source")}
+    converted = {k: [] for k in ('time_sec', 'mag', 'mag_err', 'band', 'system', 'telescope', 'extcorr', 'source')}
 
     if debug:
         converted_debug = {
             k: []
             for k in (
-                "time_sec",
-                "flux",
-                "flux_err",
-                "logF",
-                "logT",
-                "mag",
-                "mag_err",
-                "band_norm",
-                "band_init",
-                "band_match",
-                "telescope",
-                "system",
-                "extcorr",
-                "ext_method",
-                "source"
+                'time_sec',
+                'mag_corr',
+                'mag_init',
+                'mag_err',
+                'band',
+                'band_match',
+                'system_init',
+                'system_final',
+                'telescope',
+                'extcorr',
+                'coeff_source'
+                'mag_source'
             )
         }
 
     for __, row in mag_table.iterrows():
 
-        time_sec = row["time_sec"]
-        mag = row["mag"]
-        mag_err = row["mag_err"]
-        band = row["band"]
-        system = row["system"]
-        telescope = row["telescope"]
-        extcorr = row["extcorr"]
-        source = row["source"]
+        time_sec = row['time_sec']
+        mag = row['mag']
+        mag_err = row['mag_err']
+        system = row['system']
+        band = row['band']
+        telescope = row['telescope']
+        extcorr = row['extcorr']
+        source = row['source']
 
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
-            flux, flux_err, filter_id, ext = toFlux(
-                band=band,
-                system=system,
-                telescope=telescope,
-                extcorr=extcorr,
-                mag=mag,
-                mag_err=mag_err,
-                beta=beta,
-                beta_err=beta_err,
-                grb=GRB,
-                ra=ra,
-                dec=dec
-            )
+            mag_corr, filter_id, coeff_source = toAB(
+                grb,
+                ra,
+                dec,
+                band,
+                system,
+                extcorr,
+                telescope,
+                mag
+                )
         except KeyError as error:
-            print(error)
+            print("KeyError")
             continue
 
-        if flux_err/flux > ftol:
-            continue
-
-        converted["time_sec"].append(time_sec)
-        converted["flux"].append(flux)
-        converted["flux_err"].append(flux_err)
-        converted["band_init"].append(band)
-        converted["band_norm"].append('Rc')
-        converted["source"].append(source)
+        converted['time_sec'].append(time_sec)
+        converted['mag'].append(mag_corr)
+        converted['mag_err'].append(mag_err)
+        converted['band'].append(band)
+        converted['system'].append("AB")
+        converted['telescope'].append(telescope)
+        converted['extcorr'].append("y")
+        converted['source'].append(source)
 
         # verbosity if you want it
         if debug:
-            logF = np.log10(flux)
-            logT = np.log10(time_sec)
-            converted_debug["time_sec"].append(time_sec)
-            converted_debug["flux"].append(flux)
-            converted_debug["flux_err"].append(flux_err)
-            converted_debug["logF"].append(logF)
-            converted_debug["logT"].append(logT)
-            converted_debug["mag"].append(mag)
-            converted_debug["mag_err"].append(mag_err)
-            converted_debug["band_norm"].append('R')
-            converted_debug["band_init"].append(band)
-            converted_debug["band_match"].append(filter_id)
-            converted_debug["telescope"].append(telescope)
-            converted_debug["system"].append(system)
-            converted_debug["extcorr"].append(extcorr)
-            converted_debug["ext_method"].append(ext)
-            converted_debug["source"].append(source)
+            converted_debug['time_sec'].append(time_sec)
+            converted_debug['mag_corr'].append(mag_corr)
+            converted_debug['mag_init'].append(mag)
+            converted_debug['mag_err'].append(mag_err)
+            converted_debug['band_init'].append(band)
+            converted_debug['band_match'].append(filter_id)
+            converted_debug['system_init'].append(system)
+            converted_debug['system_final'].append("AB")
+            converted_debug['telescope'].append(system)
+            converted_debug['extcorr'].append("y")
+            converted_debug['coeff_source'].append(coeff_source)
+            converted_debug['mag_source'].append(source)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
-        save_path = os.path.join(os.path.dirname(filename), f"{GRB}_flux.txt")
-        DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
+        save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr.txt")
+        pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
     else:
-        save_path = os.path.join(
-            os.path.dirname(filename), f"{GRB}_flux_DEBUG.txt"
-        )
-        DataFrame.from_dict(converted_debug).to_csv(save_path, sep="\t", index=False)
+        save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr_DEBUG.txt")
+        pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
 
-
-def normaliseGRB_to_R(
-    GRB: str,
-    author: str = "",
-    filename: str = None,
-    beta: float = 0,
-    beta_err: float = 0,
-    ftol = None,
-):
-
-    # assign column names and datatypes before importing
-    dtype = {
-        "time_sec": np.float64,
-        "flux_x": np.float64,
-        "flux_err_x": np.float64,
-        "band": str,
-        "source": str,
-    }
-    names = list(dtype.keys())
-
-    # try to import magnitude table to convert
-    try:
-        global directory
-        flux_table = pd.read_csv(
-            filename,
-            delimiter=r"\t+|\s+",
-            names=names,
-            dtype=dtype,
-            index_col=None,
-            header=None,
-            engine="python",
-        )
-    except ValueError as error:
-        raise error
-    except IndexError:
-        raise ImportError(message=f"Couldn't find GRB table at {filename}.")
-
-    converted = {k: [] for k in ("time_sec", "flux_R", "flux_err_R", "band_init", "band_norm", "source")}
-
-    for __, row in flux_table.iterrows():
-
-        time_sec = row["time_sec"]
-        flux_x = row["flux_x"]
-        flux_err_x = row["flux_err_x"]
-        band = row["band"]
-        source = row["source"]
-
-        # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
-        try:
-            flux_R, flux_err_R = toFlux_R(
-                band,
-                flux_x,
-                flux_err_x,
-                beta,
-                beta_err
-            )
-        except KeyError as error:
-            print(error)
-            continue
-
-        if ftol is not None and flux_err_R/flux_R > ftol:
-            continue
-
-        converted["time_sec"].append(time_sec)
-        converted["flux"].append(flux_R)
-        converted["flux_err"].append(flux_err_R)
-        converted["band_init"].append(band)
-        converted["band_norm"].append('R')
-        converted["source"].append(source)
-
-        save_path = os.path.join(
-            os.path.dirname(filename), f"{GRB}_{author}_normalised_flux.txt"
-        )
-        DataFrame.from_dict(converted).to_csv(save_path, sep="\t", index=False)
 
 # simple checker that downloads the SFD dust map if it's not already there
 def _check_dust_maps():
