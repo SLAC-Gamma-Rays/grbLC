@@ -572,7 +572,7 @@ class Lightcurve:
 
                     plt.plot(x, y_fit, 
                             color=resc_slopes_df.loc[band]["plot_color"],
-                            label=str(band+ " " + str(resc_slopes_df.loc[band]["slope"])))
+                            label=str(band+ ": " + str(resc_slopes_df.loc[band]["slope"])))
 
                     if np.abs(resc_slopes_df.loc[band]['slope']) < 0.1:
                         resc_slopes_df.loc[band]['comment'] = "no color evolution"
@@ -590,7 +590,8 @@ class Lightcurve:
         plt.title('Rescaling factors for '+ str(self.name))
         plt.xlabel('log10 Time (sec)')
         plt.ylabel('Rescale factors wrt '+mostcommonfilter+' (mag)')
-        plt.legend()
+        plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
+        plt.tight_layout
         plt.show()
 
         if save_plot:
