@@ -355,7 +355,7 @@ class Lightcurve:
                 ay = tail[1], #arrow tail coordinate_y
                 axref= "x", #reference axis of arrow tail coordinate_x
                 ayref= "y", #reference axis of arrow tail coordinate_y
-                arrowhead=0, #annotation arrow head style, from 0 to 8
+                arrowhead=3, #annotation arrow head style, from 0 to 8
                 ))
 
         #update_layout with annotations
@@ -414,7 +414,7 @@ class Lightcurve:
         if save_interactive:
             fig.write_html(save_in_folder+self.name+'.html')
     
-    def colorevolGRB(self, return_rescaledf=True, save_plot=False, save_in_folder=''):
+    def colorevolGRB(self, return_rescaledf=False, save_plot=False, save_in_folder=''):
 
         light = pd.DataFrame()
         light['time_sec'] = self.xdata
@@ -499,6 +499,8 @@ class Lightcurve:
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         # Plot each species
+        fig = plt.figure()
+
         for i, band in enumerate(filters):
             colour = scalarMap.to_rgba(i)
             index = rescale_df['band'] == band
@@ -582,7 +584,8 @@ class Lightcurve:
                 else:
                     resc_slopes_df.loc[band]['comment'] = "slope=0"  
 
-        resc_slopes_df = resc_slopes_df.drop('plot_color', axis=1)
+        rescale_df.drop(labels='plot_color', axis=1, inplace=True)
+        resc_slopes_df.drop(labels='plot_color', axis=1, inplace=True)
         
         plt.title('Rescaling factors for '+ str(self.name))
         plt.xlabel('log10 Time (sec)')
@@ -594,10 +597,9 @@ class Lightcurve:
             plt.savefig(os.path.join(save_in_folder+'/'+save_in_folder+'/'+str(self.name)+'_colorevol.png'))
 
         if return_rescaledf:
-            rescale_df.drop(labels='plot_color', axis=1, inplace=True)
-            return rescale_df, resc_slopes_df
+            return rescale_df
 
-        return resc_slopes_df
+        return fig, resc_slopes_df
 
 
 
