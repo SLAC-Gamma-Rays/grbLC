@@ -11,6 +11,7 @@ import lmfit as lf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
+import plotly.express as px
 #from matplotlib.figure import Figure
 
 # custom modules
@@ -26,10 +27,11 @@ class Lightcurve:
     def __init__(
         self,
         path: str = None,
-        xdata=None,
-        ydata=None,
-        xerr=None,
-        yerr=None,
+        xdata: np.float64 = None,
+        ydata: np.float64 = None,
+        xerr: np.float64 = None,
+        yerr: np.float64 = None,
+        band: str = None,
         data_space: str = "log",
         name: str = None,
     ):
@@ -82,11 +84,11 @@ class Lightcurve:
                     "{}_flux.txt".format(self.name.replace(" ", "_").replace(".", "p")),
                 ],
             )
-            self.set_data(xdata, ydata, xerr, yerr, data_space=data_space)
+            self.set_data(xdata, ydata, xerr, yerr, band, data_space=data_space)
 
 
     def set_bounds(
-        self, bounds=None, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
+        self, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
     ):
         """Sets the bounds on the xdata and ydata to (1) plot and (2) fit with. Either
             provide bounds or xmin, xmax, ymin, ymax. Assumes data is already in log
@@ -106,18 +108,6 @@ class Lightcurve:
         ymax : float, optional
             Maximum y, by default np.inf
         """
-        # assert that either bounds or any of xmin, xmax, ymin, ymax is not None,
-        # but prohibiting both to be true
-        assert (bounds is not None) ^ any(
-            np.isfinite(x) for x in [xmin, xmax, ymin, ymax]
-        ), "Must provide bounds or xmin, xmax, ymin, ymax."
-
-        if bounds is not None:
-            xmin, xmax, ymin, ymax = self.model.bounds = bounds
-        else:
-            for i, x in enumerate([xmin, xmax, ymin, ymax]):
-                if np.isfinite(x):
-                    self.model.bounds[i] = x
 
         xmask = (xmin <= self.xdata) & (self.xdata <= xmax)
         ymask = (ymin <= self.ydata) & (self.ydata <= ymax)
@@ -126,7 +116,7 @@ class Lightcurve:
         self.set_data(self.xdata, self.ydata, self.xerr, self.yerr, data_space="log")
 
 
-    def set_data(self, xdata, ydata, xerr=None, yerr=None, data_space="log"):
+    def set_data(self, xdata, ydata, xerr=None, yerr=None, band=None, data_space="log"):
         """Set the `xdata` and `ydata`, and optionally `xerr` and `yerr` of the lightcurve.
 
         .. warning::
@@ -179,6 +169,7 @@ class Lightcurve:
         self.orig_yerr = convert_err(ydata, yerr) if yerr is not None else None
         self.xerr = self.orig_xerr[self.mask] if xerr is not None else None
         self.yerr = self.orig_yerr[self.mask] if yerr is not None else None
+        self.band = band
 
 
     def exclude_range(self, xs=(), ys=(), data_space="log"):
@@ -278,7 +269,7 @@ class Lightcurve:
         plot_fig = plt.figure(**fig_dict)
         ax = plot_fig.add_subplot(1, 1, 1)
 
-        xmin, xmax, ymin, ymax = self.model.bounds
+        xmin, xmax, ymin, ymax = -np.inf, +np.inf, np.inf, +np.inf
         logt = self.orig_xdata
         mag = self.orig_ydata
         logterr = self.orig_xerr
@@ -317,101 +308,159 @@ class Lightcurve:
 
         ax.set_xlim(ax_xlim)
         ax.set_ylim(ax_ylim)
-        ax.set_xlabel("log time (sec)")
-        ax.set_ylabel("AB magnitude")
+        ax.set_xlabel("log10 Time (sec)")
+        ax.set_ylabel("Magnitudes")
         ax.set_title(self.name)
 
         plt.show()
-
-    def _res(self, params):
-        p = params.valuesdict().values()
-        return (self.model.func(self.xdata, *p) - self.ydata) / self.sigma
 
     def _overlap(start1, end1, start2, end2):
         #how much does the range (start1, end1) overlap with (start2, end2)
         return max(max((end2-start1), 0) - max((end2-end1), 0) - max((start2-start1), 0), 0)
         
-    def displayGRB():
+    def displayGRB(self, save_static=False, save_static_type='.png', save_interactive=False, save_in_folder='plots/'):
         '''
         For an interactive plot
         '''
-        return
-    
-    def colorevolGRB(self, save_plot=False, save_in_folder=''):
 
-        time_sec = self.xdata
-        mag = self.ydata
-        mag_err = self.yerr
-        band = self.band
+        fig = px.scatter(
+                    x=self.xdata,
+                    y=self.ydata,
+                    error_y=self.yerr,
+                    color=self.band,
+                    #symbol=data['marker'],
+                    #hover_data=['Source', 'Telescope'],
+                )
 
-        assert len(band)>1, "Has only one data point."
+        headpoint_list = []
+        for t,m,e in zip(self.xdata,self.ydata,self.yerr):
+            if e == 0:
+                headpoint_list.append((t, m))
 
-        filterslist=[[x, band.count(x)] for x in set(band)]
-    
-        freq=[]
-        freq1=[]
-        freqfinal=[]
-        for k in band:
-            for j in filterslist:
-                if j[0]==k:
-                    freq.append(str(k)+' ('+str(j[1])+')')
-                    freq1.append([k,j[1]])
-                    freqfinal.append(j[1])
+        tailpoint_list = [(i, j+1) for (i, j) in headpoint_list]
+
+        #make a list of go.layout.Annotation() for each pair of arrow head and tail
+        arrows = []
+        for head, tail in zip(headpoint_list, tailpoint_list):
+            arrows.append(dict(
+                x= head[0], #x position of arrowhead
+                y= head[1], #y position of arrowhead
+                showarrow=True,
+                xref = "x", #reference axis of arrow head coordinate_x
+                yref = "y",#reference axis of arrow head coordinate_y
+                arrowcolor="gray", #color of arrow
+                arrowsize = 1.5, #size of arrow head
+                arrowwidth = 2, #width of arrow line
+                ax = tail[0], #arrow tail coordinate_x
+                ay = tail[1], #arrow tail coordinate_y
+                axref= "x", #reference axis of arrow tail coordinate_x
+                ayref= "y", #reference axis of arrow tail coordinate_y
+                arrowhead=0, #annotation arrow head style, from 0 to 8
+                ))
+
+        #update_layout with annotations
+        fig.update_layout(annotations=arrows)
+
+        font_dict=dict(family='arial',
+                    size=18,
+                    color='black'
+                    )
+
+        fig['layout']['yaxis']['autorange'] = 'reversed'
+        fig.update_yaxes(title_text="<b>Magnitude<b>",
+                        title_font_color='black',
+                        title_font_size=18,
+                        showline=True,
+                        showticklabels=True,
+                        showgrid=False,
+                        linecolor='black', 
+                        linewidth=2.4, 
+                        ticks='outside', 
+                        tickfont=font_dict,
+                        mirror='allticks', 
+                        tickwidth=2.4, 
+                        tickcolor='black',  
+                        )
+
+        fig.update_xaxes(title_text="<b>log10 Time (s)<b>",
+                        title_font_color='black',
+                        title_font_size=18,
+                        showline=True,
+                        showticklabels=True,
+                        showgrid=False,
+                        linecolor='black',
+                        linewidth=2.4,
+                        ticks='outside',
+                        tickfont=font_dict,
+                        mirror='allticks',
+                        tickwidth=2.4,
+                        tickcolor='black',
+                        )
+
+        fig.update_layout(title="GRB " + self.name,
+                        title_font_size=25,
+                        font=font_dict,
+                        plot_bgcolor='white',  
+                        width=960,
+                        height=540,
+                        margin=dict(l=40,r=40,t=50,b=40)
+                        )
         
-        freq_set = set(tuple(x) for x in freq1)
-        occurrences = [list(x) for x in freq_set]
-        sortedoccur=sorted(occurrences,key=lambda x: int(x[1]),reverse=True)
+        fig.show()
 
-        # When we assign the filterposition variable, we are placing another filter in place of the most numerous
-        filterposition=0 # for example, with filterposition=1 we are considering the second most numerous filter for rescaling
-        # for example, if we put 4 we are cosidering the third most numerous filter (due to Python counting with zero as first element etc.)
-        
-        if filterposition!=0:
-            sortedoccur[0],sortedoccur[filterposition]=sortedoccur[filterposition],sortedoccur[0]
-            print(sortedoccur)
-            print(' ')
-        else:
-            print('The most numerous filter is considered for rescaling')
+        if save_static:
+            fig.write_image(save_in_folder+self.name+save_static_type)
+
+        if save_interactive:
+            fig.write_html(save_in_folder+self.name+'.html')
+    
+    def colorevolGRB(self, return_rescaledf=True, save_plot=False, save_in_folder=''):
+
+        light = pd.DataFrame()
+        light['time_sec'] = self.xdata
+        light['mag'] = self.ydata
+        light['mag_err'] = self.yerr
+        light['band'] = self.band
+
+        assert len(light)>1, "Has only one data point."
+
+        occur = light['band'].value_counts()
+        filterslist = occur.index
+        #data['occur']=data['band'].map(data['band'].value_counts())
         
         
         # Identifying the most numerous filter in the GRB 
-        mostcommonfilter=sortedoccur[0][0]
-        scalingfactorslist=[[sortedoccur[0][0],sortedoccur[0][1],[[0,0,0]]]] 
-        
-        print('The most numerous filter of this GRB: ',sortedoccur[0][0],', with', sortedoccur[0][1], 'occurrences')
+        mostcommonfilter = occur.index[0]
+        mostcommonfilter_occur = occur[0]
 
-        light = pd.DataFrame()
-        light['time_sec'] = time_sec
-        light['mag'] = mag
-        light['mag_err'] = mag_err
-        light['band'] = band
+        print('The most numerous filter of this GRB: ',mostcommonfilter,', with', mostcommonfilter_occur, 'occurrences.\n'+
+              'The most numerous will be considered for rescaling')
         
-        mostcommonlight=light.loc[(light['band'] == mostcommonfilter) & (np.log10(light['time_sec']) > 0)].to_dict('list')
-            
-        mostcommonx=np.log10(mostcommonlight['time_sec'])
-        mostcommony=mostcommonlight['mag']
-        mostcommonyerr=mostcommonlight['mag_err']  
+        scalingfactorslist = [[mostcommonfilter, mostcommonfilter_occur, [[0,0,0]]]] ## since the most common filter is not scaled
         
-        for j in range(1,len(sortedoccur)):
-            scalingfactorslist.append([sortedoccur[j][0],sortedoccur[j][1],[]])
+        mostcommonlight=light.loc[(light['band'] == mostcommonfilter)]
+        mostcommonx=mostcommonlight['time_sec'].values
+        mostcommony=mostcommonlight['mag'].values  
+        mostcommonyerr=mostcommonlight['mag_err'].values  
+        
+        for j in range(1, len(occur)):
+            scalingfactorslist.append([occur.index[j],occur[j],[]])
         
         evolutionrescalingfactor=[]
         
-        for j in range(1,len(sortedoccur)):
+        for j in range(1,len(occur)):
             
-            sublight=light.loc[(light['band'] == sortedoccur[j][0]) 
-                                        & (np.log10(light['time_sec']) > 0)].to_dict('subset')
-            subx=np.log10(sublight['time_sec'].values)
+            sublight=light.loc[(light['band'] == occur.index[j])]
+            subx=sublight['time_sec'].values
             suby=sublight['mag'].values
             suberror_y=sublight['mag_err'].values
             
             timediff = [[p1,p2] for p1 in range(len(mostcommonx)) for p2 in range(len(subx)) if np.log10(np.abs(10**mostcommonx[p1]-10**subx[p2]))<=np.log10((10**mostcommonx[p1])*2.5/100)]
-        
+
             if len(timediff)!=0:
                 for ll in timediff:
                     sf2=[subx[ll[1]],mostcommony[ll[0]]-suby[ll[1]],np.log10(np.abs(10**mostcommonx[ll[0]]-10**subx[ll[1]])),mostcommonyerr[ll[0]]+suberror_y[ll[1]]]
                     scalingfactorslist[j][2].append(sf2)  
-        
 
         for fl in scalingfactorslist:
 
@@ -425,7 +474,6 @@ class Lightcurve:
                 
                 evolutionrescalingfactor.append([fl[0],fl[1],suppllist[mindistpos]])    
                 
-            
         finalevolutionlist=evolutionrescalingfactor 
         finalevolutionlist=sorted(finalevolutionlist, key=lambda finalevolutionlist: finalevolutionlist[2][0])
       
@@ -438,9 +486,6 @@ class Lightcurve:
         
         rescale_df=pd.DataFrame(list(zip(filt,filtoccur,resctime,rescfact,
                                                     rescfacterr,rescfactweights)),columns=['band','Occur_band','Log10(t)','Resc_fact','Resc_fact_err','Resc_fact_weights'])
-        
-        def rescaleGRB():
-            return rescale_df
 
         x_all = rescale_df['Log10(t)']
         y_all = rescale_df['Resc_fact']
@@ -467,7 +512,7 @@ class Lightcurve:
                         ls='',
                         color=colour
                         )
-        for j in rescale_df[index].index:
+        for j in rescale_df.index:
             rescale_df.at[j,"plot_color"] = colour
 
         resc_slopes_df = pd.DataFrame()
@@ -484,72 +529,73 @@ class Lightcurve:
         for band in resc_slopes_df.index:
             ind = rescale_df.index[rescale_df['band'] == band][0]
             resc_slopes_df.loc[band]['plot_color'] = rescale_df.loc[ind]["plot_color"]
+            resc_band_df = rescale_df[rescale_df['band'] == band]
 
-        resc_band_df = rescale_df[rescale_df['band'] == band]
-
-        x = resc_band_df['Log10(t)']
-        y = resc_band_df['Resc_fact']
-        weights = resc_band_df['Resc_fact_weights']
-        
-        ## lmfit linear
-
-        if len(x) >= 3:
-            linear_model = lf.models.LinearModel(prefix='line_')
-            linear_params = linear_model.make_params()
+            x = resc_band_df['Log10(t)']
+            y = resc_band_df['Resc_fact']
+            weights = resc_band_df['Resc_fact_weights']
             
-            linear_params['line_slope'].set(value=-1.0)
-            linear_params['line_intercept'].set(value=np.max(y))
+            ## lmfit linear
 
-            linear_fit = linear_model.fit(y, params=linear_params, x=x, weights=weights)
-            
-            resc_slopes_df.loc[band]['slope'] = np.around(linear_fit.params['line_slope'].value, decimals=4)
-            resc_slopes_df.loc[band]['slope_err'] = np.around(linear_fit.params['line_slope'].stderr, decimals=4)
-            resc_slopes_df.loc[band]['intercept'] = np.around(linear_fit.params['line_intercept'].value, decimals=4)
-            resc_slopes_df.loc[band]['inter_err'] = np.around(linear_fit.params['line_intercept'].stderr, decimals=4)
-            resc_slopes_df.loc[band]['acceptance'] = np.around(np.abs(resc_slopes_df.loc[band]['slope_err']/resc_slopes_df.loc[band]['slope']), decimals=4)
-            resc_slopes_df.loc[band]['red_chi2'] = np.around(linear_fit.redchi, decimals=4)
-            
-        else: # not enough data points
-            resc_slopes_df.loc[band]['slope'] = 0
-            resc_slopes_df.loc[band]['slope_err'] = 0
-            resc_slopes_df.loc[band]['intercept'] = 0
-            resc_slopes_df.loc[band]['inter_err'] = 0
-            resc_slopes_df.loc[band]['acceptance'] = 0
-            resc_slopes_df.loc[band]['comment'] = "insufficient data"
-            resc_slopes_df.loc[band]['red_chi2'] = 'insufficient data'
-            
-        if resc_slopes_df.loc[band]['slope'] != 0:
-            if resc_slopes_df.loc[band]['acceptance'] < 10000: #put ad-hoc to have all the plots
+            if len(x) >= 3:
+                linear_model = lf.models.LinearModel(prefix='line_')
+                linear_params = linear_model.make_params()
+                
+                linear_params['line_slope'].set(value=-1.0)
+                linear_params['line_intercept'].set(value=np.max(y))
 
-                y_fit = resc_slopes_df.loc[band]['slope'] * x + resc_slopes_df.loc[band]['intercept']
-                y_fit_err = resc_slopes_df.loc[band]['slope_err'] * x + resc_slopes_df.loc[band]['inter_err']
+                linear_fit = linear_model.fit(y, params=linear_params, x=x, weights=weights)
+                
+                resc_slopes_df.loc[band]['slope'] = np.around(linear_fit.params['line_slope'].value, decimals=4)
+                resc_slopes_df.loc[band]['slope_err'] = np.around(linear_fit.params['line_slope'].stderr, decimals=4)
+                resc_slopes_df.loc[band]['intercept'] = np.around(linear_fit.params['line_intercept'].value, decimals=4)
+                resc_slopes_df.loc[band]['inter_err'] = np.around(linear_fit.params['line_intercept'].stderr, decimals=4)
+                resc_slopes_df.loc[band]['acceptance'] = np.around(np.abs(resc_slopes_df.loc[band]['slope_err']/resc_slopes_df.loc[band]['slope']), decimals=4)
+                resc_slopes_df.loc[band]['red_chi2'] = np.around(linear_fit.redchi, decimals=4)
+                
+            else: # not enough data points
+                resc_slopes_df.loc[band]['slope'] = 0
+                resc_slopes_df.loc[band]['slope_err'] = 0
+                resc_slopes_df.loc[band]['intercept'] = 0
+                resc_slopes_df.loc[band]['inter_err'] = 0
+                resc_slopes_df.loc[band]['acceptance'] = 0
+                resc_slopes_df.loc[band]['comment'] = "insufficient data"
+                resc_slopes_df.loc[band]['red_chi2'] = 'insufficient data'
+                
+            if resc_slopes_df.loc[band]['slope'] != 0:
+                if resc_slopes_df.loc[band]['acceptance'] < 10000: #put ad-hoc to have all the plots
 
-                plt.plot(x, y_fit, 
-                        color=resc_slopes_df.loc[band]["plot_color"],
-                        label=str(band+ " " + str(resc_slopes_df.loc[band]["slope"])))
+                    y_fit = resc_slopes_df.loc[band]['slope'] * x + resc_slopes_df.loc[band]['intercept']
+                    y_fit_err = resc_slopes_df.loc[band]['slope_err'] * x + resc_slopes_df.loc[band]['inter_err']
 
-                if np.abs(resc_slopes_df.loc[band]['slope']) < 0.1:
-                    resc_slopes_df.loc[band]['comment'] = "no color evolution"
-                elif resc_slopes_df.loc[band]['slope']-(3*resc_slopes_df.loc[band]['slope_err'])<=0<=resc_slopes_df.loc[band]['slope']+(3*resc_slopes_df.loc[band]['slope_err']):
-                    resc_slopes_df.loc[band]['comment'] = "no color evolution"
-                else:    
-                    resc_slopes_df.loc[band]['comment'] = "slope >= 0.1"
+                    plt.plot(x, y_fit, 
+                            color=resc_slopes_df.loc[band]["plot_color"],
+                            label=str(band+ " " + str(resc_slopes_df.loc[band]["slope"])))
 
-            else:
-                resc_slopes_df.loc[band]['comment'] = "slope=0"         
+                    if np.abs(resc_slopes_df.loc[band]['slope']) < 0.1:
+                        resc_slopes_df.loc[band]['comment'] = "no color evolution"
+                    elif resc_slopes_df.loc[band]['slope']-(3*resc_slopes_df.loc[band]['slope_err'])<=0<=resc_slopes_df.loc[band]['slope']+(3*resc_slopes_df.loc[band]['slope_err']):
+                        resc_slopes_df.loc[band]['comment'] = "no color evolution"
+                    else:    
+                        resc_slopes_df.loc[band]['comment'] = "slope >= 0.1"
+
+                else:
+                    resc_slopes_df.loc[band]['comment'] = "slope=0"  
+
         resc_slopes_df = resc_slopes_df.drop('plot_color', axis=1)
         
-        plt.title('Rescaling factors for '+ str(self.name),fontsize=18)
-        plt.xlabel('log10(t) (s)',fontsize=18)
-        plt.ylabel('rf ('+mostcommonfilter+' - other filters) (mag)',fontsize=18)
-        plt.rcParams['figure.figsize'] = [15, 10]
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
-        plt.legend(fontsize=10)
+        plt.title('Rescaling factors for '+ str(self.name))
+        plt.xlabel('log10 Time (sec)')
+        plt.ylabel('Rescale factors wrt '+mostcommonfilter+' (mag)')
+        plt.legend()
         plt.show()
 
         if save_plot:
             plt.savefig(os.path.join(save_in_folder+'/'+save_in_folder+'/'+str(self.name)+'_colorevol.png'))
+
+        if return_rescaledf:
+            rescale_df.drop(labels='plot_color', axis=1, inplace=True)
+            return rescale_df, resc_slopes_df
 
         return resc_slopes_df
 

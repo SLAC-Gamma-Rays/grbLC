@@ -88,7 +88,7 @@ def read_data(path, header=-999, approximate_band=False):
     try:
         data['time_sec'] = np.log10(data['time_sec'])
     except Exception as e:
-        print("Issue with logT calculation: ", e)
+        print("Issue with logT calculation. Check if negative values are given for time.\nError:", e)
 
     data = data.reset_index(drop=True)
 
@@ -125,7 +125,7 @@ def read_data(path, header=-999, approximate_band=False):
             if filter=="Kp":
                 data.loc[j, filter]="K" 
 
-    
+    data = data[data['time_sec']>0]
 
     return pd.DataFrame(data)
 
