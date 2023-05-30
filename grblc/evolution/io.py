@@ -92,39 +92,6 @@ def read_data(path, header=-999, approximate_band=False):
 
     data = data.reset_index(drop=True)
 
-    if approximate_band:
-        for j, filter in zip(data.index, data.band):
-            if filter=="u'":
-                data.loc[j, filter]="u"
-            if filter=="g'":
-                data.loc[j, filter]="g"            
-            if filter=="r'":
-                data.loc[j, filter]="r"
-            if filter=="i'":
-                data.loc[j, filter]="i"            
-            if filter=="z'":
-                data.loc[j, filter]="z"            
-            if filter=="BJ":
-                data.loc[j, filter]="B"            
-            if filter=="VJ":
-                data.loc[j, filter]="V"
-            if filter=="UJ":
-                data.loc[j, filter]="U"            
-            if filter=="RM":
-                data.loc[j, filter]="R"             
-            if filter=="BM":
-                data.loc[j, filter]="B"
-            if filter=="UM":
-                data.loc[j, filter]="U"            
-            if filter=="KS":
-                data.loc[j, filter]="K"  
-            if filter=="Ks":
-                data.loc[j, filter]="K"     
-            if filter=="K'":
-                data.loc[j, filter]="K" 
-            if filter=="Kp":
-                data.loc[j, filter]="K" 
-
     data = data[data['time_sec']>0]
 
     return pd.DataFrame(data)

@@ -125,7 +125,7 @@ class Scraper:
 
         # TODO: Understand this and comment.
         for fileName in gcns:
-            file = open(fileName, encoding="utf8", errors="ignore")
+            file = open(fileName, 'r', encoding='utf8', errors="ignore")
             file_search = file.read()
 
             # Search the whole text for any instance of a GRB
@@ -141,7 +141,7 @@ class Scraper:
         #print(fileErr)
 
         # Write the dictionary to and output location
-        with open(self.__data_path__ + "gcn_archive_circ_dict.json", "w") as f:
+        with open(self.__data_path__ + "gcn_archive_circ_dict.json", 'w', encoding="utf-8") as f:
             f.write(json.dumps(circ_dict))
 
     # Function that searches dictionary for GRB (Add keywords like 'subaru' later)
@@ -189,7 +189,7 @@ class Scraper:
         # Load the data.
         try:
             filepath = self.__data_path__ + "gcn_archive_circ_dict.json"
-            with open(filepath) as file:
+            with open(filepath, 'r', encoding="utf-8", errors="ignore") as file:
                 circ_dict = json.load(file)
                 file.close()
         except FileNotFoundError:
@@ -198,14 +198,23 @@ class Scraper:
         # Get the list of gcn that has the grb.
         gcn_list,_ = self.get_GCN_list(circ_dict,grb)
         
-        #if gcn_list == -1:
-            
-        
         # The json object to store types, files, and check functions to reduce repetition
         categories = [
-            {"name": "all_gcn", "counter": 0, "file_name": f"{grb}_all_gcn.txt", "check": lambda x: True},
-            {"name": "table", "counter": 0, "file_name": f"{grb}_table.txt", "check": check_table},
-            {"name": "sentence", "counter": 0, "file_name": f"{grb}_sentences.txt", "check": check_sentence},
+            {"name": "all_gcn", 
+             "counter": 0, 
+             "file_name": f"{grb}_all_gcn.txt", 
+             "check": lambda x: True
+             },
+            {"name": "table", 
+             "counter": 0, 
+             "file_name": f"{grb}_table.txt", 
+             "check": check_table
+             },
+            {"name": "sentence", 
+             "counter": 0, 
+             "file_name": f"{grb}_sentences.txt", 
+             "check": check_sentence
+             }
         ]
     
         # Open the files and store them.
@@ -218,7 +227,7 @@ class Scraper:
 
             res = requests.get('https://gcn.gsfc.nasa.gov/gcn3/'+gcn)
             html_page = res.content
-            soup = BeautifulSoup(html_page, 'html.parser')
+            soup = BeautifulSoup(html_page, 'html.parser').encode('utf-8')
             
             if streamlit_PB:
                 PB.progress(gap+gap*i)
@@ -287,7 +296,7 @@ class Scraper:
         # Load the data.
         try:
             filepath = self.__data_path__ + "gcn_archive_circ_dict.json"
-            with open(filepath) as file:
+            with open(filepath, 'r', encoding="utf-8", errors="ignore") as file:
                 circ_dict = json.load(file)
                 file.close()
         except FileNotFoundError:
@@ -298,9 +307,21 @@ class Scraper:
 
         # The json object to store types, files, and check functions to reduce repetition
         categories = [
-            {"name": "all_gcn", "counter": 0, "file_name": f"{grb}_all_gcn.txt", "check": lambda x: True},
-            {"name": "table", "counter": 0, "file_name": f"{grb}_table.txt", "check": check_table},
-            {"name": "sentence", "counter": 0, "file_name": f"{grb}_sentences.txt", "check": check_sentence},
+            {"name": "all_gcn", 
+             "counter": 0, 
+             "file_name": f"{grb}_all_gcn.txt", 
+             "check": lambda x: True
+             },
+            {"name": "table", 
+             "counter": 0, 
+             "file_name": f"{grb}_table.txt", 
+             "check": check_table
+             },
+            {"name": "sentence", 
+             "counter": 0, 
+             "file_name": f"{grb}_sentences.txt", 
+             "check": check_sentence
+             }
         ]
     
 

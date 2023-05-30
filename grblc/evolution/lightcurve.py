@@ -32,7 +32,7 @@ class Lightcurve:
         xerr: np.float64 = None,
         yerr: np.float64 = None,
         band: str = None,
-        data_space: str = "log",
+        appx_bands: str = False,
         name: str = None,
     ):
         """The main module for fitting lightcurves.
@@ -74,49 +74,20 @@ class Lightcurve:
 
         if isinstance(path, str):
             self.path = path
-            self.set_data(*self.read_data(path), data_space=data_space)
+            self.set_data(*self.read_data(path), appx_bands=appx_bands)
         else:
             self.path = reduce(
                 os.path.join,
                 [
                     get_dir(),
                     "lightcurves",
-                    "{}_flux.txt".format(self.name.replace(" ", "_").replace(".", "p")),
+                    "{}_mag.txt".format(self.name.replace(" ", "_").replace(".", "p")),
                 ],
             )
-            self.set_data(xdata, ydata, xerr, yerr, band, data_space=data_space)
+            self.set_data(xdata, ydata, xerr, yerr, band, appx_bands=appx_bands)
 
 
-    def set_bounds(
-        self, xmin=-np.inf, xmax=np.inf, ymin=-np.inf, ymax=np.inf
-    ):
-        """Sets the bounds on the xdata and ydata to (1) plot and (2) fit with. Either
-            provide bounds or xmin, xmax, ymin, ymax. Assumes data is already in log
-            space. If :py:meth:`Lightcurve.set_data` has been called, then the data
-            has already been converted to log space.
-
-        Parameters
-        ----------
-        bounds : array_like of length 4, optional
-            Bounds on inputted x and y-data, by default None
-        xmin : float, optional
-            Minimum x, by default -np.inf
-        xmax : float, optional
-            Maximum x, by default np.inf
-        ymin : float, optional
-            Minimum y, by default -np.inf
-        ymax : float, optional
-            Maximum y, by default np.inf
-        """
-
-        xmask = (xmin <= self.xdata) & (self.xdata <= xmax)
-        ymask = (ymin <= self.ydata) & (self.ydata <= ymax)
-        self.mask = xmask & ymask
-
-        self.set_data(self.xdata, self.ydata, self.xerr, self.yerr, data_space="log")
-
-
-    def set_data(self, xdata, ydata, xerr=None, yerr=None, band=None, data_space="log"):
+    def set_data(self, xdata, ydata, xerr=None, yerr=None, band=None, appx_bands=False):
         """Set the `xdata` and `ydata`, and optionally `xerr` and `yerr` of the lightcurve.
 
         .. warning::
@@ -139,68 +110,52 @@ class Lightcurve:
         data_space : str, {log, lin}, optional
             Whether the data inputted is in logarithmic or linear space, by default 'log'.
         """
-        if not hasattr(self, "mask"):
-            self.mask = np.ones(len(xdata), dtype=bool)
 
         def convert_data(data):
-            if data_space == "lin":
-                d = np.log10(data)
-            elif data_space == "log":
-                d = data
+            if appx_bands:
+                for i, band in enumerate(data):
+                    if band.upper()=="u'":
+                        data[i]="u"
+                    if band.upper()=="g'":
+                        data[i]="g"            
+                    if band.upper()=="r'":
+                        data[i]="r"
+                    if band.upper()=="i'":
+                        data[i]="i"            
+                    if band.upper()=="z'":
+                        data[i]="z"            
+                    if band.upper()=="BJ":
+                        data[i]="B"            
+                    if band.upper()=="VJ":
+                        data[i]="V"
+                    if band.upper()=="UJ":
+                        data[i]="U"            
+                    if band.upper()=="RM":
+                        data[i]="R"             
+                    if band.upper()=="BM":
+                        data[i]="B"
+                    if band.upper()=="UM":
+                        data[i]="U"
+                    if band.upper()=="JS":
+                        data[i]="J"            
+                    if band.upper()=="KS":
+                        data[i]="K"    
+                    if band.upper()=="K'":
+                        data[i]="K" 
+                    if band.upper()=="KP":
+                        data[i]="K" 
+
+                bands = data
             else:
-                raise ValueError("data_space must be 'log' or 'lin'")
+                bands = data
 
-            return np.asarray(d)
+            return bands
 
-        def convert_err(data, err):
-            if data_space == "lin":
-                eps = err / (data * np.log(10))
-            elif data_space == "log":
-                eps = err
-            else:
-                raise ValueError("data_space must be 'log' or 'lin'")
-            return np.asarray(eps)
-
-        self.orig_xdata = convert_data(xdata)
-        self.orig_ydata = convert_data(ydata)
-        self.xdata = self.orig_xdata[self.mask]
-        self.ydata = self.orig_ydata[self.mask]
-        self.orig_xerr = convert_err(xdata, xerr) if xerr is not None else None
-        self.orig_yerr = convert_err(ydata, yerr) if yerr is not None else None
-        self.xerr = self.orig_xerr[self.mask] if xerr is not None else None
-        self.yerr = self.orig_yerr[self.mask] if yerr is not None else None
-        self.band = band
-
-
-    def exclude_range(self, xs=(), ys=(), data_space="log"):
-        """
-        `exclude_range` takes a range of x and y values and excludes them from the data
-        of the current lightcurve.
-
-        Parameters
-        ----------
-        xs : tuple of form (xmin, xmax), optional
-            Range along the x-axis to exclude.
-        ys : tuple of form (ymin, ymax), optional
-            Range along the y-axis to exclude.
-        data_space : str, {log, lin}, optional
-            Whether you'd like to exclude in logarithmic or linear space, by default 'log'.
-        """
-        if xs == [] and ys == []:
-            return
-        if xs == ():
-            xs = (-np.inf, np.inf)
-        if ys == ():
-            ys = (-np.inf, np.inf)
-        assert len(xs) == 2 and len(ys) == 2, "xs and ys must be tuples of length 2"
-
-        xmin, xmax = xs
-        ymin, ymax = ys
-        xmask = (xmin <= self.orig_xdata) & (self.orig_xdata <= xmax)
-        self.mask &= ~xmask
-        ymask = (ymin <= self.orig_ydata) & (self.orig_ydata <= ymax)
-        self.mask &= ~ymask
-        self.set_data(self.xdata, self.ydata, self.xerr, self.yerr, data_space=data_space)
+        self.xdata = xdata
+        self.ydata = ydata
+        self.xerr = xerr
+        self.yerr = yerr
+        self.band = convert_data(band)
 
 
     def read_data(self, path: str):
@@ -229,6 +184,7 @@ class Lightcurve:
         band = df["band"].to_list()
 
         return xdata, ydata, xerr, yerr, band
+
 
     def show_data(self, save=False, fig_kwargs={}, save_kwargs={}):
         """
@@ -313,11 +269,7 @@ class Lightcurve:
         ax.set_title(self.name)
 
         plt.show()
-
-    def _overlap(start1, end1, start2, end2):
-        #how much does the range (start1, end1) overlap with (start2, end2)
-        return max(max((end2-start1), 0) - max((end2-end1), 0) - max((start2-start1), 0), 0)
-        
+      
     def displayGRB(self, save_static=False, save_static_type='.png', save_interactive=False, save_in_folder='plots/'):
         '''
         For an interactive plot
@@ -332,12 +284,12 @@ class Lightcurve:
                     #hover_data=['Source', 'Telescope'],
                 )
 
-        headpoint_list = []
+        tailpoint_list = []
         for t,m,e in zip(self.xdata,self.ydata,self.yerr):
             if e == 0:
-                headpoint_list.append((t, m))
+                tailpoint_list.append((t, m))
 
-        tailpoint_list = [(i, j+1) for (i, j) in headpoint_list]
+        headpoint_list = [(i, j+1) for (i, j) in tailpoint_list]
 
         #make a list of go.layout.Annotation() for each pair of arrow head and tail
         arrows = []
@@ -413,8 +365,16 @@ class Lightcurve:
 
         if save_interactive:
             fig.write_html(save_in_folder+self.name+'.html')
+
+        return fig
     
-    def colorevolGRB(self, return_rescaledf=False, save_plot=False, save_in_folder=''):
+
+    def _overlap(start1, end1, start2, end2):
+        #how much does the range (start1, end1) overlap with (start2, end2)
+        return max(max((end2-start1), 0) - max((end2-end1), 0) - max((start2-start1), 0), 0)
+  
+  
+    def colorevolGRB(self, print_status=True, return_rescaledf=False, save_plot=False, save_in_folder=''):
 
         light = pd.DataFrame()
         light['time_sec'] = self.xdata
@@ -425,7 +385,7 @@ class Lightcurve:
         assert len(light)>1, "Has only one data point."
 
         occur = light['band'].value_counts()
-        filterslist = occur.index
+        #filterslist = occur.index
         #data['occur']=data['band'].map(data['band'].value_counts())
         
         
@@ -433,8 +393,10 @@ class Lightcurve:
         mostcommonfilter = occur.index[0]
         mostcommonfilter_occur = occur[0]
 
-        print('The most numerous filter of this GRB: ',mostcommonfilter,', with', mostcommonfilter_occur, 'occurrences.\n'+
-              'The most numerous will be considered for rescaling')
+        if print_status:
+            print(occur)
+            print('The most numerous filter of this GRB: ',mostcommonfilter,', with', mostcommonfilter_occur, 'occurrences.\n'+
+                'The most numerous will be considered for rescaling')
         
         scalingfactorslist = [[mostcommonfilter, mostcommonfilter_occur, [[0,0,0]]]] ## since the most common filter is not scaled
         
@@ -453,13 +415,18 @@ class Lightcurve:
             sublight=light.loc[(light['band'] == occur.index[j])]
             subx=sublight['time_sec'].values
             suby=sublight['mag'].values
-            suberror_y=sublight['mag_err'].values
+            subyerr=sublight['mag_err'].values
             
-            timediff = [[p1,p2] for p1 in range(len(mostcommonx)) for p2 in range(len(subx)) if np.log10(np.abs(10**mostcommonx[p1]-10**subx[p2]))<=np.log10((10**mostcommonx[p1])*2.5/100)]
+            timediff = [[p1,p2] for p1, p2 in zip(range(len(mostcommonx)),range(len(subx))) 
+                        if np.abs(10**mostcommonx[p1]-10**subx[p2])<=((10**mostcommonx[p1])*0.025)]
 
             if len(timediff)!=0:
                 for ll in timediff:
-                    sf2=[subx[ll[1]],mostcommony[ll[0]]-suby[ll[1]],np.log10(np.abs(10**mostcommonx[ll[0]]-10**subx[ll[1]])),mostcommonyerr[ll[0]]+suberror_y[ll[1]]]
+                    sf2=[subx[ll[1]],
+                        mostcommony[ll[0]]-suby[ll[1]],
+                        np.log10(np.abs(10**mostcommonx[ll[0]]-10**subx[ll[1]])),
+                        np.sqrt(mostcommonyerr[ll[0]]**2+subyerr[ll[1]]**2)]
+                    print(sf2)
                     scalingfactorslist[j][2].append(sf2)  
 
         for fl in scalingfactorslist:
@@ -499,7 +466,7 @@ class Lightcurve:
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         # Plot each species
-        fig = plt.figure()
+        #fig = plt.figure()
 
         for i, band in enumerate(filters):
             colour = scalarMap.to_rgba(i)
@@ -514,8 +481,8 @@ class Lightcurve:
                         ls='',
                         color=colour
                         )
-        for j in rescale_df.index:
-            rescale_df.at[j,"plot_color"] = colour
+            for j in rescale_df[index].index:
+                rescale_df.at[j,"plot_color"] = colour
 
         resc_slopes_df = pd.DataFrame()
         resc_slopes_df.index = filters
@@ -568,11 +535,11 @@ class Lightcurve:
                 if resc_slopes_df.loc[band]['acceptance'] < 10000: #put ad-hoc to have all the plots
 
                     y_fit = resc_slopes_df.loc[band]['slope'] * x + resc_slopes_df.loc[band]['intercept']
-                    y_fit_err = resc_slopes_df.loc[band]['slope_err'] * x + resc_slopes_df.loc[band]['inter_err']
 
                     plt.plot(x, y_fit, 
                             color=resc_slopes_df.loc[band]["plot_color"],
-                            label=str(band+ ": " + str(resc_slopes_df.loc[band]["slope"])))
+                            label=band+ ": " + str(resc_slopes_df.loc[band]["slope"]) + r'$\pm$' + str(resc_slopes_df.loc[band]["slope_err"])
+                            )
 
                     if np.abs(resc_slopes_df.loc[band]['slope']) < 0.1:
                         resc_slopes_df.loc[band]['comment'] = "no color evolution"
@@ -589,18 +556,64 @@ class Lightcurve:
         
         plt.title('Rescaling factors for '+ str(self.name))
         plt.xlabel('log10 Time (sec)')
-        plt.ylabel('Rescale factors wrt '+mostcommonfilter+' (mag)')
-        plt.legend(bbox_to_anchor=(1.0, 1.0), loc='upper left')
-        plt.tight_layout
-        plt.show()
+        plt.ylabel('Rescaling factors with respect to '+mostcommonfilter+' (mag)')
+        plt.legend(title='Band & slope', bbox_to_anchor=(1.0, 1.0), loc='upper left')
+        plt.tight_layout()
+
+        if print_status:
+
+            print("Individual point rescaling:")
+            print(rescale_df)
+
+            print("Rescale factors slope:")
+            print(resc_slopes_df)
+             
+            compatibilitylist=[]
+    
+            for band in resc_slopes_df.index:
+                if resc_slopes_df.loc[band]['slope']!=0 and resc_slopes_df.loc[band]['slope_err']!=0:
+                    compatibilitylist.append([band,[resc_slopes_df.loc[band]['slope']-(3*resc_slopes_df.loc[band]['slope_err']),
+                                            resc_slopes_df.loc[band]['slope']+(3*resc_slopes_df.loc[band]['slope_err'])]])
+
+            compzerolist=[]
+            nocompzerolist=[]
+            for l in compatibilitylist:
+                if l[1][0]<=0<=l[1][1] or np.abs((l[1][0]+l[1][1])/2)<0.10:
+                        compzerolist.append(l[0])
+                else:
+                    nocompzerolist.append(l[0])
+
+            if len(compzerolist)==0:
+                print('No filters compatible with zero in 3sigma or with |slope|<0.1')
+                
+            else:
+                print('Filters compatible with zero in 3sigma: ',*compzerolist)
+            
+            if len(nocompzerolist)==0:
+                print('No filters with |slope|>0.1 or compatible with zero only in >3sigma')
+                
+            else:
+                print('Filters not compatible with zero in 3sigma or with |slope|>0.1: ',*nocompzerolist)    
+
+            print('\n')
+            print('No color evolution: ',*compzerolist,' ; Color evolution: ',*nocompzerolist)        
+
+            
+            string=""
+            for band in resc_slopes_df.index:
+                string=string+band+":"+str(round(resc_slopes_df.loc[band]['slope'],3))+"+/-"+str(round(resc_slopes_df.loc[band]['slope_err'],3))+"; "
+                
+            print(string)
 
         if save_plot:
-            plt.savefig(os.path.join(save_in_folder+'/'+save_in_folder+'/'+str(self.name)+'_colorevol.png'))
+            plt.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_colorevol.pdf'), dpi=300)
+
+        plt.show()
 
         if return_rescaledf:
-            return rescale_df
+            return resc_slopes_df, rescale_df
 
-        return fig, resc_slopes_df
+        return resc_slopes_df
 
 
 
