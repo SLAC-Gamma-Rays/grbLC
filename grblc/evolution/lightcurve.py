@@ -357,8 +357,6 @@ class Lightcurve:
                         height=540,
                         margin=dict(l=40,r=40,t=50,b=40)
                         )
-        
-        fig.show()
 
         if save_static:
             fig.write_image(save_in_folder+self.name+save_static_type)
@@ -385,8 +383,6 @@ class Lightcurve:
         assert len(light)>1, "Has only one data point."
 
         occur = light['band'].value_counts()
-        #filterslist = occur.index
-        #data['occur']=data['band'].map(data['band'].value_counts())
         
         
         # Identifying the most numerous filter in the GRB 
@@ -394,8 +390,9 @@ class Lightcurve:
         mostcommonfilter_occur = occur[0]
 
         if print_status:
-            print(occur)
-            print('The most numerous filter of this GRB: ',mostcommonfilter,', with', mostcommonfilter_occur, 'occurrences.\n'+
+            print(self.name)
+            print('-------')
+            print(occur, 'The most numerous filter of this GRB: ',mostcommonfilter,', with', mostcommonfilter_occur, 'occurrences.\n'+
                 'The most numerous will be considered for rescaling')
         
         scalingfactorslist = [[mostcommonfilter, mostcommonfilter_occur, [[0,0,0]]]] ## since the most common filter is not scaled
@@ -417,7 +414,7 @@ class Lightcurve:
             suby=sublight['mag'].values
             subyerr=sublight['mag_err'].values
             
-            timediff = [[p1,p2] for p1, p2 in zip(range(len(mostcommonx)),range(len(subx))) 
+            timediff = [[p1,p2] for p1 in range(len(mostcommonx)) for p2 in range(len(subx))
                         if np.abs(10**mostcommonx[p1]-10**subx[p2])<=((10**mostcommonx[p1])*0.025)]
 
             if len(timediff)!=0:
@@ -426,7 +423,6 @@ class Lightcurve:
                         mostcommony[ll[0]]-suby[ll[1]],
                         np.log10(np.abs(10**mostcommonx[ll[0]]-10**subx[ll[1]])),
                         np.sqrt(mostcommonyerr[ll[0]]**2+subyerr[ll[1]]**2)]
-                    print(sf2)
                     scalingfactorslist[j][2].append(sf2)  
 
         for fl in scalingfactorslist:
@@ -465,16 +461,15 @@ class Lightcurve:
         cNorm  = colors.Normalize(vmin=0, vmax=len(filters))
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
-        # Plot each species
-        #fig = plt.figure()
+        # Plot each filter
+        fig = plt.figure()
 
         for i, band in enumerate(filters):
             colour = scalarMap.to_rgba(i)
             index = rescale_df['band'] == band
             plt.scatter(x_all[index], y_all[index],
                         s=15, 
-                        color=colour, 
-                        label=filters[i])
+                        color=colour)
             plt.errorbar(x_all[index], y_all[index], yerr_all[index],
                         fmt='o',
                         barsabove=True,
@@ -523,11 +518,11 @@ class Lightcurve:
                 resc_slopes_df.loc[band]['red_chi2'] = np.around(linear_fit.redchi, decimals=4)
                 
             else: # not enough data points
-                resc_slopes_df.loc[band]['slope'] = 0
-                resc_slopes_df.loc[band]['slope_err'] = 0
-                resc_slopes_df.loc[band]['intercept'] = 0
-                resc_slopes_df.loc[band]['inter_err'] = 0
-                resc_slopes_df.loc[band]['acceptance'] = 0
+                resc_slopes_df.loc[band]['slope'] = np.nan
+                resc_slopes_df.loc[band]['slope_err'] = np.nan
+                resc_slopes_df.loc[band]['intercept'] = np.nan
+                resc_slopes_df.loc[band]['inter_err'] = np.nan
+                resc_slopes_df.loc[band]['acceptance'] = np.nan
                 resc_slopes_df.loc[band]['comment'] = "insufficient data"
                 resc_slopes_df.loc[band]['red_chi2'] = 'insufficient data'
                 
@@ -537,9 +532,7 @@ class Lightcurve:
                     y_fit = resc_slopes_df.loc[band]['slope'] * x + resc_slopes_df.loc[band]['intercept']
 
                     plt.plot(x, y_fit, 
-                            color=resc_slopes_df.loc[band]["plot_color"],
-                            label=band+ ": " + str(resc_slopes_df.loc[band]["slope"]) + r'$\pm$' + str(resc_slopes_df.loc[band]["slope_err"])
-                            )
+                            color=resc_slopes_df.loc[band]["plot_color"])
 
                     if np.abs(resc_slopes_df.loc[band]['slope']) < 0.1:
                         resc_slopes_df.loc[band]['comment'] = "no color evolution"
@@ -549,23 +542,40 @@ class Lightcurve:
                         resc_slopes_df.loc[band]['comment'] = "slope >= 0.1"
 
                 else:
-                    resc_slopes_df.loc[band]['comment'] = "slope=0"  
+                    resc_slopes_df.loc[band]['comment'] = "slope=nan"  
+
+        for band in resc_slopes_df.index:
+            ind = rescale_df.index[rescale_df['band'] == band][0]
+            color = rescale_df.loc[ind]["plot_color"]
+            plt.scatter(x=[], y=[], 
+                        color=color, 
+                        label=band+": "+ str(resc_slopes_df.loc[band]["slope"]) + r'$\pm$' + str(resc_slopes_df.loc[band]["slope_err"])
+                        )
+    
+        plt.rcParams['legend.title_fontsize'] = 'xx-large'
+        plt.xlabel('Log time (s)',fontsize=22)
+        plt.ylabel('Rescaling factor with respect to '+mostcommonfilter+' (mag)',fontsize=22)
+        plt.rcParams['figure.figsize'] = [15, 10]
+        plt.xticks(fontsize=22)
+        plt.yticks(fontsize=22)
+        plt.title("GRB "+self.name, fontsize=22)
+        plt.legend(title='Band & slope', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large')    
+        plt.tight_layout()
+
+        if save_plot:
+            plt.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_colorevol.pdf'), dpi=300)
+
+        #plt.show()
 
         rescale_df.drop(labels='plot_color', axis=1, inplace=True)
         resc_slopes_df.drop(labels='plot_color', axis=1, inplace=True)
-        
-        plt.title('Rescaling factors for '+ str(self.name))
-        plt.xlabel('log10 Time (sec)')
-        plt.ylabel('Rescaling factors with respect to '+mostcommonfilter+' (mag)')
-        plt.legend(title='Band & slope', bbox_to_anchor=(1.0, 1.0), loc='upper left')
-        plt.tight_layout()
 
         if print_status:
 
             print("Individual point rescaling:")
             print(rescale_df)
 
-            print("Rescale factors slope:")
+            print("\nSlopes of rescale factors for each filter:")
             print(resc_slopes_df)
              
             compatibilitylist=[]
@@ -605,15 +615,10 @@ class Lightcurve:
                 
             print(string)
 
-        if save_plot:
-            plt.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_colorevol.pdf'), dpi=300)
-
-        plt.show()
-
         if return_rescaledf:
-            return resc_slopes_df, rescale_df
+            return fig, rescale_df, resc_slopes_df
 
-        return resc_slopes_df
+        return fig, resc_slopes_df
 
 
 
