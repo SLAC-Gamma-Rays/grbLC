@@ -415,13 +415,13 @@ class Lightcurve:
             subyerr=sublight['mag_err'].values
             
             timediff = [[p1,p2] for p1 in range(len(mostcommonx)) for p2 in range(len(subx))
-                        if np.abs(10**mostcommonx[p1]-10**subx[p2])<=((10**mostcommonx[p1])*0.025)]
+                        if np.abs(mostcommonx[p1]-subx[p2])<=((mostcommonx[p1])*0.025)]
 
             if len(timediff)!=0:
                 for ll in timediff:
                     sf2=[subx[ll[1]],
                         mostcommony[ll[0]]-suby[ll[1]],
-                        np.log10(np.abs(10**mostcommonx[ll[0]]-10**subx[ll[1]])),
+                        np.abs(mostcommonx[ll[0]]-subx[ll[1]]),
                         np.sqrt(mostcommonyerr[ll[0]]**2+subyerr[ll[1]]**2)]
                     scalingfactorslist[j][2].append(sf2)  
 
