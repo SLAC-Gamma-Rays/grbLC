@@ -16,7 +16,7 @@ def isfloat(value):
 
 def check_header(path, n=None, debug=False, more_than_one_row=False):
     """
-    This monstrosity returns what line a header is at
+    Returns what line a header is at
     """
     with open(path) as f:
         lines = f.readlines()
@@ -60,7 +60,10 @@ def check_header(path, n=None, debug=False, more_than_one_row=False):
         return n  # <-- the final stop in our recursion journey
 
 
-def read_data(path, header=-999, approximate_band=False):
+def read_data(path, header=-999, data_space='log'):
+    """
+    Reads data, sorts by time, excludes negative time, converts time to log
+    """
 
     header = check_header(path) if header==-999 else header
 
@@ -83,12 +86,17 @@ def read_data(path, header=-999, approximate_band=False):
                   names=list(dtype.keys()),
                   header=header, 
                   index_col=None,
-                  engine="python").sort_values(by=['time_sec'])## correct
+                  engine="python").sort_values(by=['time_sec'])
 
-    try:
-        data['time_sec'] = np.log10(data['time_sec'])
-    except Exception as e:
-        print("Issue with logT calculation. Check if negative values are given for time.\nError:", e)
+    if data_space=='lin':
+        try:
+            data['time_sec'] = np.log10(data['time_sec'])
+        except Exception as e:
+            print("Issue with logT calculation. Check if negative values are given for time.\nError:", e)
+    elif data_space=='log':
+        pass
+    else:
+        raise Exception("Dataspace could be either 'log' or 'lin")
 
     data = data.reset_index(drop=True)
 
