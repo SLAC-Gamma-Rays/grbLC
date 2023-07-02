@@ -122,21 +122,23 @@ class Lightcurve:
 
         def convert_data(data):
 
+            data = list(data)
+
             for i, band in enumerate(data):
                 if band.lower() in ['clear', 'unfiltered', 'lum']:
                     band == band.lower()
 
             if appx_bands:
                 for i, band in enumerate(data):
-                    if band.upper()=="u'":
+                    if band=="u'":
                         data[i]="u"
-                    if band.upper()=="g'":
+                    if band=="g'":
                         data[i]="g"            
-                    if band.upper()=="r'":
+                    if band=="r'":
                         data[i]="r"
-                    if band.upper()=="i'":
+                    if band=="i'":
                         data[i]="i"            
-                    if band.upper()=="z'":
+                    if band=="z'":
                         data[i]="z"            
                     if band.upper()=="BJ":
                         data[i]="B"            
@@ -169,7 +171,7 @@ class Lightcurve:
         self.xdata = df["time_sec"].to_numpy()
         self.ydata = df["mag"].to_numpy()
         self.yerr = df["mag_err"].to_numpy()
-        self.band = df["band"] = convert_data(df["band"].to_list())
+        self.band = df["band"] = convert_data(df["band"])
         self.system = df["system"].to_list()
         self.telescope = df["telescope"].to_list()
         self.extcorr = df["extcorr"].to_list()
@@ -460,33 +462,54 @@ class Lightcurve:
         
         scalingfactorslist = [[rescale_band, rescale_band_occur, [[0,0,0]]]] ## since the most common filter is not scaled
         
-        rescale_light=light.loc[(light['band'] == rescale_band)]
-        rescale_x=rescale_light['time_sec'].values
-        rescale_y=rescale_light['mag'].values  
-        rescale_yerr=rescale_light['mag_err'].values
-        
         for j in range(1, len(occur)):
             scalingfactorslist.append([occur.index[j],occur[j],[]])
+
         
-        evolutionrescalingfactor=[]
+
+        rescale_light = light.loc[(light['band'] == rescale_band)]
+        rescale_x = rescale_light['time_sec'].values
+        rescale_y = rescale_light['mag'].values  
+        rescale_yerr = rescale_light['mag_err'].values
+        
         
         for j in range(1,len(occur)):
             
-            sublight=light.loc[(light['band'] == occur.index[j])]
-            sub_x=sublight['time_sec'].values
-            sub_y=sublight['mag'].values
-            sub_yerr=sublight['mag_err'].values
+            sublight = light.loc[(light['band'] == occur.index[j])]
+            sub_x = sublight['time_sec'].values
+            sub_y = sublight['mag'].values
+            sub_yerr = sublight['mag_err'].values
             
+            timediffcoinc = [[p1,p2] for p1 in range(len(rescale_x)) for p2 in range(len(sub_x))
+                        if np.abs(rescale_x[p1]-sub_x[p2])<=1e-20]
+
             timediff = [[p1,p2] for p1 in range(len(rescale_x)) for p2 in range(len(sub_x))
                         if np.abs(rescale_x[p1]-sub_x[p2])<=((rescale_x[p1])*0.025)]
-
-            if len(timediff)!=0:
-                for ll in timediff:
-                    sf2=[sub_x[ll[1]],
+            
+            if len(timediffcoinc)!=0:
+                for ll in timediffcoinc:
+                    sf2 = [sub_x[ll[1]],
                         rescale_y[ll[0]]-sub_y[ll[1]],
                         np.abs(rescale_x[ll[0]]-sub_x[ll[1]]),
                         np.sqrt(rescale_yerr[ll[0]]**2+sub_yerr[ll[1]]**2)]
-                    scalingfactorslist[j][2].append(sf2)
+                    scalingfactorslist[j][2].append(sf2)  
+
+            elif len(timediffcoinc)==0 and len(timediff)!=0:
+                for ll in timediff:
+                    sf2 = [sub_x[ll[1]],
+                        rescale_y[ll[0]]-sub_y[ll[1]],
+                        np.abs(rescale_x[ll[0]]-sub_x[ll[1]]),
+                        np.sqrt(rescale_yerr[ll[0]]**2+sub_yerr[ll[1]]**2)]
+                    scalingfactorslist[j][2].append(sf2)  
+
+            else: #len(timediffcoinc)==0 and len(timediff)==0:
+                continue
+
+        # band, band_occur, [time, rf= mag diff, time diff, error on rf]
+
+        evolutionrescalingfactor=[]
+
+        print([ff[0] for ff in scalingfactorslist], len(scalingfactorslist))
 
         for fl in scalingfactorslist:
 
@@ -499,9 +522,13 @@ class Lightcurve:
                 mindistpos=suppllistdist.index(min(suppllistdist))
 
                 evolutionrescalingfactor.append([fl[0],fl[1],suppllist[mindistpos]])    
+        ## band, band_occur, [time, rf, timediff, rferr] # selecting ones with minimum
+
+        print([*set([ff[0] for ff in evolutionrescalingfactor])], len([*set([ff[0] for ff in evolutionrescalingfactor])]))
                 
         finalevolutionlist=evolutionrescalingfactor 
         finalevolutionlist=sorted(finalevolutionlist, key=lambda finalevolutionlist: finalevolutionlist[2][0])
+        ## sorted according to time
       
         filt=[jj[0] for jj in finalevolutionlist if jj[0]!=rescale_band]
         filtoccur=[jj[1] for jj in finalevolutionlist if jj[0]!=rescale_band]
@@ -517,8 +544,11 @@ class Lightcurve:
         x_all = rescale_df['time_sec']
         y_all = rescale_df['rescale_fact']
         yerr_all = rescale_df['rescale_fact_err']
-        filters = [*set(rescale_df['band'].values)]
+        filters = [*set(rescale_df['band'].values)] #filters excludes most common
         rescale_df['plot_color'] = ""
+
+        print(occur.index, len(occur.index))
+        print(filters, len(filters))
 
         # Set the color map to match the number of filter
         cmap = plt.get_cmap('gist_ncar')
@@ -593,24 +623,24 @@ class Lightcurve:
                 rescale_slopes_df.loc[band]['inter_err'] = np.nan
                 rescale_slopes_df.loc[band]['acceptance'] = np.nan
                 rescale_slopes_df.loc[band]['comment'] = "insufficient data"
-                rescale_slopes_df.loc[band]['red_chi2'] = 'insufficient data'
+                rescale_slopes_df.loc[band]['red_chi2'] = "insufficient data"
                 
-            if rescale_slopes_df.loc[band]['slope'] != np.nan:
-                if rescale_slopes_df.loc[band]['acceptance'] < 10000: #put ad-hoc to have all the plots ## REMOVE AD-HOC
-                    y_fit = rescale_slopes_df.loc[band]['slope'] * x + rescale_slopes_df.loc[band]['intercept']
+            #if rescale_slopes_df.loc[band]['slope'] != np.nan:
+            if rescale_slopes_df.loc[band]['red_chi2'] != 'insufficient data': #put ad-hoc to have all the plots ## REMOVE AD-HOC
+                y_fit = rescale_slopes_df.loc[band]['slope'] * x + rescale_slopes_df.loc[band]['intercept']
 
-                    plt.plot(x, y_fit, 
-                            color=rescale_slopes_df.loc[band]["plot_color"])
+                plt.plot(x, y_fit, 
+                        color=rescale_slopes_df.loc[band]["plot_color"])
 
-                    if np.abs(rescale_slopes_df.loc[band]['slope']) < 0.1:
-                        rescale_slopes_df.loc[band]['comment'] = "no color evolution"
-                    elif rescale_slopes_df.loc[band]['slope']-(3*rescale_slopes_df.loc[band]['slope_err'])<=0<=rescale_slopes_df.loc[band]['slope']+(3*rescale_slopes_df.loc[band]['slope_err']):
-                        rescale_slopes_df.loc[band]['comment'] = "no color evolution"
-                    else:    
-                        rescale_slopes_df.loc[band]['comment'] = "slope >= 0.1"
+                if np.abs(rescale_slopes_df.loc[band]['slope']) < 0.1:
+                    rescale_slopes_df.loc[band]['comment'] = "no color evolution, slope < 0.1"
+                elif rescale_slopes_df.loc[band]['slope']-(3*rescale_slopes_df.loc[band]['slope_err'])<=0<=rescale_slopes_df.loc[band]['slope']+(3*rescale_slopes_df.loc[band]['slope_err']):
+                    rescale_slopes_df.loc[band]['comment'] = "no color evolution, compatible with 0 in 3σ"
+                else:    
+                    rescale_slopes_df.loc[band]['comment'] = "color evolution, slope >= 0.1 and not compatible with 0 in 3σ"
 
-                else:
-                    rescale_slopes_df.loc[band]['comment'] = "slope=nan"  
+            else:
+                rescale_slopes_df.loc[band]['comment'] = "slope=nan"  
 
         for band in rescale_slopes_df.index:
             ind = rescale_df.index[rescale_df['band'] == band][0]
@@ -634,13 +664,17 @@ class Lightcurve:
         plt.yticks(fontsize=22)
         plt.title("GRB "+self.name, fontsize=22)
         plt.legend(title='Bands & slopes', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large')    
-        #plt.tight_layout()
 
 
         fig_light = plt.figure()
-        for band in rescale_slopes_df.index:
-            ind = rescale_df.index[rescale_df['band'] == band][0]
-            color = rescale_df.loc[ind]["plot_color"]
+        for band in occur.index:
+            if band == rescale_band:
+                color = 'k'
+            else:
+                #color = rescale_slopes_df.loc[band]["plot_color"]
+                ind = rescale_df.index[rescale_df['band'] == band][0]
+                color = rescale_df.loc[ind]["plot_color"]
+
             sublight=light.loc[(light['band'] == band)]
             plt.scatter(sublight['time_sec'], sublight['mag'],
                         s=15, 
@@ -675,7 +709,7 @@ class Lightcurve:
             start2=light_y[i]-light_yerr[i]
             end2=light_y[i]+light_yerr[i]
 
-            for band in rescale_slopes_df.index:
+            for band in occur.index:
                 if light_band == band:
                     for j in [k for k in range(len(light)) if (k != i) & (light_band[k]==rescale_band)]:
                         start1 = light_y[j]-light_yerr[j] 
@@ -708,7 +742,7 @@ class Lightcurve:
         
             for ff in averagedrescalingfactor:
                 if lightresccolor[pp] == ff[0]:
-                    for nn in [x for x in range(len(lightresc)) if (x != pp) & (lightresccolor[x]==mostcommonfilter)]:
+                    for nn in [x for x in range(len(lightresc)) if (x != pp) & (lightresccolor[x]==rescale_filter)]:
                         start1=lightrescy[nn]-lightrescyerr[nn] 
                         end1=lightrescy[nn]+lightrescyerr[nn] 
                         dist=np.abs((lightrescx[nn])-(lightrescx[pp]))/(lightrescx[nn])
@@ -724,9 +758,14 @@ class Lightcurve:
 
         
         fig_light_rescaled = plt.figure()
-        for band in rescale_slopes_df.index:
-            ind = rescale_df.index[rescale_df['band'] == band][0]
-            color = rescale_df.loc[ind]["plot_color"]
+        for band in occur.index:
+            if band == rescale_band:
+                color = 'k'
+            else:
+                #color = rescale_slopes_df.loc[band]["plot_color"]
+                ind = rescale_df.index[rescale_df['band'] == band][0]
+                color = rescale_df.loc[ind]["plot_color"]
+
             sublight=light_rescaled.loc[(light_rescaled['band'] == band)]
             plt.scatter(sublight['time_sec'], sublight['mag'],
                         s=15, 
@@ -760,7 +799,7 @@ class Lightcurve:
             print("\nSlopes of rescale factors for each filter:")
             print(rescale_slopes_df)
              
-            compatibilitylist=[]
+            '''compatibilitylist=[]
     
             for band in rescale_slopes_df.index:
                 if rescale_slopes_df.loc[band]['slope']!=0 and rescale_slopes_df.loc[band]['slope_err']!=0:
@@ -788,7 +827,7 @@ class Lightcurve:
                 print('Filters not compatible with zero in 3sigma or with |slope|>0.1: ',*nocompzerolist)    
 
             print('\n')
-            print('No color evolution: ',*compzerolist,' ; Color evolution: ',*nocompzerolist)        
+            print('No color evolution: ',*compzerolist,' ; Color evolution: ',*nocompzerolist)    '''    
 
             
             string=""
