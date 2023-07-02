@@ -719,6 +719,7 @@ class Lightcurve:
         light_rescaled['mag'] = light_y
         light_rescaled['mag_err'] = light_yerr
         light_rescaled['band'] = light_band
+        light_rescaled['rescaled_to'] = rescale_band
         light_rescaled['band_og'] = self.band_og
         light_rescaled['system'] = self.system
         light_rescaled['telescope'] = self.telescope
