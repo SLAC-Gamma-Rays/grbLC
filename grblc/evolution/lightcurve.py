@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 import plotly.express as px
-#from matplotlib.figure import Figure
 
 # custom modules
 from grblc.util import get_dir
@@ -171,6 +170,7 @@ class Lightcurve:
         self.xdata = df["time_sec"].to_numpy()
         self.ydata = df["mag"].to_numpy()
         self.yerr = df["mag_err"].to_numpy()
+        self.band_og = df["band"].to_list()
         self.band = df["band"] = convert_data(df["band"])
         self.system = df["system"].to_list()
         self.telescope = df["telescope"].to_list()
@@ -443,29 +443,36 @@ class Lightcurve:
 
         assert len(light)>1, "Has only one data point."
 
+        filters = pd.DataFrame(light['band'].value_counts())
+        filters.rename(columns={'band':'occur'}, inplace=True)
+
         assert rescale_band == 'numerous' or rescale_band in light_band, "Rescaling band provided is not present in data!"
 
-        occur = light['band'].value_counts()
-        
         # Identifying the most numerous filter in the GRB 
         if rescale_band=='numerous':
-            rescale_band = occur.index[0]
-            rescale_band_occur = occur[0]
-        else:
-            rescale_band_occur = occur[rescale_band]
+            rescale_band = filters.index[0]
 
         if print_status:
             print(self.name)
             print('-------')
-            print(occur, 'The most numerous filter of this GRB: ',rescale_band,', with', rescale_band_occur, 'occurrences.\n'+
-                'The most numerous will be considered for rescaling')
-        
-        scalingfactorslist = [[rescale_band, rescale_band_occur, [[0,0,0]]]] ## since the most common filter is not scaled
-        
-        for j in range(1, len(occur)):
-            scalingfactorslist.append([occur.index[j],occur[j],[]])
+            print(filters, '\nThe most numerous filter of this GRB: ',rescale_band,', with', filters.loc[rescale_band, 'occur'], 'occurrences.\n'+
+                'The most numerous will be considered for rescaling.')
+            
 
+        # Set the color map to match the number of filter
+        cmap = plt.get_cmap('gist_ncar')
+        cNorm  = colors.Normalize(vmin=0, vmax=len(filters))
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+
+        filters['plot_color'] = ""
+        for i, band in enumerate(filters.index):
+            colour = scalarMap.to_rgba(i)
+            filters.at[band, 'plot_color'] = colour
         
+        scalingfactorslist = [[rescale_band, filters.loc[rescale_band, 'occur'], [[0,0,0]]]] ## since the most common filter is not scaled
+        for j in range(1, len(filters)):
+            scalingfactorslist.append([filters.index[j],filters.loc[rescale_band, 'occur'],[]])
+
 
         rescale_light = light.loc[(light['band'] == rescale_band)]
         rescale_x = rescale_light['time_sec'].values
@@ -473,9 +480,9 @@ class Lightcurve:
         rescale_yerr = rescale_light['mag_err'].values
         
         
-        for j in range(1,len(occur)):
+        for j in range(1,len(filters)):
             
-            sublight = light.loc[(light['band'] == occur.index[j])]
+            sublight = light.loc[(light['band'] == filters.index[j])]
             sub_x = sublight['time_sec'].values
             sub_y = sublight['mag'].values
             sub_yerr = sublight['mag_err'].values
@@ -535,46 +542,35 @@ class Lightcurve:
         resctime=[jj[2][0] for jj in finalevolutionlist if jj[0]!=rescale_band]
         rescfact=[jj[2][1] for jj in finalevolutionlist if jj[0]!=rescale_band]
         rescfacterr=[jj[2][3] for jj in finalevolutionlist if jj[0]!=rescale_band]
-        rescfactweights=[(1/jj[2][3]) for jj in finalevolutionlist if jj[0]!=rescale_band]
+        #rescfactweights=[(1/jj[2][3]) for jj in finalevolutionlist if jj[0]!=rescale_band]
         # lmfit weights as 1/error
         
         rescale_df=pd.DataFrame(list(zip(filt,filtoccur,resctime,rescfact,
-                                                    rescfacterr,rescfactweights)),columns=['band','occur_band','time_sec','rescale_fact','rescale_fact_err','rescale_fact_weights'])
-
+                                                    rescfacterr)),columns=['band','occur_band','time_sec','rescale_fact','rescale_fact_err'])
+        #rescfactweights, 'rescale_fact_weights'
         x_all = rescale_df['time_sec']
         y_all = rescale_df['rescale_fact']
         yerr_all = rescale_df['rescale_fact_err']
-        filters = [*set(rescale_df['band'].values)] #filters excludes most common
-        rescale_df['plot_color'] = ""
-
-        print(occur.index, len(occur.index))
-        print(filters, len(filters))
-
-        # Set the color map to match the number of filter
-        cmap = plt.get_cmap('gist_ncar')
-        cNorm  = colors.Normalize(vmin=0, vmax=len(filters))
-        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
+        #rescale_df['plot_color'] = ""
 
         # Plot each filter
         fig_rescale_slopes = plt.figure()
 
-        for i, band in enumerate(filters):
-            colour = scalarMap.to_rgba(i)
+        for i, band in enumerate(filters.index):
+            color = filters.loc[band, 'plot_color']
             index = rescale_df['band'] == band
             plt.scatter(x_all[index], y_all[index],
                         s=15, 
-                        color=colour)
+                        color=color)
             plt.errorbar(x_all[index], y_all[index], yerr_all[index],
                         fmt='o',
                         barsabove=True,
                         ls='',
-                        color=colour
+                        color=color
                         )
-            for j in rescale_df[index].index:
-                rescale_df.at[j,"plot_color"] = colour
 
         rescale_slopes_df = pd.DataFrame()
-        rescale_slopes_df.index = filters
+        rescale_slopes_df.index = filters.index
         rescale_slopes_df['slope'] = ""
         rescale_slopes_df['slope_err'] = ""
         rescale_slopes_df['intercept'] = ""
@@ -585,96 +581,89 @@ class Lightcurve:
         rescale_slopes_df['plot_color'] = ""
 
         for band in rescale_slopes_df.index:
-            ind = rescale_df.index[rescale_df['band'] == band][0]
-            rescale_slopes_df.loc[band]['plot_color'] = rescale_df.loc[ind]["plot_color"]
-            rescale_band_df = rescale_df[rescale_df['band'] == band]
+            if band != rescale_band:
+                color = filters.loc[band, 'plot_color']
+                rescale_band_df = rescale_df[rescale_df['band'] == band]
 
-            x = rescale_band_df['time_sec']
-            y = rescale_band_df['rescale_fact']
-            yerr = rescale_band_df['rescale_fact_err']
-            weights = rescale_band_df['rescale_fact_weights']
-            
-            ## lmfit linear
-
-            if len(x) >= 3:
-                linear_model = lf.models.LinearModel(prefix='line_')
-                linear_params = linear_model.make_params()
+                x = rescale_band_df['time_sec']
+                y = rescale_band_df['rescale_fact']
+                yerr = rescale_band_df['rescale_fact_err']
+                #weights = rescale_band_df['rescale_fact_weights']
                 
-                linear_params['line_slope'].set(value=-1.0)
-                linear_params['line_intercept'].set(value=np.max(y))
+                ## lmfit linear
 
-                linear_fit = linear_model.fit(y, params=linear_params, x=x, weights=weights)
-                
-                rescale_slopes_df.loc[band]['mean'] = wmom(y, yerr)[0]
-                rescale_slopes_df.loc[band]['mean_err'] = wmom(y, yerr)[1]
-                rescale_slopes_df.loc[band]['slope'] = linear_fit.params['line_slope'].value
-                rescale_slopes_df.loc[band]['slope_err'] = linear_fit.params['line_slope'].stderr
-                rescale_slopes_df.loc[band]['intercept'] = linear_fit.params['line_intercept'].value
-                rescale_slopes_df.loc[band]['inter_err'] = linear_fit.params['line_intercept'].stderr
-                rescale_slopes_df.loc[band]['acceptance'] = np.abs(rescale_slopes_df.loc[band]['slope_err']/rescale_slopes_df.loc[band]['slope'])
-                rescale_slopes_df.loc[band]['red_chi2'] = linear_fit.redchi
-                
-            else: # not enough data points
-                rescale_slopes_df.loc[band]['mean'] = wmom(y, yerr)[0]
-                rescale_slopes_df.loc[band]['mean_err'] = wmom(y, yerr)[1]
-                rescale_slopes_df.loc[band]['slope'] = np.nan
-                rescale_slopes_df.loc[band]['slope_err'] = np.nan
-                rescale_slopes_df.loc[band]['intercept'] = np.nan
-                rescale_slopes_df.loc[band]['inter_err'] = np.nan
-                rescale_slopes_df.loc[band]['acceptance'] = np.nan
-                rescale_slopes_df.loc[band]['comment'] = "insufficient data"
-                rescale_slopes_df.loc[band]['red_chi2'] = "insufficient data"
-                
-            #if rescale_slopes_df.loc[band]['slope'] != np.nan:
-            if rescale_slopes_df.loc[band]['red_chi2'] != 'insufficient data': #put ad-hoc to have all the plots ## REMOVE AD-HOC
-                y_fit = rescale_slopes_df.loc[band]['slope'] * x + rescale_slopes_df.loc[band]['intercept']
+                if len(x) >= 3:
+                    linear_model = lf.models.LinearModel(prefix='line_')
+                    linear_params = linear_model.make_params()
+                    
+                    linear_params['line_slope'].set(value=-1.0)
+                    linear_params['line_intercept'].set(value=np.max(y))
 
-                plt.plot(x, y_fit, 
-                        color=rescale_slopes_df.loc[band]["plot_color"])
+                    linear_fit = linear_model.fit(y, params=linear_params, x=x, weights=1/yerr)
+                    
+                    rescale_slopes_df.loc[band]['mean'] = wmom(y, yerr)[0]
+                    rescale_slopes_df.loc[band]['mean_err'] = wmom(y, yerr)[1]
+                    rescale_slopes_df.loc[band]['slope'] = linear_fit.params['line_slope'].value
+                    rescale_slopes_df.loc[band]['slope_err'] = linear_fit.params['line_slope'].stderr
+                    rescale_slopes_df.loc[band]['intercept'] = linear_fit.params['line_intercept'].value
+                    rescale_slopes_df.loc[band]['inter_err'] = linear_fit.params['line_intercept'].stderr
+                    rescale_slopes_df.loc[band]['acceptance'] = np.abs(rescale_slopes_df.loc[band]['slope_err']/rescale_slopes_df.loc[band]['slope'])
+                    rescale_slopes_df.loc[band]['red_chi2'] = linear_fit.redchi
+                    
+                else: # not enough data points
+                    rescale_slopes_df.loc[band]['mean'] = wmom(y, yerr)[0]
+                    rescale_slopes_df.loc[band]['mean_err'] = wmom(y, yerr)[1]
+                    rescale_slopes_df.loc[band]['slope'] = np.nan
+                    rescale_slopes_df.loc[band]['slope_err'] = np.nan
+                    rescale_slopes_df.loc[band]['intercept'] = np.nan
+                    rescale_slopes_df.loc[band]['inter_err'] = np.nan
+                    rescale_slopes_df.loc[band]['acceptance'] = np.nan
+                    rescale_slopes_df.loc[band]['comment'] = "insufficient data"
+                    rescale_slopes_df.loc[band]['red_chi2'] = "insufficient data"
+                    
+                #if rescale_slopes_df.loc[band]['slope'] != np.nan:
+                if rescale_slopes_df.loc[band]['red_chi2'] != 'insufficient data':
 
-                if np.abs(rescale_slopes_df.loc[band]['slope']) < 0.1:
-                    rescale_slopes_df.loc[band]['comment'] = "no color evolution, slope < 0.1"
-                elif rescale_slopes_df.loc[band]['slope']-(3*rescale_slopes_df.loc[band]['slope_err'])<=0<=rescale_slopes_df.loc[band]['slope']+(3*rescale_slopes_df.loc[band]['slope_err']):
-                    rescale_slopes_df.loc[band]['comment'] = "no color evolution, compatible with 0 in 3σ"
-                else:    
-                    rescale_slopes_df.loc[band]['comment'] = "color evolution, slope >= 0.1 and not compatible with 0 in 3σ"
+                    y_fit = rescale_slopes_df.loc[band]['slope'] * x + rescale_slopes_df.loc[band]['intercept']
+                    plt.plot(x, y_fit, color=color)
 
-            else:
-                rescale_slopes_df.loc[band]['comment'] = "slope=nan"  
+                    if np.abs(rescale_slopes_df.loc[band]['slope']) < 0.1:
+                        rescale_slopes_df.loc[band]['comment'] = "no color evolution, slope < 0.1"
+                    elif rescale_slopes_df.loc[band]['slope']-(3*rescale_slopes_df.loc[band]['slope_err'])<=0<=rescale_slopes_df.loc[band]['slope']+(3*rescale_slopes_df.loc[band]['slope_err']):
+                        rescale_slopes_df.loc[band]['comment'] = "no color evolution, compatible with 0 in 3σ"
+                    else:    
+                        rescale_slopes_df.loc[band]['comment'] = "color evolution, slope >= 0.1 and not compatible with 0 in 3σ"
+
+                else:
+                    rescale_slopes_df.loc[band]['comment'] = "slope=nan"  
 
         for band in rescale_slopes_df.index:
-            ind = rescale_df.index[rescale_df['band'] == band][0]
-            color = rescale_df.loc[ind]["plot_color"]
-            if type(rescale_slopes_df.loc[band]["slope"]) != float:
-                plt.scatter(x=[], y=[], 
-                            color=color, 
-                            label=f"{band}: {rescale_slopes_df.loc[band]['slope']:.2f} $\pm$ {rescale_slopes_df.loc[band]['slope_err']:.2f}"
-                            )
-            else:
-                plt.scatter(x=[], y=[], 
-                                        color=color, 
-                                        label=band+": no fit"
-                                        )
+            if band != rescale_band:
+                color = filters.loc[band, 'plot_color']
+                if type(rescale_slopes_df.loc[band]["slope"]) != float:
+                    plt.scatter(x=[], y=[], 
+                                color=color, 
+                                label=f"{band}: {rescale_slopes_df.loc[band]['slope']:.2f} $\pm$ {rescale_slopes_df.loc[band]['slope_err']:.2f}"
+                                )
+                else:
+                    plt.scatter(x=[], y=[], 
+                                            color=color, 
+                                            label=band+": no fit"
+                                            )
     
         plt.rcParams['figure.figsize'] = [15, 10]
         plt.rcParams['legend.title_fontsize'] = 'xx-large'
-        plt.xlabel('Log time (s)',fontsize=22)
-        plt.ylabel('Rescaling factor with respect to '+rescale_band+' (mag)',fontsize=22)    
-        plt.xticks(fontsize=22)
-        plt.yticks(fontsize=22)
-        plt.title("GRB "+self.name, fontsize=22)
-        plt.legend(title='Bands & slopes', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large')    
+        plt.xlabel('Log time (s)',fontsize=20)
+        plt.ylabel('Rescaling factor respect to '+rescale_band,fontsize=20)    
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.title("GRB "+self.name, fontsize=20)
+        plt.legend(title='Bands & slopes', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large')
 
 
         fig_light = plt.figure()
-        for band in occur.index:
-            if band == rescale_band:
-                color = 'k'
-            else:
-                #color = rescale_slopes_df.loc[band]["plot_color"]
-                ind = rescale_df.index[rescale_df['band'] == band][0]
-                color = rescale_df.loc[ind]["plot_color"]
-
+        for band in filters.index:
+            color = filters.loc[band, 'plot_color']
             sublight=light.loc[(light['band'] == band)]
             plt.scatter(sublight['time_sec'], sublight['mag'],
                         s=15, 
@@ -695,7 +684,8 @@ class Lightcurve:
         plt.yticks(fontsize=22)
         plt.gca().invert_yaxis()
         plt.title("GRB "+self.name, fontsize=22)
-        plt.legend(title='Bands', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large') 
+        plt.legend(title='Bands', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large')
+        plt.tight_layout()
 
 
         # RESCALING PART OF THE LC 
@@ -709,7 +699,7 @@ class Lightcurve:
             start2=light_y[i]-light_yerr[i]
             end2=light_y[i]+light_yerr[i]
 
-            for band in occur.index:
+            for band in filters.index:
                 if light_band == band:
                     for j in [k for k in range(len(light)) if (k != i) & (light_band[k]==rescale_band)]:
                         start1 = light_y[j]-light_yerr[j] 
@@ -729,44 +719,16 @@ class Lightcurve:
         light_rescaled['mag'] = light_y
         light_rescaled['mag_err'] = light_yerr
         light_rescaled['band'] = light_band
+        light_rescaled['band_og'] = self.band_og
         light_rescaled['system'] = self.system
         light_rescaled['telescope'] = self.telescope
         light_rescaled['source'] = self.source
 
-        '''for pp in range(len(lightresc)):
-            start2=lightrescy[pp]-lightrescyerr[pp]
-            end2=lightrescy[pp]+lightrescyerr[pp]
-            temp_ov=[]
-            temp_dist=[]
-         
-        
-            for ff in averagedrescalingfactor:
-                if lightresccolor[pp] == ff[0]:
-                    for nn in [x for x in range(len(lightresc)) if (x != pp) & (lightresccolor[x]==rescale_filter)]:
-                        start1=lightrescy[nn]-lightrescyerr[nn] 
-                        end1=lightrescy[nn]+lightrescyerr[nn] 
-                        dist=np.abs((lightrescx[nn])-(lightrescx[pp]))/(lightrescx[nn])
-                        temp_ov.append(overlap(start1, end1, start2, end2))
-                        temp_dist.append(dist)
-
-                    if any((temp_ov[i] == 0) & (temp_dist[i] <= 0.025) for i in range(len(temp_ov))):
-                        lightrescy[pp]=lightrescy[pp]+ff[2]
-                        #print('rescaling is evaluated with ',ff[2])
-                    else:
-                        lightrescy[pp]=lightrescy[pp]
-                        #print('rescaling is NOT evaluated')'''
-
         
         fig_light_rescaled = plt.figure()
-        for band in occur.index:
-            if band == rescale_band:
-                color = 'k'
-            else:
-                #color = rescale_slopes_df.loc[band]["plot_color"]
-                ind = rescale_df.index[rescale_df['band'] == band][0]
-                color = rescale_df.loc[ind]["plot_color"]
-
-            sublight=light_rescaled.loc[(light_rescaled['band'] == band)]
+        for band in filters.index:
+            color = filters.loc[band, 'plot_color']
+            sublight = light_rescaled.loc[(light_rescaled['band'] == band)]
             plt.scatter(sublight['time_sec'], sublight['mag'],
                         s=15, 
                         color=color,
@@ -787,9 +749,7 @@ class Lightcurve:
         plt.gca().invert_yaxis()
         plt.title("GRB "+self.name+" Rescaled", fontsize=22)
         plt.legend(title='Bands', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large') 
-
-        rescale_df.drop(labels='plot_color', axis=1, inplace=True)
-        rescale_slopes_df.drop(labels='plot_color', axis=1, inplace=True)
+        plt.tight_layout()
 
         if print_status:
 
@@ -830,11 +790,11 @@ class Lightcurve:
             print('No color evolution: ',*compzerolist,' ; Color evolution: ',*nocompzerolist)    '''    
 
             
-            string=""
+            '''string=""
             for band in rescale_slopes_df.index:
                 string=string+band+":"+str(round(rescale_slopes_df.loc[band]['slope'],3))+"+/-"+str(round(rescale_slopes_df.loc[band]['slope_err'],3))+"; "
                 
-            print(string)
+            print(string)'''
 
         
 
@@ -894,9 +854,9 @@ class Lightcurve:
                         )'''
         
         if save_plot:
-            fig_light.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_lc_no_rescale.pdf'), dpi=300)
-            fig_rescale_slopes.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_rescale_slopes.pdf'), dpi=300)
-            fig_light_rescaled.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_lc_rescaled.pdf'), dpi=300)
+            fig_light.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_lc_no_rescale.pdf'), dpi=120, bbox_inches='tight')
+            fig_rescale_slopes.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_rescale_slopes.pdf'), dpi=120, bbox_inches='tight')
+            fig_light_rescaled.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_lc_rescaled.pdf'), dpi=120, bbox_inches='tight')
         if save_df:
             light_rescaled.to_csv(os.path.join(save_in_folder+'/'+str(self.name)+'_colorevol.txt'), sep='\t')
  
