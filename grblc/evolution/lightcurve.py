@@ -1,6 +1,7 @@
 # Standard libs
 import os
 import re
+import warnings
 
 # Third party libs
 import numpy as np
@@ -9,14 +10,17 @@ import lmfit as lf
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
+import matplotlib.ticker as mt
 import plotly.express as px
 
 # Custom modules
-import io
+from . import io
 
+# Ignore warnings
+warnings.filterwarnings(action='ignore')#, category=['Warning', 'RuntimeWarning'])
 
-class Lightcurve:
-    _name_placeholder = "unknown grb"
+class Lightcurve(object):
+    _name_placeholder = "xxxxxxA"
     _flux_fixed_inplace = False
 
 
@@ -48,7 +52,7 @@ class Lightcurve:
             Name of file containing light curve data, by default None
         data_space : str, {log, lin}, optional
             Whether the time data inputted is in log or linear space, by default 'log'
-        appx_bands: str, optional
+        set_bands: str, optional
             Whether to approximate bands for color evolution analysis. The following approximations are performed:
             - primed SDSS ugriz bands are treated same as unprimed
             - Ks = K' = K
@@ -75,7 +79,6 @@ class Lightcurve:
     def displayGRB(
             self, 
             save_static = False, 
-            save_static_type = '.png', 
             save_interactive = False, 
             save_in_folder = 'plots/'
     ):
@@ -85,15 +88,16 @@ class Lightcurve:
         """
 
         fig = px.scatter(
-                    x=self.xdata,
-                    y=self.ydata,
-                    error_y=self.yerr,
-                    color=self.band,
-                    hover_data=self.telescope,
+                    data_frame=self.light,
+                    x=self.light['time_sec'],
+                    y=self.light['mag'],
+                    error_y=self.light['mag_err'],
+                    color=self.light['band'],
+                    hover_data=['telescope', 'source'],
                 )
 
         tailpoint_list = []
-        for t,m,e in zip(self.xdata,self.ydata,self.yerr):
+        for t,m,e in zip(self.light['time_sec'],self.light['mag'],self.light['mag_err']):
             if e == 0:
                 tailpoint_list.append((t, m))
 
@@ -109,13 +113,13 @@ class Lightcurve:
                 xref = "x", #reference axis of arrow head coordinate_x
                 yref = "y",#reference axis of arrow head coordinate_y
                 arrowcolor="gray", #color of arrow
-                arrowsize = 1.5, #size of arrow head
+                arrowsize = 1, #size of arrow head
                 arrowwidth = 2, #width of arrow line
                 ax = tail[0], #arrow tail coordinate_x
-                ay = tail[1], #arrow tail coordinate_y
+                ay = tail[1]-0.25, #arrow tail coordinate_y
                 axref= "x", #reference axis of arrow tail coordinate_x
                 ayref= "y", #reference axis of arrow tail coordinate_y
-                arrowhead=3, #annotation arrow head style, from 0 to 8
+                arrowhead=4, #annotation arrow head style, from 0 to 8
                 ))
 
         #update_layout with annotations
@@ -167,7 +171,7 @@ class Lightcurve:
                         )
 
         if save_static:
-            fig.write_image(save_in_folder+self.name+save_static_type)
+            fig.write_image(save_in_folder+self.name+'.png')
 
         if save_interactive:
             fig.write_html(save_in_folder+self.name+'.html')
@@ -180,7 +184,7 @@ class Lightcurve:
     # It is not callable outside the class.
     def set_data(
         self, 
-        appx_bands = False
+        set_bands = False
     ):
         """
         Does the approximations necessary for the analysis
@@ -198,7 +202,7 @@ class Lightcurve:
             Name of file containing light curve data, by default None
         data_space : str, {log, lin}, optional
             Whether the time data inputted is in log or linear space, by default 'log'
-        appx_bands: str, optional
+        set_bands: str, optional
             Whether to approximate bands for color evolution analysis. The following approximations are performed:
             - primed SDSS ugriz bands are treated same as unprimed
             - Ks = K' = K
@@ -228,7 +232,7 @@ class Lightcurve:
                 if band.lower() in ['clear', 'unfiltered', 'lum']:
                     band == band.lower()
 
-            if appx_bands:
+            if set_bands:
                 for i, band in enumerate(data):
                     if band=="u'":
                         data[i]="u"
@@ -267,15 +271,7 @@ class Lightcurve:
 
             return bands
         
-        self.xdata = self.light["time_sec"].to_numpy()
-        self.ydata = self.light["mag"].to_numpy()
-        self.yerr = self.light["mag_err"].to_numpy()
-        self.band_original = self.light["band"].to_list()
-        self.band = self.light["band"] = _convert_bands(self.light["band"])
-        self.system = self.light["system"].to_list()
-        self.telescope = self.light["telescope"].to_list()
-        self.extcorr = self.light["extcorr"].to_list()
-        self.source = self.light["source"].to_list()
+        self.light["band_set"] = _convert_bands(self.light["band"])
     
 
    
@@ -283,9 +279,8 @@ class Lightcurve:
             self, 
             resc_band = 'numerous', 
             print_status = True, 
-            save_plot = False, 
-            save_in_folder = 'rescale/'
-            #return_rescaledf=False
+            save = False, 
+            save_in_folder = 'colorevol/'
     ):
         """
         This monstrosity performs the color evolution analysis.
@@ -301,38 +296,39 @@ class Lightcurve:
         self.light['resc_band_mag_err'] = np.nan # error on the magnitude of the filter chosen for rescaling
 
         # Counting the occurences of each band
-        filters = pd.DataFrame(self.band.value_counts())
-        filters.rename(columns={'band':'occur'}, inplace=True)
+        filters = pd.DataFrame(self.light['band_set'].value_counts())
+        filters.rename(columns={'band_set':'band_occur'}, inplace=True)
 
-        self.light['band_occurrences'] = self.light['band'].map(self.light['band'].value_counts())
+        self.light["band_occur"] = self.light['band_set'].map(self.light['band_set'].value_counts())
 
-        assert resc_band == 'numerous' or resc_band in self.band, "Rescaling band provided is not present in data!"
+        assert resc_band == 'numerous' or resc_band in self.light['band_set'], "Rescaling band provided is not present in data!"
 
         # Identifying the most numerous filter in the GRB 
         if resc_band == 'numerous':
             resc_band = filters.index[0]
 
+        self.resc_band = resc_band
+
         if print_status:
             print(self.name)
             print('-------')
             print(filters, '\nThe reference filter for rescaling of this GRB: ', resc_band, 
-                ', with', filters.loc[resc_band, 'occur'], 'occurrences.\n')
+                ', with', filters.loc[resc_band, 'band_occur'], 'occurrences.\n')
             
 
         # Set the color map to match the number of filter
         cmap = plt.get_cmap('gist_ncar')
-        cNorm  = colors.Normalize(vmin=0, vmax=len(filters))
+        cNorm  = colors.Normalize(vmin=0, vmax=len(filters.index))
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
 
         filters['plot_color'] = ""
         for i, band in enumerate(filters.index):
-            colour = scalarMap.to_rgba(i)
-            filters.at[band, 'plot_color'] = colour
+            filters.at[band, 'plot_color'] = scalarMap.to_rgba(i)
 
         
         # In the following rows the code extracts only the datapoints with the filter chosen for rescaling (usually, the most numerous)
 
-        resc_light = self.light.loc[(self.light['band'] == resc_band)] # resc_light dataframe is the one constituted of the chosen filter for rescaling,
+        resc_light = self.light.loc[(self.light['band_set'] == resc_band)] # resc_light dataframe is the one constituted of the chosen filter for rescaling,
         resc_time = resc_light['time_sec'].values                   # for simplicity it is called resc_light
         resc_mag = resc_light['mag'].values                        # time_sec is linear
         resc_magerr = resc_light['mag_err'].values
@@ -342,7 +338,7 @@ class Lightcurve:
         # then the magnitude values do not overlap)
 
         for row in self.light.index: # running on all the magnitudes
-            if self.light.loc[row, 'band_approx'] == resc_band:   # when the filter in the dataframe is the filter chosen for rescaling,
+            if self.light.loc[row, 'band_set'] == resc_band:   # when the filter in the dataframe is the filter chosen for rescaling,
                 continue                    # the rescaling factor is obviously not existing and the columns are filled with "-"
             else:
                 compatiblerescalingfactors=[] # the compatiblerescalingfactors is a list that contains all the possible rescaling factors for a magnitude, since more of them can fall in the 2.5 percent criteria
@@ -365,56 +361,56 @@ class Lightcurve:
                         self.light.loc[row, "resc_band_mag"]=acceptedrescalingfactor[0][3]
                         self.light.loc[row, "resc_band_mag_err"]=acceptedrescalingfactor[0][4]
 
-        self.light_rescalable = self.light[self.light["resc_fact"] != np.nan] # the self.light_rescalable selects only the datapoints with rescaling factors
-
+        self.light_rescalable = self.light.dropna(axis=0, subset=['resc_fact', 'resc_fact_err']) #[~np.isnan(self.light["resc_fact"])] # the self.light_rescalable selects only the datapoints with rescaling factors
 
         # The following command defines the dataframe of rescaling factors
 
-        resc_df = self.light_rescalable[['band', 'band_occurrences', 'resc_fact', 'resc_fact_err']]
+        resc_df = self.light_rescalable[['time_sec', 'resc_fact', 'resc_fact_err', 'band_set', 'band_occur']]
 
-        filterslist = [*set(resc_df['band'].values)] # list of filters in the rescaling factors sample
-        resc_df['plot_color'] = "" # empty list that will filled with the color map condition
+        resc_filters = [*set(resc_df['band_set'].values)] # list of filters in the rescaling factors sample
+        '''resc_df['plot_color'] = "" # empty list that will filled with the color map condition
 
         # Set the color map to match the number of filter
         cmap = plt.get_cmap('gist_ncar') # import the color map
-        cNorm  = colors.Normalize(vmin=0, vmax=len(filterslist)) # linear map of the colors in the colormap from data values vmin to vmax
+        cNorm  = colors.Normalize(vmin=0, vmax=len(resc_filters)) # linear map of the colors in the colormap from data values vmin to vmax
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap) # The ScalarMappable applies data normalization before returning RGBA colors from the given colormap
-
+'''
         # Plot each filter
-        fig = plt.figure()
+        fig, axs = plt.subplots(2, 1, sharex=True)
 
-        for i, band in enumerate(filterslist): # loop on the given filter
-            colour = scalarMap.to_rgba(i) # mapping the colour into the RGBA
-            index = resc_df['band'] == band # selects the magnitudes that have the filter equal to the band on which the loop iterates
-            plt.scatter(resc_df.loc[index, 'time_sec'], resc_df.loc[index, 'resc_fact'], # options for the plot of the central values
+        for band in filters.index:
+            sublight=self.light.loc[self.light['band_set'] == band]
+            axs[0].scatter(sublight['time_sec'], sublight['mag'], color=filters.loc[band, "plot_color"])
+            axs[0].errorbar(x=sublight['time_sec'], y=sublight['mag'], yerr=sublight['mag_err'], color=filters.loc[band, "plot_color"], ls='')
+
+
+        for i, band in enumerate(resc_filters): # loop on the given filter
+            index = resc_df['band_set'] == band # selects the magnitudes that have the filter equal to the band on which the loop iterates
+            axs[1].scatter(resc_df.loc[index, 'time_sec'], resc_df.loc[index, 'resc_fact'], # options for the plot of the central values
                         s=15,
-                        color=colour) # color-coding of the plot
-            plt.errorbar(resc_df.loc[index, 'time_sec'], resc_df.loc[index, 'resc_fact'], resc_df.loc[index, 'resc_fact_err'], #options for the plot of the error bars, these must be added in this command
+                        color=filters.loc[band, 'plot_color']) # color-coding of the plot
+            axs[1].errorbar(resc_df.loc[index, 'time_sec'], resc_df.loc[index, 'resc_fact'], resc_df.loc[index, 'resc_fact_err'], #options for the plot of the error bars, these must be added in this command
                         fmt='o', # this is the data marker, a circle
                         barsabove=True, # bars plotted above the data marker
                         ls='', # line style = None, so no lines are drawn between the points (later the fit will be done and plotted)
-                        color=colour # color-coding
+                        color=filters.loc[band, 'plot_color'] # color-coding
                         )
-            for j in resc_df[index].index:
-                resc_df.at[j,"plot_color"] = colour # this loop assigns each filter to a color in the plot
 
         resc_slopes_df = pd.DataFrame() # initialize of the rescaling factors fitting dataframe
-        resc_slopes_df.index = filters # the filters are taken as index
-        resc_slopes_df['slope'] = "" # placeholder, default set to empty, then it will change - slope of the linear fit
-        resc_slopes_df['slope_err'] = "" # placeholder, default set to empty, then it will change - error on slope
-        resc_slopes_df['intercept'] = "" # placeholder, default set to empty, then it will change - intercept of linear fit
-        resc_slopes_df['inter_err'] = "" # placeholder, default set to empty, then it will change - error on intercept
-        resc_slopes_df['slope_err/slope'] = "" # placeholder, default set to empty, then it will change - slope_err/slope = |slope_err|/|slope|
-        resc_slopes_df['red_chi2'] = "" # placeholder, default set to empty, then it will change - reduced chi^2
+        resc_slopes_df.index = filters.index[1::] # the filters are taken as index ignoring rescaling band
+        resc_slopes_df['slope'] = np.nan # placeholder, default set to empty, then it will change - slope of the linear fit
+        resc_slopes_df['slope_err'] = np.nan # placeholder, default set to empty, then it will change - error on slope
+        resc_slopes_df['intercept'] = np.nan # placeholder, default set to empty, then it will change - intercept of linear fit
+        resc_slopes_df['inter_err'] = np.nan # placeholder, default set to empty, then it will change - error on intercept
+        resc_slopes_df['slope_err/slope'] = np.nan # placeholder, default set to empty, then it will change - slope_err/slope = |slope_err|/|slope|
+        resc_slopes_df['red_chi2'] = np.nan # placeholder, default set to empty, then it will change - reduced chi^2
         resc_slopes_df['comment'] = "" # placeholder, default set to empty, then it will change - the comment that will say "no color evolution","color evolution"
-        resc_slopes_df['plot_color'] = "" # placeholder, default set to empty, then it will change - color-coding for the fitting lines
-
+        
         for band in resc_slopes_df.index: # in this loop, we assign the bands in the dataframe defined in line 580
-            ind = resc_df.index[resc_df['band'] == band][0]
-            resc_slopes_df.loc[band, "plot_color"] = str(resc_df.loc[ind, "plot_color"])
-            resc_band_df = resc_df[resc_df['band'] == band]
+            
+            resc_band_df = resc_df[resc_df['band_set'] == band]
 
-            x = resc_band_df['time_sec'] # we here define the dataframe to fit, log10(time)
+            x = resc_band_df['time_sec'].values # we here define the dataframe to fit, log10(time)
             y = resc_band_df['resc_fact'].values # the rescaling factors
             weights = 1/resc_band_df['resc_fact_err'].values # The weights are considered as 1/yerr given that the lmfit package will be used: https://lmfit.github.io/lmfit-py/model.html#the-model-class
 
@@ -437,27 +433,23 @@ class Lightcurve:
                 resc_slopes_df.loc[band, 'red_chi2'] = np.around(linear_fit.redchi, decimals=3) # reduced chi^2
 
             else: # not enough data points, less than 3 rescaling factors for the filter
-                resc_slopes_df.loc[band, 'slope'] = np.nan
-                resc_slopes_df.loc[band, 'slope_err'] = np.nan
-                resc_slopes_df.loc[band, 'intercept'] = np.nan
-                resc_slopes_df.loc[band, 'inter_err'] = np.nan
-                resc_slopes_df.loc[band, 'slope_err/slope'] = np.nan
                 resc_slopes_df.loc[band, 'comment'] = "insufficient data"
-                resc_slopes_df.loc[band, 'red_chi2'] = 'insufficient data'
 
-            if resc_slopes_df.loc[band, 'slope'] < 0.001: # in case of zero-slope, since the fittings have 3 digits precision we consider the precision 0.001 as the "smallest value different from zero"
+            # commenting
+
+            if np.abs(resc_slopes_df.loc[band, 'slope']) < 0.001: # in case of zero-slope, since the fittings have 3 digits precision we consider the precision 0.001 as the "smallest value different from zero"
                 if resc_slopes_df.loc[band, 'slope_err/slope'] <= 10:
                     y_fit = resc_slopes_df.loc[band, 'slope'] * x + resc_slopes_df.loc[band, 'intercept']
-                    plt.plot(x, y_fit, color=tuple(np.array(re.split('[(),]', resc_slopes_df.loc[band, "plot_color"])[1:-1], dtype=float))) # plot of the fitting line between time_sec and resc_fact
+                    axs[1].plot(x, y_fit, color=filters.loc[band, 'plot_color']) # plot of the fitting line between time_sec and resc_fact
 
                     resc_slopes_df.loc[band, 'comment'] = "no color evolution"
 
 
-            if resc_slopes_df.loc[band, 'slope'] >= 0.001: # in the case of non-zero slope
+            if np.abs(resc_slopes_df.loc[band, 'slope']) >= 0.001: # in the case of non-zero slope
                 if resc_slopes_df.loc[band, 'slope_err/slope'] <= 10: # this boundary of slope_err/slope is put ad-hoc to show all the plots
                                                                    # it's a large number that can be modified
                     y_fit = resc_slopes_df.loc[band, 'slope'] * x + resc_slopes_df.loc[band, 'intercept'] # fitted y-value according to linear model
-                    plt.plot(x, y_fit, color=tuple(np.array(re.split('[(),]', resc_slopes_df.loc[band, "plot_color"])[1:-1], dtype=float))) # plot of the fitting line between time_sec and resc_fact
+                    axs[1].plot(x, y_fit, color=filters.loc[band, 'plot_color']) # plot of the fitting line between time_sec and resc_fact
 
                     if resc_slopes_df.loc[band, 'slope']-(3*resc_slopes_df.loc[band, 'slope_err'])<=0<=resc_slopes_df.loc[band, 'slope']+(3*resc_slopes_df.loc[band, 'slope_err']):
                         resc_slopes_df.loc[band, 'comment'] = "no color evolution" # in case it is comp. with zero in 3 sigma, there is no color evolution
@@ -465,7 +457,7 @@ class Lightcurve:
                         resc_slopes_df.loc[band, 'comment'] = "color evolution" # in case the slope is not compatible with zero in 3 sigma
 
                 else:
-                    resc_slopes_df.loc[band, 'comment'] = "slope_err/slope>10sigma"  # when the slope_err/slope is very high
+                    resc_slopes_df.loc[band, 'comment'] = "slope_err/slope>10"  # when the slope_err/slope is very high
 
         for band in resc_slopes_df.index: # this loop defines the labels to be put in the rescaling factor plot legend
 
@@ -475,32 +467,36 @@ class Lightcurve:
                 label=band+": "+ str(resc_slopes_df.loc[band, "slope"]) + r'$\pm$' + str(resc_slopes_df.loc[band, "slope_err"])
                 # when the slopes are estimated, the label is "filter: slope +/- slope_err"
 
-            ind = resc_df.index[resc_df['band'] == band][0] # initializing the variables to be plotted for each filter
-            color = resc_df.loc[ind, "plot_color"]
-            plt.scatter(x=[], y=[],
-                        color=color,
+            axs[1].scatter(x=[], y=[],
+                        color=filters.loc[band, 'plot_color'],
                         label=label # here the labels for each filter are inserted
                         )
 
-        plt.rcParams['legend.title_fontsize'] = 'xx-large' #options for the plot of rescaling factors
-        plt.xlabel('Log time (s)',fontsize=22)
-        plt.ylabel('Rescaling factor to '+resc_band+' (mag)',fontsize=22)
-        plt.rcParams['figure.figsize'] = [15, 10]
-        plt.xticks(fontsize=22)
-        plt.yticks(fontsize=22)
-        plt.title("GRB "+self.name.split("/")[-1], fontsize=22)
-        plt.legend(title='Band & slope', bbox_to_anchor=(1.015, 1.015), loc='upper left', fontsize='xx-large') # legend, it uses the colors and labels
+        fmt = '%.1f' # set the number of significant digits you want
+        xyticks = mt.FormatStrFormatter(fmt)
+        for ax in axs:
+            ax.yaxis.set_major_formatter(xyticks)
+            ax.xaxis.set_major_formatter(xyticks)
 
-        if save_plot:
-            plt.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_colorevol.pdf'), dpi=300) # option to export the pdf plot of rescaling factors
+        axs[0].invert_yaxis()
+        axs[0].set_xlabel('log10 Time (s)', fontsize=15)
+        axs[0].set_ylabel('Magnitude', labelpad=15, fontsize=15)
+        axs[0].tick_params(labelsize=15)
 
-        plt.show()
+        axs[1].set_ylabel('Rescaling factor to '+self.resc_band, labelpad=15, fontsize=15)
+        axs[1].tick_params(labelsize=15)
 
-        # Here the code prints the dataframe of rescaling factors, that contains log10(time), slope, slope_err...
-        resc_df.drop(labels='plot_color', axis=1, inplace=True)     # before printing that dataframe, the code removes the columns of plot_color
-        resc_slopes_df.drop(labels='plot_color', axis=1, inplace=True) # since this column was needed only for assigning the plot colors
-                                                                       # these columns have no scientific meaning
+        #axs[1].locator_params(axis='x', nbins=5)
+        #axs[1].locator_params(axis='y', nbins=5)
+        #axs[0].yaxis.set_major_formatter('{x:9<5.1f}')
+        
+        fig.legend(title='Band: slope±err', bbox_to_anchor=(1, 0.946), loc='upper left', fontsize='large')   
 
+        plt.rcParams['legend.title_fontsize'] = 'x-large'
+        fig.suptitle("GRB "+self.name.split("/")[-1], fontsize=22)
+        plt.rcParams['figure.figsize'] = [12, 8]
+        fig.tight_layout()
+            
         if print_status: # when this option is selected in the function it prints the following
 
             print("Individual point rescaling:")
@@ -541,17 +537,36 @@ class Lightcurve:
             print('No color evolution: ',*self.nocolorevolutionlist,' ; Color evolution: ',*self.colorevolutionlist) # print of the two lists
 
 
-        string="" # this is the general printing of all the slopes
-        for band in resc_slopes_df.index:
-            string=string+band+":"+str(round(resc_slopes_df.loc[band, 'slope'],3))+"+/-"+str(round(resc_slopes_df.loc[band, 'slope_err'],3))+"; "
+            string="" # this is the general printing of all the slopes
+            for band in resc_slopes_df.index:
+                string=string+band+":"+str(round(resc_slopes_df.loc[band, 'slope'],3))+"+/-"+str(round(resc_slopes_df.loc[band, 'slope_err'],3))+"; "
 
-        print(string)
+        if save:
 
-        return fig, resc_df, resc_slopes_df, self.nocolorevolutionlist, self.colorevolutionlist # the variables in the other case
+            if not os.path.exists(save_in_folder):
+                os.makedirs(save_in_folder)
+
+            fig.savefig(os.path.join(save_in_folder+'/'+str(self.name)+'_colorevol.pdf'), dpi=300) #  , bbox_inches='tight' option to export the pdf plot of rescaling factors
+
+            if len(self.nocolorevolutionlist)>len(self.colorevolutionlist):
+                rescflag='yes'
+            else:
+                rescflag='no'
+
+            #reportfile = open('report_colorevolution.txt', 'a')
+            #reportfile.write(self.name.split("/")[-1]+" "+str(self.nocolorevolutionlist).replace(' ','')+" "+str(self.colorevolutionlist).replace(' ','')+" "+rescflag+" "+self.resc_band+"\n")
+            #reportfile.close()
+
+
+        return fig, resc_df, resc_slopes_df, #reportfile # the variables in the other case
 
 
 
-    def rescaleGRB(self, output_colorevolGRB, save_rescaled_in=''): # this function makes the rescaling of the GRB
+    def rescaleGRB(
+            self, 
+            save = 'False',
+            save_in_folder = 'rescale/'
+    ): # this function makes the rescaling of the GRB
 
         def overlap(mag1lower,mag1upper,mag2lower,mag2upper): # this is the condition to state if two magnitude ranges overlap
             if mag1upper <mag2lower or mag1lower > mag2upper:
@@ -561,19 +576,19 @@ class Lightcurve:
 
         # here the code uses the colorevolGRB function defined above; the outputs of the function colorevolGRB will be used as input in the current function
 
-        #output_colorevolGRB = self.colorevolGRB(print_status=False, return_rescaledf=False, save_plot=False, chosenfilter=chosenfilter, save_in_folder=save_rescaled_in)
-        input = output_colorevolGRB
-        self.nocolorevolutionlist = input[2] # 3rd output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are compatible with zero in 3sigma or are < 0.10
-        colorevolutionlist =input[3] # 4th output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are incompatible with zero in 3sigma and are>0.10
-        resc_band = input[4] # 5th output of colorevolGRB function, this is the filter chosen for rescaling
-        light = input[5] # 6th output of colorevolGRB function, is the original dataframe (since the filter chosen for rescaling is present here and it is needed)
+        #output_colorevolGRB = self.colorevolGRB(print_status=False, return_rescaledf=False, save=False, chosenfilter=chosenfilter, save_in_folder=save_in_folder)
+        #input = output_colorevolGRB
+        #nocolorevolutionlist = input[2] # 3rd output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are compatible with zero in 3sigma or are < 0.10
+        #colorevolutionlist =input[3] # 4th output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are incompatible with zero in 3sigma and are>0.10
+        #resc_band = input[4] # 5th output of colorevolGRB function, this is the filter chosen for rescaling
+        #light = input[5] # 6th output of colorevolGRB function, is the given dataframe (since the filter chosen for rescaling is present here and it is needed)
 
         # Before rescaling the magnitudes, the following instructions plot the magnitudes in the unrescaled case
         figunresc = px.scatter(
-                x=np.log10(light['time_sec'].values), # the time is set to log10(time) only in the plot frame
-                y=light['mag'].values,
-                error_y=light['mag_err'].values,
-                color=light['band'].values,
+                x=self.light['time_sec'].values, # the time is set to log10(time) only in the plot frame
+                y=self.light['mag'].values,
+                error_y=self.light['mag_err'].values,
+                color=self.light['band'].values,
                 )
 
         font_dict=dict(family='arial', # font of the plot's layout
@@ -621,23 +636,19 @@ class Lightcurve:
                         margin=dict(l=40,r=40,t=50,b=40)
                         )
 
-        figunresc.show()
-
         # Two additive columns must be inserted in the light dataframe
 
-        light["mag_rescaled_to_"+resc_band] = "" # the column with rescaled magnitudes
-        light["mag_rescaled_err"] = "" # the column with magnitude errors, propagating the uncertainties on the magnitude itself and on the rescaling factor
-
-        print(self.nocolorevolutionlist)
+        self.light["mag_rescaled_to_"+self.resc_band] = "" # the column with rescaled magnitudes
+        self.light["mag_rescaled_err"] = "" # the column with magnitude errors, propagating the uncertainties on the magnitude itself and on the rescaling factor
 
         for rr in self.light.index:
-            # In these cases, the rescaled magnitude is the same of the original magnitude:
+            # In these cases, the rescaled magnitude is the same of the given magnitude:
             # 1) The datapoint has the filter chosen for rescaling (obviously, can't be rescaled to itself)
             # 2) If the rescaling factor is not estimated (time difference > 2.5 percent)
             # 3) If the magnitudes of the filter chosen for rescaling and the filter to be rescaled overlap (mag overlap >0)
             # 4) If the filter belongs to the list of filters that have color evolution
             if self.light.loc[rr, "resc_band_mag"] == "-" or self.light.loc[rr, "resc_band_mag_err"] =="-":
-                self.light.loc[rr, "mag_rescaled_to_"+resc_band] = self.light.loc[rr, "mag"]
+                self.light.loc[rr, "mag_rescaled_to_"+self.resc_band] = self.light.loc[rr, "mag"]
                 self.light.loc[rr, "mag_rescaled_err"] = self.light.loc[rr, "mag_err"]
             else:
                 magoverlapcheck=overlap(self.light.loc[rr, "mag"]-self.light.loc[rr, "mag_err"], # the overlap between the filter chosen for rescaling and the filter to be rescaled; zero if no overlap, number>0 if overlap
@@ -645,28 +656,28 @@ class Lightcurve:
                                            self.light.loc[rr, "resc_band_mag"]-self.light.loc[rr, "resc_band_mag_err"],
                                            self.light.loc[rr, "resc_band_mag"]+self.light.loc[rr, "resc_band_mag_err"])
 
-            if (self.light.loc[rr, "band_approx"]==resc_band) or (self.light.loc[rr, "resc_fact"] == "-") or (magoverlapcheck != 0) or (self.light.loc[rr, "band_approx"] in colorevolutionlist):
-                self.light.loc[rr, "mag_rescaled_to_"+resc_band] = self.light.loc[rr, "mag"]
+            if (self.light.loc[rr, "band_set"]==self.resc_band) or (self.light.loc[rr, "resc_fact"] == "-") or (magoverlapcheck != 0) or (self.light.loc[rr, "band_set"] in self.colorevolutionlist):
+                self.light.loc[rr, "mag_rescaled_to_"+self.resc_band] = self.light.loc[rr, "mag"]
                 self.light.loc[rr, "mag_rescaled_err"] = self.light.loc[rr, "mag_err"]
 
             # In the following cases, magnitudes are rescaled
             # If the rescaling factor is estimated AND the time difference is smaller than 2.5 percent AND the overlap is zero AND the band is in the list of filters that have no color evolution
-            elif (self.light.loc[rr, "resc_fact"] != "-") and (self.light.loc[rr, "time_diff_percentage"]<=0.025) and (magoverlapcheck==0) and (self.light.loc[rr, "band_approx"] in self.nocolorevolutionlist):
-                self.light.loc[rr, "mag_rescaled_to_"+resc_band] = self.light.loc[rr, "mag"]+self.light.loc[rr, "resc_fact"]
+            elif (self.light.loc[rr, "resc_fact"] != "-") and (self.light.loc[rr, "time_diff_percentage"]<=0.025) and (magoverlapcheck==0) and (self.light.loc[rr, "band_set"] in self.nocolorevolutionlist):
+                self.light.loc[rr, "mag_rescaled_to_"+self.resc_band] = self.light.loc[rr, "mag"]+self.light.loc[rr, "resc_fact"]
                 self.light.loc[rr, "mag_rescaled_err"] = self.light.loc[rr, "resc_fact_err"] # the error on the rescaled magnitude is already estimated with the rescaling factor error
 
             # In all the other cases, the magnitudes can't be rescaled and the default options follow
             else:
-                self.light.loc[rr, "mag_rescaled_to_"+resc_band] = self.light.loc[rr, "mag"]
+                self.light.loc[rr, "mag_rescaled_to_"+self.resc_band] = self.light.loc[rr, "mag"]
                 self.light.loc[rr, "mag_rescaled_err"] = self.light.loc[rr, "mag_err"]
 
 
         # The plot of the rescaled dataframe
         figresc = px.scatter(
-                x=np.log10(light["time_sec"].values), # the time is set to log10(time) only in the plot frame
-                y=light["mag_rescaled_to_"+resc_band].values,
-                error_y=light["mag_rescaled_err"].values,
-                color=light["band_approx"],
+                x=np.log10(self.light["time_sec"].values), # the time is set to log10(time) only in the plot frame
+                y=self.light["mag_rescaled_to_"+self.resc_band].values,
+                error_y=self.light["mag_rescaled_err"].values,
+                color=self.light["band_set"],
                 )
 
         font_dict=dict(family='arial',
@@ -714,24 +725,23 @@ class Lightcurve:
                         margin=dict(l=40,r=40,t=50,b=40)
                         )
 
-        figresc.show()
-
         # The definition of the rescaled dataframe
         # the list of values must be merged again in a new dataframe before exporting
 
         rescmagdataframe = pd.DataFrame()
-        rescmagdataframe['time_sec'] = light['time_sec']
-        rescmagdataframe['mag_rescaled_to_'+str(resc_band)] = light['mag_rescaled_to_'+resc_band]
-        rescmagdataframe['mag_err'] = light['mag_rescaled_err']
-        rescmagdataframe['band_original'] = light['band'] # the original band (not approximated is re-established) to allow a more precise photometric estimation if mags are converted into fluxes
-        rescmagdataframe['system'] = light['system']
-        rescmagdataframe['telescope'] = light['telescope']
-        rescmagdataframe['extcorr'] = light['extcorr']
-        rescmagdataframe['source'] = light['source']
+        rescmagdataframe['time_sec'] = self.light['time_sec']
+        rescmagdataframe['mag_rescaled_to_'+str(self.resc_band)] = self.light['mag_rescaled_to_'+self.resc_band]
+        rescmagdataframe['mag_err'] = self.light['mag_rescaled_err']
+        rescmagdataframe['band_given'] = self.light['band'] # the given band (not approximated is re-established) to allow a more precise photometric estimation if mags are converted into fluxes
+        rescmagdataframe['system'] = self.light['system']
+        rescmagdataframe['telescope'] = self.light['telescope']
+        rescmagdataframe['extcorr'] = self.light['extcorr']
+        rescmagdataframe['source'] = self.light['source']
 
         # The option for exporting the rescaled magnitudes as a dataframe
-        if not os.path.exists(save_rescaled_in):
-            os.makedirs(save_rescaled_in)
-        rescmagdataframe.to_csv(os.path.join(save_rescaled_in+'/' + str(self.name).split("/")[-1]+  '_rescaled_to_'+str(resc_band)+'.txt'),sep=' ',index=False)
+        if save:
+            if not os.path.exists(save_in_folder):
+                os.makedirs(save_in_folder)
+            rescmagdataframe.to_csv(os.path.join(save_in_folder+'/' + str(self.name).split("/")[-1]+  '_rescaled_to_'+str(self.resc_band)+'.txt'),sep=' ',index=False)
 
-        return rescmagdataframe
+        return figunresc, figresc, rescmagdataframe
