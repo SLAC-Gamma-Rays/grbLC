@@ -78,7 +78,7 @@ def get_final_sentences_txt(grb, output_path):
                         mag_data[data['number']].append(entry)
                     else: 
                         mag_data[data['number']] = [entry]
-            print(fluxMatch)
+            #print(fluxMatch)
       
     # Take the information from mag_data dictionary and append to a .txt file
     datMag = []

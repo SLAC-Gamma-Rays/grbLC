@@ -1,20 +1,21 @@
-import json
-import os
 import re
+import os
+import json
+import glob2
 import shutil
 import tarfile
-
-import glob2
 import requests
-
-from .parser import check_sentence
-from .parser import check_table
-from .parser import final_sentences_to_csv
-from .parser import final_tables_to_csv
-from .parser import get_final_sentences_txt
-from .parser import get_final_tables_txt
-from .parser import get_final_txt
-
+from bs4 import BeautifulSoup
+import streamlit as st
+from .parser import (
+    check_table,
+    check_sentence,
+    get_final_tables_txt,
+    get_final_sentences_txt,
+    get_final_txt,
+    final_tables_to_csv,
+    final_sentences_to_csv,
+)
 
 class Scraper:
 
@@ -124,8 +125,7 @@ class Scraper:
 
         # TODO: Understand this and comment.
         for fileName in gcns:
-
-            file = open(fileName, encoding="utf8", errors="ignore")
+            file = open(fileName, 'r', encoding='utf8', errors="ignore")
             file_search = file.read()
 
             # Search the whole text for any instance of a GRB
@@ -137,14 +137,141 @@ class Scraper:
             file.close()
 
         # Show if there are any problems while scraping.
-        print("There were " + str(error) + " error(s) in the following file(s):")
-        print(fileErr)
+        #print("There were " + str(error) + " error(s) in the following file(s):")
+        #print(fileErr)
 
         # Write the dictionary to and output location
-        with open(self.__data_path__ + "gcn_archive_circ_dict.json", "w") as f:
+        with open(self.__data_path__ + "gcn_archive_circ_dict.json", 'w', encoding="utf-8") as f:
             f.write(json.dumps(circ_dict))
 
     # Function that searches dictionary for GRB (Add keywords like 'subaru' later)
+    
+    def get_GCN_list(self,circDICT,grb):
+        gcn_l = [key for key, list_of_grbs in circDICT.items() if grb in list_of_grbs]
+        grb = grb
+        if len(gcn_l)==0:
+            try: 
+                if (len(grb)==7) and (grb[6]=='A'):
+                    gcn_l = [key for key, list_of_grbs in circDICT.items() if grb[0:6] in list_of_grbs]
+                    grb = grb[0:6]
+                elif (len(grb)==6):
+                    gcn_l = [key for key, list_of_grbs in circDICT.items() if grb+'A' in list_of_grbs]
+                    grb+'A'
+                else:
+                    return -1
+            except IndexError:
+                return -1
+        return gcn_l,grb
+    
+    def grb_live_lookup(self, grb, *keywords, streamlit_PB=True, container = None):
+        """
+        Look up a specific grb in a GCN circular archive online.
+        Look for specific keywords in the gcn if the client provides ones.
+        
+        streamlit_PB : for displaying progress bar in streamlit
+        """
+
+        # Modify GRB if the length of it is smaller than 6
+        if len(grb) < 6:
+            grb = "0" * (6 - len(grb)) + grb
+
+        # Check if output path already exists.
+        if not os.path.exists(self.__output_path__):
+            os.mkdir(self.__output_path__)
+
+        # Check if output path of this specific GRB already exists.
+        if not os.path.exists(f"{self.__output_path__}{grb}/"):
+            os.mkdir(f"{self.__output_path__}{grb}/")
+
+        # Make sure keywords is a tuple or None.
+        assert not keywords or isinstance(keywords, tuple)
+
+        # Load the data.
+        try:
+            filepath = self.__data_path__ + "gcn_archive_circ_dict.json"
+            with open(filepath, 'r', encoding="utf-8", errors="ignore") as file:
+                circ_dict = json.load(file)
+                file.close()
+        except FileNotFoundError:
+            raise FileNotFoundError('The "data" folder could be removed. Try scrape().')
+
+        # Get the list of gcn that has the grb.
+        gcn_list,_ = self.get_GCN_list(circ_dict,grb)
+        
+        # The json object to store types, files, and check functions to reduce repetition
+        categories = [
+            {"name": "all_gcn", 
+             "counter": 0, 
+             "file_name": f"{grb}_all_gcn.txt", 
+             "check": lambda x: True
+             },
+            {"name": "table", 
+             "counter": 0, 
+             "file_name": f"{grb}_table.txt", 
+             "check": check_table
+             },
+            {"name": "sentence", 
+             "counter": 0, 
+             "file_name": f"{grb}_sentences.txt", 
+             "check": check_sentence
+             }
+        ]
+    
+        # Open the files and store them.
+        for cat in categories:
+            cat["file"] = open(f"{self.__output_path__}{grb}/{cat['file_name']}", "w")
+        if streamlit_PB:
+            gap = 1/len(gcn_list)
+            PB = container.progress(0)
+        for i,gcn in enumerate(gcn_list):
+
+            res = requests.get('https://gcn.gsfc.nasa.gov/gcn3/'+gcn)
+            html_page = res.content
+            soup = BeautifulSoup(html_page, 'html.parser').encode('utf-8')
+            
+            if streamlit_PB:
+                PB.progress(gap+gap*i)
+            grb_listing = str(soup)
+            #if gcn==gcn_list[0]: print(grb_listing)
+            # Loop through categories and use the check function in each category to filter GCNs
+            for cat in categories:
+                if cat["check"](grb_listing):
+                    cat["file"].write(
+                        f"=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n\n{grb_listing}\n"
+                    )
+                    cat["counter"] += 1
+
+            # Check if any keyword is in the text.
+            for k in keywords:
+
+                key_check = re.search(k, grb_listing, flags=re.IGNORECASE)
+
+                # If a key is matched, stop looping through the keywords and write the text into the text file.
+                if key_check:
+                    file = open(f"{self.__output_path__}{grb}/{grb}_{k}.txt", "w")
+                    file.write(
+                        "=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n\n%s\n" % grb_listing
+                    )
+
+                    categories[0]["counter"] += 1
+                    #print(f"{categories[0]['counter']}. {gcn} for {k}\n")
+                    file.close()
+
+        # Close the files and report the results.
+        for cat in categories:
+            cat["file"].close()
+
+        # Get the data object from get_final_*_txt functions
+        allData_tables = get_final_tables_txt(grb, self.__output_path__)
+        allData_sentences = get_final_sentences_txt(grb, self.__output_path__)
+
+        # Get the *_final.txt
+        get_final_txt(grb, allData_tables, allData_sentences, self.__output_path__)
+        return 1
+
+    
+    
+    
     def grb_lookup(self, grb, *keywords):
         """
         Look up a specific grb in a circular dictionary.
@@ -169,7 +296,7 @@ class Scraper:
         # Load the data.
         try:
             filepath = self.__data_path__ + "gcn_archive_circ_dict.json"
-            with open(filepath) as file:
+            with open(filepath, 'r', encoding="utf-8", errors="ignore") as file:
                 circ_dict = json.load(file)
                 file.close()
         except FileNotFoundError:
@@ -180,10 +307,23 @@ class Scraper:
 
         # The json object to store types, files, and check functions to reduce repetition
         categories = [
-            {"name": "all_gcn", "counter": 0, "file_name": f"{grb}_all_gcn.txt", "check": lambda x: True},
-            {"name": "table", "counter": 0, "file_name": f"{grb}_table.txt", "check": check_table},
-            {"name": "sentence", "counter": 0, "file_name": f"{grb}_sentences.txt", "check": check_sentence},
+            {"name": "all_gcn", 
+             "counter": 0, 
+             "file_name": f"{grb}_all_gcn.txt", 
+             "check": lambda x: True
+             },
+            {"name": "table", 
+             "counter": 0, 
+             "file_name": f"{grb}_table.txt", 
+             "check": check_table
+             },
+            {"name": "sentence", 
+             "counter": 0, 
+             "file_name": f"{grb}_sentences.txt", 
+             "check": check_sentence
+             }
         ]
+    
 
         # Open the files and store them.
         for cat in categories:
@@ -196,7 +336,7 @@ class Scraper:
                 self.__data_path__ + "gcn3/" + gcn, "r", errors="ignore"
             )  # Added the ignore attribute or it will raise an UnicodeDecodeError
             grb_listing = grb_open.read()
-
+            #if gcn==gcn_list[0]: print(grb_listing)
             # Loop through categories and use the check function in each category to filter GCNs
             for cat in categories:
                 if cat["check"](grb_listing):
@@ -231,7 +371,7 @@ class Scraper:
 
         # Get the *_final.txt
         get_final_txt(grb, allData_tables, allData_sentences, self.__output_path__)
-        return
+        return 1
 
     # We will move these functions back to grb_lookup after they are finished.
     def final_tables_to_csv(self, grb):

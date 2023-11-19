@@ -1,14 +1,8 @@
-import concurrent.futures
-import os
-import re
-import sys
-import warnings
-
-import requests
-from ads import SearchQuery
-
+import requests, re, os, sys
 from .config import read_apikey
 from .ECHO import SynchronizedEcho
+import concurrent.futures, warnings
+from ads import SearchQuery
 
 
 def getArticles(finds, threading=True, debug=False):
@@ -82,8 +76,14 @@ def getGRBComboQuery(GRB):
     :returns:
         String of GRB name combinations separated by "OR" for search in ADS.
     """
-
-    return " OR ".join([f"{GRB}", f"GRB{GRB}"])
+    refind = re.search('[A-Z]',GRB)
+    
+    if refind == None:
+        return " OR ".join([f"{GRB}",f"{GRB}A", f"GRB{GRB}",f"GRB{GRB}A"])
+    elif GRB[refind.span()[0]] =='A':
+        return " OR ".join([f"{GRB}",f"{GRB[0:refind.span()[0]]}", f"GRB{GRB}", f"GRB{GRB[0:refind.span()[0]]}"])
+    elif GRB[refind.span()[0]] !='A':
+        return " OR ".join([f"{GRB}", f"GRB{GRB}"])
 
 
 def additionalKeywords(keywords):
@@ -234,7 +234,7 @@ def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
             for record in records:
                 linktype = record["link_type"]
                 link = record["url"]
-                if "PDF" in linktype and "doi.org" not in link and "$" not in link:
+                if "PDF" in linktype and not "doi.org" in link and not "$" in link:
                     # switch any arxiv url to export.arxiv.org so we don't get locked out
                     url = link.replace("arxiv.org", "export.arxiv.org")
                     q = requests.get(url, stream=True, headers=pdf_header)
@@ -245,7 +245,7 @@ def getArticle(articlelist, article, GRB, firsttry=True, debug=False):
                     return
         except:
             linktype = deserialized["link_type"]
-            if "PDF" in linktype and "doi.org" not in link and "$" not in link:
+            if "PDF" in linktype and not "doi.org" in link and not "$" in link:
                 # switch any arxiv url to export.arxiv.org so we don't get locked out
                 url = deserialized["link"].replace("arxiv.org", "export.arxiv.org")
                 q = requests.get(url, stream=True, headers=pdf_header)

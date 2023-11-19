@@ -10,4 +10,8 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Ridha Fathima Mohideen Malik <ridhafathima273@gmail.com>
+* Biagio de Simone <bdesimone@unisa.it>
+* Vysakh P A <vysakh.official1999@gmail.com>
+
+Check CONTRIBUTING to know how you can join us.
