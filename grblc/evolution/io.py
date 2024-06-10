@@ -78,17 +78,6 @@ def read_data(path, header=-999, data_space='log'):
         "system": str,
         "telescope": str,
         "extcorr": str,
-<<<<<<< Updated upstream
-        "source": str
-        }
-
-    data = pd.read_csv(path, sep=r"\t+|\s+", 
-                  dtype=dtype,
-                  names=list(dtype.keys()),
-                  header=header, 
-                  index_col=None,
-                  engine="python").sort_values(by=['time_sec'])
-=======
         "source": str,
         "flag": str
         }
@@ -118,7 +107,6 @@ def read_data(path, header=-999, data_space='log'):
                     header=header, 
                     index_col=None,
                     engine="python").sort_values(by=['time_sec'])
->>>>>>> Stashed changes
 
     if data_space=='lin':
         try:
@@ -141,3 +129,57 @@ def readin(directory="."):
     import glob2
 
     return np.asarray(glob2.glob(directory + "/*.txt"))
+
+# converting the data here in the required format for color evolution analysis
+def convert_data(data):
+
+    data = list(data) # reading the data as a list
+
+    for i, band in enumerate(data):
+        if band.lower() in ['clear', 'unfiltered', 'lum']:  # here it is checking for existence of the bands in lower case for three filters 'clear', 'unfiltered', 'lum'
+            band == band.lower()  # here it passes the lower case bands
+
+    #if appx_bands:  # here we reassigns the bands (reapproximation of the bands), e.g. u' reaasigned to u,.....
+    for i, band in enumerate(data):
+        if band=="u'":
+            data[i]="u"
+        if band=="g'":
+            data[i]="g"
+        if band=="r'":
+            data[i]="r"
+        if band=="i'":
+            data[i]="i"
+        if band=="z'":
+            data[i]="z"
+        if band.upper()=="BJ":
+            data[i]="B"
+        if band.upper()=="VJ":
+            data[i]="V"
+        if band.upper()=="UJ":
+            data[i]="U"
+        if band.upper()=="RM":
+            data[i]="R"
+        if band.upper()=="BM":
+            data[i]="B"
+        if band.upper()=="UM":
+            data[i]="U"
+        if band.upper()=="JS":
+            data[i]="J"
+        if band.upper()=="KS":
+            data[i]="K"
+        if band.upper()=="K'":
+            data[i]="K"
+        if band.upper()=="KP":
+            data[i]="K"
+        if band.upper()=="CR":
+            data[i]="R"
+        if band.upper()=="CLEAR":
+            data[i]="Clear"
+        if band.upper()=="N":
+            data[i]="Unfiltered"
+        if band.upper()=="UNFILTERED":
+            data[i]="Unfiltered"
+
+    bands = data
+
+    return bands

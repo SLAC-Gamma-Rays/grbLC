@@ -1,14 +1,12 @@
 # standard libs
 import os
 import re
-import sys
-from functools import reduce
 
 # third party libs
 import numpy as np
 import pandas as pd
 import lmfit as lf
-from lmfit import Parameters,minimize,fit_report,Model
+from lmfit import Parameters, Model
 import math
 import scipy
 import matplotlib.pyplot as plt
@@ -16,252 +14,28 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 import matplotlib.ticker as mt
 import matplotlib.font_manager as font_manager
-import plotly.express as px
-#from matplotlib.figure import Figure
 
 pd.set_option('display.max_rows', None)
 
-# custom modules
-from grblc.util import get_dir
-from . import io
 
-
-class Lightcurve: # define the object Lightcurve
-    _name_placeholder = "unknown grb" # assign the name for GRB if not provided
-    _flux_fixed_inplace = False #
-
-
-    def __init__(
-        self,
-        path: str = None,
-        appx_bands: str = True, # if it is True it enables the approximation of bands, e.g. u' approximated to u,.....
-        name: str = None,
-    ):
-        """The main module for fitting lightcurves.
-
-        Parameters
-        ----------
-        path : str, optional
-            Name of file containing light curve data, by default None
-        xdata : array_like, optional
-            X values, length (n,), by default None
-        ydata : array_like, optional
-            Y values, by default None
-        xerr : array_like, optional
-            X error, by default None
-        yerr : array_like, optional
-            Y error, by default None
-        data_space : str, {log, lin}, optional
-            Whether the data inputted is in log or linear space, by default 'log'
-        name : str, optional
-            Name of the GRB, by default :py:class:`Model` name, or ``unknown grb`` if not
-            provided.
-        """
-        #assert bool(path) ^ (
-        #    xdata is not None and ydata is not None
-        #), "Either provide a path or xdata, ydata."
-
-
-        # some default conditions for the name of GRBs and the path of the data file
-        if name:
-            self.name = name  # asserting the name of the GRB
-        else:
-            self.name = self._name_placeholder  # asserting the name of the GRB as 'Unknown GRB' if the name is not provided
-
-        if isinstance(path, str):
-            self.path = path  # asserting the path of the data file
-            self.set_data(path, appx_bands=appx_bands, data_space='lin') # reading the data from a file
-
-
-    def set_data(self, path: str, appx_bands=True, data_space='lin'):
-        """
-            Reads in data from a file. The data must be in the correct format.
-            See the :py:meth:`io.read_data` for more information.
-
-            Set the `xdata` and `ydata`, and optionally `xerr` and `yerr` of the lightcurve.
-
-        .. warning::
-            Data stored in :py:class:`lightcurve` objects are always in logarithmic
-            space; the parameter ``data_space`` is only used to convert data to log space
-            if it is not already in such. If your data is in linear space [i.e., your
-            time data is sec, and not log(sec)], then you should set ``data_space``
-            to ``lin``.
-
-        Parameters
-        ----------
-        xdata : array_like
-            X data
-        ydata : array_like
-            Y data
-        xerr : array_like, optional
-            X error, by default None
-        yerr : array_like, optional
-            Y error, by default None
-        data_space : str, {log, lin}, optional
-            Whether the data inputted is in logarithmic or linear space, by default 'log'.
-        """
-
-        df = io.read_data(path) # reads the data, sorts by time, excludes negative time
-
-        df = df[df['mag_err'] != 0] # asserting those data points only which does not have limiting nagnitude
-        assert len(df)!=0, "Only limiting magnitudes present."
-
-        # converting the data here in the required format for color evolution analysis
-        def convert_data(data):
-
-            data = list(data) # reading the data as a list
-
-            for i, band in enumerate(data):
-                if band.lower() in ['clear', 'unfiltered', 'lum']:  # here it is checking for existence of the bands in lower case for three filters 'clear', 'unfiltered', 'lum'
-                    band == band.lower()  # here it passes the lower case bands
-
-            #if appx_bands:  # here we reassigns the bands (reapproximation of the bands), e.g. u' reaasigned to u,.....
-            for i, band in enumerate(data):
-                if band=="u'":
-                    data[i]="u"
-                if band=="g'":
-                    data[i]="g"
-                if band=="r'":
-                    data[i]="r"
-                if band=="i'":
-                    data[i]="i"
-                if band=="z'":
-                    data[i]="z"
-                if band.upper()=="BJ":
-                    data[i]="B"
-                if band.upper()=="VJ":
-                    data[i]="V"
-                if band.upper()=="UJ":
-                    data[i]="U"
-                if band.upper()=="RM":
-                    data[i]="R"
-                if band.upper()=="BM":
-                    data[i]="B"
-                if band.upper()=="UM":
-                    data[i]="U"
-                if band.upper()=="JS":
-                    data[i]="J"
-                if band.upper()=="KS":
-                    data[i]="K"
-                if band.upper()=="K'":
-                    data[i]="K"
-                if band.upper()=="KP":
-                    data[i]="K"
-                if band.upper()=="CR":
-                    data[i]="R"
-                if band.upper()=="CLEAR":
-                    data[i]="Clear"
-                if band.upper()=="N":
-                    data[i]="Unfiltered"
-                if band.upper()=="UNFILTERED":
-                    data[i]="Unfiltered"
-
-            bands = data
-            #else:
-                #bands = data
-
-            return bands
-
-
-        self.xdata = df["time_sec"].to_numpy()  # passing the time in sec as a numpy array in the x column of the data
-        self.ydata = df["mag"].to_numpy() # passing the magnitude as a numpy array in the y column of the data
-        self.yerr = df["mag_err"].to_numpy()  # passing the magnitude error as an numpy array y error column of the data
-        self.band_original = df["band"].to_list() # passing the original bands (befotre approximation of the bands) as a list
-        self.band = df["band"] = convert_data(df["band"]) # passing the reassigned bands (after the reapproximation of the bands) as a list
-        self.system = df["system"].to_list()  # passing the filter system as a list
-        self.telescope = df["telescope"].to_list()  # passing the telescope name as a list
-        self.extcorr = df["extcorr"].to_list()  # passing the galactic extinction correction detail (if it is corrected or not) as a list
-        self.source = df["source"].to_list()  # passing the source from where the particular data point has been gathered as a list
-        self.flag = df["flag"].to_list()
-        self.df = df  # passing the whole data as a data frame
-
-    def displayGRB(self, save_static=False, save_static_type='.png', save_interactive=False, save_in_folder='plots/'):
-        # This function plots the magnitudes, excluding the limiting magnitudes
-
-        '''
-        For an interactive plot
-        '''
-
-        fig = px.scatter(
-                    x=self.xdata,
-                    y=self.ydata,
-                    error_y=self.yerr,
-                    color=self.band,
-                    hover_data=self.telescope,
-                )
-
-        font_dict=dict(family='arial',
-                    size=18,
-                    color='black'
-                    )
-
-        fig['layout']['yaxis']['autorange'] = 'reversed'
-        fig.update_yaxes(title_text="<b>Magnitude<b>",
-                        title_font_color='black',
-                        title_font_size=20,
-                        showline=True,
-                        showticklabels=True,
-                        showgrid=False,
-                        linecolor='black',
-                        linewidth=2.4,
-                        ticks='outside',
-                        tickfont=font_dict,
-                        mirror='allticks',
-                        tickwidth=2.4,
-                        tickcolor='black',
-                        )
-
-        fig.update_xaxes(title_text=r"log_{10} t\, (s)",
-                        title_font_color='black',
-                        title_font_size=20,
-                        showline=True,
-                        showticklabels=True,
-                        showgrid=False,
-                        linecolor='black',
-                        linewidth=2.4,
-                        ticks='outside',
-                        tickfont=font_dict,
-                        mirror='allticks',
-                        tickwidth=2.4,
-                        tickcolor='black',
-                        )
-
-        fig.update_layout(title="GRB " + self.name,
-                        title_font_size=25,
-                        fontdict=dict(weight='bold'),
-                        font=font_dict,
-                        plot_bgcolor='white',
-                        width=960,
-                        height=540,
-                        margin=dict(l=40,r=40,t=50,b=40)
-                        )
-
-        if save_static:
-            fig.write_image(save_in_folder+self.name+save_static_type)
-
-        if save_interactive:
-            fig.write_html(save_in_folder+self.name+'.html')
-
-        return fig
-
-    def colorevolGRB(self, print_status=True, return_rescaledf=False, save_plot=False, chosenfilter='mostnumerous', save_in_folder='', reportfill=False): #, rescaled_dfsave=False):
+def _colorevolGRB(grb, df, print_status=True, return_rescaledf=False, save_plot=False, chosenfilter='mostnumerous', save_in_folder='', reportfill=False): #, rescaled_dfsave=False):
 
         # global nocolorevolutionlist, colorevolutionlist, light, lightonlyrescalable #, overlap
         # here the output variables are defined as global so that can be used in the functions
         # that recall the colorevolGRB() function
 
         light = pd.DataFrame() # here the original light curve dataframe is defined
-        light['time_sec'] = self.xdata # time is linear
-        light['mag'] = self.ydata
-        light['mag_err'] = self.yerr
-        light['band'] = self.band_original # here the band is the original one, not approximated
-        light['band_approx'] = self.band # here the band is the approximated one, e.g., u' -> u, Ks -> K
+        light['time_sec'] = df.xdata # time is linear
+        light['mag'] = df.ydata
+        light['mag_err'] = df.yerr
+        light['band'] = df.band_original # here the band is the original one, not approximated
+        light['band_approx'] = df.band # here the band is the approximated one, e.g., u' -> u, Ks -> K
         light['band_approx_occurrences'] = ""
-        light['system'] = self.system
-        light['telescope'] = self.telescope
-        light['extcorr'] = self.extcorr
-        light['source'] = self.source
-        light['flag'] = self.flag
+        light['system'] = df.system
+        light['telescope'] = df.telescope
+        light['extcorr'] = df.extcorr
+        light['source'] = df.source
+        light['flag'] = df.flag
         light['resc_fact'] = "-"
         light['resc_fact_err'] = "-"
         light['time_difference'] = "-"
@@ -317,7 +91,7 @@ class Lightcurve: # define the object Lightcurve
                     filteroccurrences = occur[ii]
 
         if print_status:                            # the print_status option is set to true by default, and it prints
-            print(self.name)                        # the GRB name
+            print(grb)                        # the GRB name
             print('\n')
             print('-------')                        # and the details of the filter chosen for rescaling, name + occurrences
             print(occur)
@@ -424,7 +198,7 @@ class Lightcurve: # define the object Lightcurve
             for j in rescale_df[index].index:
                 rescale_df.at[j,"plot_color"] = colour # this loop assigns each filter to a color in the plot
 
-        axs[0].text(0.1, 0.1, "GRB "+(self.name.split("/")[-1]).split("_")[0], fontsize=22, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=axs[0].transAxes)
+        axs[0].text(0.1, 0.1, "GRB "+(grb.split("/")[-1]).split("_")[0], fontsize=22, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=axs[0].transAxes)
 
         # 0.1, 0.1 or 0.45,s 0.65
 
@@ -669,7 +443,8 @@ class Lightcurve: # define the object Lightcurve
         for band in resc_slopes_df.index:
             string=string+band+":"+str(round(resc_slopes_df.loc[band, 'slope_lin'],3))+"+/-"+str(round(resc_slopes_df.loc[band, 'slope_lin_err'],3))+"; "
 
-        print(string)
+        if print_status:    
+            print(string)
 
         fmt = '%.1f' # set the number of significant digits you want
         xyticks = mt.FormatStrFormatter(fmt)
@@ -723,17 +498,12 @@ class Lightcurve: # define the object Lightcurve
         #plt.savefig("new-plots/"+str(grbtitle)+"_lc_colorevol.pdf", bbox_inches='tight') #DECOMMENT TO EXPORT THE PLOTS
         
         if save_plot:
-            #plt.savefig(str(self.name)+'_colorevol.pdf', dpi=300) # option to export the pdf plot of rescaling factors
-            plt.savefig(os.path.join(save_in_folder+'/'+str(self.name.split("/")[-1])+'_colorevol.pdf'), bbox_inches='tight', dpi=300) # option to export the pdf plot of rescaling factors        
+            #plt.savefig(str(grb)+'_colorevol.pdf', dpi=300) # option to export the pdf plot of rescaling factors
+            plt.savefig(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_colorevol.pdf'), bbox_inches='tight', dpi=300) # option to export the pdf plot of rescaling factors        
         
-        plt.show()
-
-        plt.clf()
-
         ############################################## Plotting the case where a=0 ############################################
 
         fig2, axs2 = plt.subplots(2, 1, sharex=True)
-        #fig = plt.figure()
 
         for i, band in enumerate(filters): # loop on the given filter
             colour = scalarMap.to_rgba(i) # mapping the colour into the RGBA
@@ -751,7 +521,7 @@ class Lightcurve: # define the object Lightcurve
             for j in rescale_df[index].index:
                 rescale_df.at[j,"plot_color"] = colour # this loop assigns each filter to a color in the plot
 
-        axs2[0].text(0.1, 0.1, "GRB "+(self.name.split("/")[-1]).split("_")[0], fontsize=22, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=axs2[0].transAxes)
+        axs2[0].text(0.1, 0.1, "GRB "+(grb.split("/")[-1]).split("_")[0], fontsize=22, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=axs2[0].transAxes)
 
 
         for band in resc_slopes_df.index: # this loop defines the labels to be put in the rescaling factor plot legend
@@ -849,12 +619,42 @@ class Lightcurve: # define the object Lightcurve
         #plt.savefig("new-plots/"+str(grbtitle)+"_lc_colorevol.pdf", bbox_inches='tight') #DECOMMENT TO EXPORT THE PLOTS
         
         if save_plot:
-            #plt.savefig(str(self.name)+'_colorevol.pdf', dpi=300) # option to export the pdf plot of rescaling factors
-            plt.savefig(os.path.join(save_in_folder+'/'+str(self.name.split("/")[-1])+'_colorevol_a0.pdf'), bbox_inches='tight', dpi=300) # option to export the pdf plot of rescaling factors        
-        
-        plt.show()
+            plt.savefig(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_colorevol_a0.pdf'), bbox_inches='tight', dpi=300) 
+            # option to export the pdf plot of rescaling factors        
 
-        plt.clf()
+        
+        nocolorevolutionlista0=[] # this is the list of filters with slopes that are compatible with zero in 3 sigma
+        colorevolutionlista0=[] # this is the list of filters with slopes that ARE NOT compatible with zero in 3 sigma        
+        for band in resc_slopes_df.index:
+
+            try:
+                float(resc_slopes_df.loc[band, 'prob_a0'])
+            except:
+                continue
+            
+            if float(resc_slopes_df.loc[band, 'prob_a0']) >= 0.05:
+                nocolorevolutionlista0.append(band)
+            elif float(resc_slopes_df.loc[band, 'prob_a0']) < 0.05:
+                colorevolutionlista0.append(band)
+            else:
+                continue
+
+        if print_status:
+            if len(nocolorevolutionlista0)==0: # if there are no filters compatible with zero in 3 sigma
+                print('No filters that have no color evolution according to a=0')
+
+            else:
+                print('Filters with no color evolution according to a=0 : ',*nocolorevolutionlista0) # if there are filters without color evolution, namely, compatible with zero in 3 sigma
+
+            if len(colorevolutionlista0)==0: # if there are not filters with color evolution, namely, that are not compatible with zero in 3 sigma
+                print('No filters that have color evolution according to a=0')
+
+            else: # otherwise
+                print('Filters with color evolution according to a=0 : ',*colorevolutionlista0)
+            print('\n')
+            print('No color evolution: ',*nocolorevolutionlista0,' ; Color evolution: ',*colorevolutionlista0) # print of the two lists
+
+
 
         # Here the code prints the dataframe of rescaling factors, that contains log10(time), slope, slope_err...
         rescale_df.drop(labels='plot_color', axis=1, inplace=True)     # before printing that dataframe, the code removes the columns of plot_color
@@ -863,16 +663,16 @@ class Lightcurve: # define the object Lightcurve
 
         if reportfill:
 
-            if len(nocolorevolutionlist)>len(colorevolutionlist):
+            if len(nocolorevolutionlista0)>len(colorevolutionlista0):
                 rescflag='yes'
             else:
                 rescflag='no'
 
             reportfile = open('report_colorevolution.txt', 'a')
-            reportfile.write(self.name.split("/")[-1]+" "+str(nocolorevolutionlist).replace(' ','')+" "+str(colorevolutionlist).replace(' ','')+" "+rescflag+" "+filterforrescaling+"\n")
+            reportfile.write(grb.split("/")[-1]+" "+str(nocolorevolutionlista0).replace(' ','')+" "+str(colorevolutionlista0).replace(' ','')+" "+rescflag+" "+filterforrescaling+"\n")
             reportfile.close()
 
-            #stringnew=self.name+" " # this is the general printing of all the slopes
+            #stringnew=grb+" " # this is the general printing of all the slopes
             #for band in resc_slopes_df.index:
 
                 #if (np.isnan(resc_slopes_df.loc[band, 'slope'])) or (np.isnan(resc_slopes_df.loc[band, 'slope_err'])):
@@ -887,34 +687,14 @@ class Lightcurve: # define the object Lightcurve
         if return_rescaledf: # variables returned in case the option return_rescaledf is enabled
 
             # Option that saves the dataframe that contains the rescaling factors
-            rescale_df.to_csv(os.path.join(save_in_folder+'/'+str(self.name.split("/")[-1])+'_rescalingfactors_to_'+str(filterforrescaling)+'.txt'),sep=' ',index=False)
+            rescale_df.to_csv(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_rescalingfactors_to_'+str(filterforrescaling)+'.txt'),sep=' ',index=False)
             
-            resc_slopes_df.insert(0, 'GRB', str(self.name.split("/")[-1]))
+            resc_slopes_df.insert(0, 'GRB', str(grb.split("/")[-1]))
             resc_slopes_df.insert(1, 'filter_chosen', str(filterforrescaling))
             
-            resc_slopes_df.to_csv(os.path.join(save_in_folder+'/'+str(self.name.split("/")[-1])+'_fittingresults'+'.txt'),sep=' ',index=True)
+            resc_slopes_df.to_csv(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_fittingresults'+'.txt'),sep=' ',index=True)
             
-            return fig, resc_slopes_df, nocolorevolutionlist, colorevolutionlist, filterforrescaling, light, rescale_df
+            return fig, resc_slopes_df, nocolorevolutionlista0, colorevolutionlista0, filterforrescaling, light, rescale_df, nocolorevolutionlist, colorevolutionlist, fig2
 
-        return fig, resc_slopes_df, nocolorevolutionlist, colorevolutionlist, filterforrescaling, light # the variables in the other case
+        return fig, resc_slopes_df, nocolorevolutionlista0, colorevolutionlista0, filterforrescaling, light, nocolorevolutionlist, colorevolutionlist, fig2 # the variables in the other case
 
-major, *__ = sys.version_info # this command checks the Python version installed locally
-readfile_kwargs = {"encoding": "utf-8"} if major >= 3 else {} # this option specifies the enconding of imported files in Python
-                                                              # the encoding is utf-8 for Python versions superior to 3.
-                                                              # otherwise it is left free to the code
-
-def _readfile(path): # function for basic importation of text files, using the options defined in lines 1043,1044
-    with open(path, **readfile_kwargs) as fp:
-        contents = fp.read()
-    return contents
-
-# re.compile(): compile the regular expression specified by parenthesis to make it match
-version_regex = re.compile('__version__ = "(.*?)"') #
-contents = _readfile(
-    os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "__init__.py"
-    )
-) # this command reads __init__.py that gives the basic functions for the package, namely get_dir, set_dir
-__version__ = version_regex.findall(contents)[0]
-
-__directory__ = get_dir()
