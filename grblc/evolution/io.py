@@ -78,6 +78,7 @@ def read_data(path, header=-999, data_space='log'):
         "system": str,
         "telescope": str,
         "extcorr": str,
+<<<<<<< Updated upstream
         "source": str
         }
 
@@ -87,6 +88,37 @@ def read_data(path, header=-999, data_space='log'):
                   header=header, 
                   index_col=None,
                   engine="python").sort_values(by=['time_sec'])
+=======
+        "source": str,
+        "flag": str
+        }
+    
+    try:
+        data = pd.read_csv(path, sep=r"\t+|\s+", 
+                    dtype=dtype,
+                    names=list(dtype.keys()),
+                    header=header, 
+                    index_col=None,
+                    engine="python").sort_values(by=['time_sec'])
+    except:
+        dtype = {
+        "time_sec": np.float64,
+        "mag": np.float64,
+        "mag_err": np.float64,
+        "band": str,
+        "system": str,
+        "telescope": str,
+        "extcorr": str,
+        "source": str
+        }
+
+        data = pd.read_csv(path, sep=r"\t+|\s+", 
+                    dtype=dtype,
+                    names=list(dtype.keys()),
+                    header=header, 
+                    index_col=None,
+                    engine="python").sort_values(by=['time_sec'])
+>>>>>>> Stashed changes
 
     if data_space=='lin':
         try:
