@@ -601,6 +601,6 @@ def beta_marquardt(
                         
         dfexp = pd.DataFrame(dict, columns=["GRB","beta","beta_err","AV","AV_err","Gal.model","intercept","intercept_err","log10t","filters","Red.Chi2","R-squared","probability","outliers","plotnumb"]) # "redchi2"
 
-        dfexp.to_csv(str(grb)+'-results.csv')
+        #dfexp.to_csv(str(grb)+'-results.csv')
 
-    return None
+    return dfexp

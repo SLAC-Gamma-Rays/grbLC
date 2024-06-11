@@ -1,4 +1,7 @@
+import re
 import numpy as np
+
+grb_regex = re.compile(r"(\d{6}[A-Z]?)")
 
 def _merge_dicts(dict1, dict2):
 	# assumes dict1 and dict2 hold one dimensional arrays
