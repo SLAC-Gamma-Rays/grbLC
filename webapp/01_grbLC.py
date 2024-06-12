@@ -6,10 +6,8 @@
 import streamlit as st
 import pandas as pd
 
-import sys
-sys.path.append('D:/naoj-grb/archive-grblc/grbLC-dev/')
 #import grblc.evolution.io as io
-from grblc.evolution.lightcurve import Lightcurve
+from ..grblc.evolution.lightcurve import Lightcurve
 # from streamlit_navigation_bar import st_navbar
 
 from utils import _load_data

@@ -1,18 +1,12 @@
 import re
+import os
 import numpy as np
 import pandas as pd
 
 # count functions
 
 # Files with telescopes and filters to identify the wavelengths in the spectrum
-import os
-path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
-path2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "reddening.txt")
-path3 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt")
-
-filters = pd.read_csv(path1, sep="\t", header=0, index_col=0, engine='python', encoding='ISO-8859-1')
-adps = pd.read_csv(path2, sep='\t', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
-schafly = pd.read_csv(path3, sep='\t+', header=0, index_col='lambda_eff')
+from constants import *
 
 def count(str1, str2): 
     '''
