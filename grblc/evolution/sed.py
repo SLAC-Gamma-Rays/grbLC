@@ -125,6 +125,14 @@ def beta_marquardt(
     z,
     ):
     
+    # This function provides the Spectral Energy Distribution fitting following the Equation 3 of https://arxiv.org/pdf/2405.02263
+    # The fitting parameters are: beta (optical spectral index), A_V (host extinction in V-band), and the intercept
+    # For the spectral shape, a power-law is assumed, in combination with the host extinction galaxy through the maps of Pei (1992)
+    # This function takes as input the GRB dataframe ("filename") and the redshift ("z")
+    # The cases with uncertainty on the beta greater than the beta values themselves are excluded
+    # In the comparison between the 3 host models (SMC,LMC,MW) for each time epoch, the most probable fitting is the chosen one
+    # The function gives as output the "dfexp" variable that contains all the fitting details
+
     print("GRB = ", grb, ", at z =", z, ", host galaxy model (Pei 1992)")
     plotnumber = 0
 

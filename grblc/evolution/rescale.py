@@ -8,7 +8,13 @@ import plotly.express as px
 
 pd.set_option('display.max_rows', None)
 
-def _rescaleGRB(grb, output_colorevolGRB, save_rescaled_in='', duplicateremove=True): # this function makes the rescaling of the GRB
+def _rescaleGRB(grb, output_colorevolGRB, save_rescaled_in='', duplicateremove=True): 
+    
+    # This function performs the rescaling of the GRB after the colour evolution analysis.
+    # This function takes as input the output previously obtained in the "colevol" function applied on the same "grb"
+    # The output of the function is the "rescmagdataframe", namely the input dataframe where the rescaling of the filters
+    # is applied in the cases where there is no colour evolution.
+    # All the other cases (filters with colour evolution or undetermined behaviour) are left in the "rescmagdataframe" without any rescaling.
 
     # the global option is needed when these variables inputed in the current function are output of another function recalled, namely, colorevolGRB
     global filterforrescaling, light, overlap #, nocolorevolutionlist

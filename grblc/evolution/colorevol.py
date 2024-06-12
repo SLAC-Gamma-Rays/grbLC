@@ -22,6 +22,21 @@ def _colorevolGRB(
     grb, df, print_status=True, return_rescaledf=False, save_plot=False,
     chosenfilter='mostnumerous', save_in_folder='', reportfill=False
 ):
+    
+    # The colorevolGRB function takes as input the GRB dataframe, performs the colour evolution analysis (see Section 3.3 of https://arxiv.org/abs/2405.02263) 
+    # and returns the following output:
+
+    # fig: the plot of magnitudes and rescaling factors versus log10(time) in the case of variable slope approach ("variable a")
+    # fig2: the plot of magnitudes and rescaling factors versus log10(time) in the case of fixed slope as zero ("a=0")
+    # resc_slopes_df: the dataframe that contains all the information about the rescaling factors fitting both in the cases of "variable a" and "a=0"
+    # nocolorevolutionlista0: the list of filters in GRB dataframe that show no colour evolution according to the "a=0" fitting
+    # colorevolutionlista0: the list of filters in GRB dataframe that show colour evolution according to the "a=0" fitting
+    # filterforrescaling: the filter used for rescaling (by default, the most numerous, otherwise the customized one)
+    # light: the dataframe that contains the GRB photometric information (time, magnitude, magnitude error, filter...)
+    # rescale_df: the dataframe that contains the information about the rescaling factors
+    # nocolorevolutionlist: the list of filters in GRB dataframe that show no colour evolution according to the "variable a" fitting
+    # colorevolutionlist: the list of filters in GRB dataframe that show colour evolution according to the "variable a" fitting
+
 
     light = pd.DataFrame()  # Here the original light curve dataframe is defined
     light['time_sec'] = df.xdata  # Time is linear
