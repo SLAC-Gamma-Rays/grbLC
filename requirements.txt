@@ -24,3 +24,4 @@ ads
 emcee
 corner
 progressbar2
+streamlit
