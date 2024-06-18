@@ -7,7 +7,7 @@ from lmfit import Model, Parameters
 import warnings
 warnings.filterwarnings("ignore")
 
-from grblc.convert.hostcorr import pei_av
+from grblc.convert.extinction import pei_av
 from grblc.convert.match import calibration
 
 

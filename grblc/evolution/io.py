@@ -14,61 +14,57 @@ def isfloat(value):
         return False
 
 
-def check_header(path, n=None, debug=False, more_than_one_row=False):
-    """
-    Returns what line a header is at
-    """
-    with open(path) as f:
-        lines = f.readlines()
+# Removed in version 0.2.0 since the format is unified
+# def check_header(path, n=None, debug=False, more_than_one_row=False):
+#     """
+#     Returns what line a header is at
+#     """
+#     with open(path) as f:
+#         lines = f.readlines()
 
-    if isinstance(n, int) and n > len(lines):
-        raise Exception(f"Error in file ({path})! Something wrong "
-                         "is going on here and I can't find the "
-                         "header row for this file")
+#     if isinstance(n, int) and n > len(lines):
+#         raise Exception(f"Error in file ({path})! Something wrong "
+#                          "is going on here and I can't find the "
+#                          "header row for this file")
 
-    try:
-        # attempt importing the datafile with the header "n"
-        data = pd.read_csv(path, delimiter=r"\t+|\s+", header=n, engine="python")
-    except pd.errors.ParserError as pe:
-        if debug:
-            print("ParserError:", pe)
+#     try:
+#         # attempt importing the datafile with the header "n"
+#         data = pd.read_csv(path, delimiter=r"\t+|\s+", header=n, engine="python")
+#     except pd.errors.ParserError as pe:
+#         if debug:
+#             print("ParserError:", pe)
 
-        # if fail, recursively try again with the next row as the header
-        n = -1 if n is None else n
-        return check_header(path, n=n + 1, more_than_one_row=True)
-    except pd.errors.EmptyDataError:
+#         # if fail, recursively try again with the next row as the header
+#         n = -1 if n is None else n
+#         return check_header(path, n=n + 1, more_than_one_row=True)
+#     except pd.errors.EmptyDataError:
 
-        if more_than_one_row:
-            return None
-        else:
-            print(os.path.split(path)[-1], "is empty?")
-            return -1
+#         if more_than_one_row:
+#             return None
+#         else:
+#             print(os.path.split(path)[-1], "is empty?")
+#             return -1
 
-    h = data.columns
-
-
-    # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
-    # ... so maybe change the h in [not isfloat(x) for x in h] to the second row???
-    if isinstance(h, type(pd.Index([], dtype=int))) or sum(isfloat(x) for x in h) >= 0.3 * len(h) // 1:
-        if debug:
-            print("Some are floats...")
-
-        # recursively try again with the next row as the header
-        n = -1 if n is None else n
-        return check_header(path, n=n + 1, more_than_one_row=True)
-    else:
-        return n  # <-- the final stop in our recursion journey
+#     h = data.columns
 
 
-def read_data(path, header=-999, data_space='log'):
+#     # todo: if header is Int64Index, check the 2nd row (i.e. first row of data for the not isfloat)
+#     # ... so maybe change the h in [not isfloat(x) for x in h] to the second row???
+#     if isinstance(h, type(pd.Index([], dtype=int))) or sum(isfloat(x) for x in h) >= 0.3 * len(h) // 1:
+#         if debug:
+#             print("Some are floats...")
+
+#         # recursively try again with the next row as the header
+#         n = -1 if n is None else n
+#         return check_header(path, n=n + 1, more_than_one_row=True)
+#     else:
+#         return n  # <-- the final stop in our recursion journey
+
+
+def read_data(path, data_space='lin'):
     """
     Reads data, sorts by time, excludes negative time, converts time to log
     """
-
-    header = check_header(path) if header==-999 else header
-
-    if header == -1:
-        return
     
     dtype = {
         "time_sec": np.float64,
@@ -86,8 +82,9 @@ def read_data(path, header=-999, data_space='log'):
         data = pd.read_csv(path, sep=r"\t+|\s+", 
                     dtype=dtype,
                     names=list(dtype.keys()),
-                    header=header, 
+                    header=0, 
                     index_col=None,
+                    comment='#',
                     engine="python").sort_values(by=['time_sec'])
     except:
         dtype = {
@@ -104,7 +101,7 @@ def read_data(path, header=-999, data_space='log'):
         data = pd.read_csv(path, sep=r"\t+|\s+", 
                     dtype=dtype,
                     names=list(dtype.keys()),
-                    header=header, 
+                    header=0, 
                     index_col=None,
                     engine="python").sort_values(by=['time_sec'])
 

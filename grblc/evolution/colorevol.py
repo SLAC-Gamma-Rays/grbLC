@@ -20,7 +20,7 @@ pd.set_option('display.max_rows', None)
 
 def _colorevolGRB(
     grb, df, print_status=True, return_rescaledf=False, save_plot=False,
-    chosenfilter='mostnumerous', save_in_folder='', reportfill=False
+    chosenfilter='mostnumerous', save_in_folder='colorevol', reportfill=False
 ):
     
     # The colorevolGRB function takes as input the GRB dataframe, performs the colour evolution analysis (see Section 3.3 of https://arxiv.org/abs/2405.02263) 
@@ -36,15 +36,16 @@ def _colorevolGRB(
     # rescale_df: the dataframe that contains the information about the rescaling factors
     # nocolorevolutionlist: the list of filters in GRB dataframe that show no colour evolution according to the "variable a" fitting
     # colorevolutionlist: the list of filters in GRB dataframe that show colour evolution according to the "variable a" fitting
-
+    if not os.path.exists(save_in_folder):
+        os.mkdir(save_in_folder)
 
     light = pd.DataFrame()  # Here the original light curve dataframe is defined
-    light['time_sec'] = df.xdata  # Time is linear
-    light['mag'] = df.ydata
-    light['mag_err'] = df.yerr
-    light['band'] = df.band_original  # Here the band is the original one, not approximated
-    light['band_approx'] = df.band  # Here the band is the approximated one, e.g., u' -> u, Ks -> K
-    light['band_approx_occurrences'] = ""
+    light['time_sec'] = df.time_sec  # Time is linear
+    light['mag'] = df.mag
+    light['mag_err'] = df.mag_err
+    light['band'] = df.band  # Here the band is the original one, not approximated
+    light['band_appx'] = df.band_appx  # Here the band is the approximated one, e.g., u' -> u, Ks -> K
+    light['band_appx_occurrences'] = ""
     light['system'] = df.system
     light['telescope'] = df.telescope
     light['extcorr'] = df.extcorr
@@ -78,7 +79,7 @@ def _colorevolGRB(
     # or if it has only one data point
 
 
-    occur = light['band_approx'].value_counts()
+    occur = light['band_appx'].value_counts()
     # This command returns a dataframe that contains in one column the
     # label of the filter and in another column the occurrences
     # Example: filter occurrences
@@ -87,13 +88,13 @@ def _colorevolGRB(
     # B 5
     # F606W 4
 
-    # In this loop, the column of band_approx_occurrences is filled with the countings of each filter
+    # In this loop, the column of band_appx_occurrences is filled with the countings of each filter
     # E.g. if the filter R is present 50 times in the magnitudes this will append 50 to the row where this filter is present
 
     for row in light.index:
         for ff in occur.index:
-            if light.loc[row, "band_approx"] == ff:
-                light.loc[row, "band_approx_occurrences"] = occur[ff]
+            if light.loc[row, "band_appx"] == ff:
+                light.loc[row, "band_appx_occurrences"] = occur[ff]
 
     # Identifying the most numerous filter in the GRB
 
@@ -119,7 +120,6 @@ def _colorevolGRB(
     if print_status:
         # The print_status option is set to true by default, and it prints
         print(grb)  # the GRB name
-        print('\n')
         print('-------')  # and the details of the filter chosen for rescaling, name + occurrences
         print(occur)
         print(
@@ -129,7 +129,7 @@ def _colorevolGRB(
 
     # In the following rows the code extracts only the datapoints with the filter chosen for rescaling (usually, the most numerous)
 
-    mostnumerouslight = light.loc[(light['band_approx'] == filterforrescaling)]  # mostnumerouslight dataframe is the one constituted of the chosen filter for rescaling,
+    mostnumerouslight = light.loc[(light['band_appx'] == filterforrescaling)]  # mostnumerouslight dataframe is the one constituted of the chosen filter for rescaling,
     mostnumerousx = mostnumerouslight['time_sec'].values  # for simplicity it is called mostnumerouslight
     mostnumerousy = mostnumerouslight['mag'].values  # time_sec is linear
     mostnumerousyerr = mostnumerouslight['mag_err'].values
@@ -139,7 +139,7 @@ def _colorevolGRB(
     # then the magnitude values do not overlap)
 
     for row in light.index:  # Running on all the magnitudes
-        if light.loc[row, "band_approx"] == filterforrescaling:
+        if light.loc[row, "band_appx"] == filterforrescaling:
             # When the filter in the dataframe is the filter chosen for rescaling,
             light.loc[row, "resc_fact"] = "-"  # The rescaling factor is obviously not existing and the columns are filled with "-"
             light.loc[row, "resc_fact_err"] = "-"
@@ -189,8 +189,8 @@ def _colorevolGRB(
     rescfacterr = []  # Rescaling factor error of the filter
     rescfactweights = []  # Weights of the rescaling factor
     for jj in lightonlyrescalable.index:
-        filt.append(lightonlyrescalable.loc[jj, "band_approx"])  # Here we have the filters that are rescaled to the selected filter for rescaling
-        filtoccur.append(lightonlyrescalable.loc[jj, "band_approx_occurrences"])  # Here we have the occurrences of the filters
+        filt.append(lightonlyrescalable.loc[jj, "band_appx"])  # Here we have the filters that are rescaled to the selected filter for rescaling
+        filtoccur.append(lightonlyrescalable.loc[jj, "band_appx_occurrences"])  # Here we have the occurrences of the filters
         resclogtime.append(np.log10(lightonlyrescalable.loc[jj, "time_sec"]))  # WATCH OUT! For the plot and fitting, we take the log10(time) of rescaling factor
         rescfact.append(light.loc[jj, "resc_fact"])  # The rescaling factor value
         rescfacterr.append(light.loc[jj, "resc_fact_err"])  # The rescaling factor error
@@ -229,7 +229,6 @@ def _colorevolGRB(
 
     for i, band in enumerate(filters):  # Loop on the given filter
         colour = scalarMap.to_rgba(i)  # Mapping the colour into the RGBA
-        # print(colour, band)
         index = rescale_df['band'] == band  # Selects the magnitudes that have the filter equal to the band on which the loop iterates
         axs[1].scatter(
             x_all[index], y_all[index],  # Options for the plot of the central values
@@ -435,8 +434,7 @@ def _colorevolGRB(
     for band in resc_slopes_df.index:
         #color = resc_slopes_df.loc[band]["plot_color"]
         color=tuple(np.array(re.split('[(),]', resc_slopes_df.loc[band, "plot_color"])[1:-1], dtype=float))
-        #print(color)
-        sublight=light.loc[(light['band_approx'] == band)]
+        sublight=light.loc[(light['band_appx'] == band)]
         subx=np.log10(sublight['time_sec'].values)
         suby=sublight['mag'].values
         suberror_y=sublight['mag_err'].values
@@ -450,8 +448,10 @@ def _colorevolGRB(
 
     if print_status: # when this option is selected in the function it prints the following
 
+        rescale_df_print = rescale_df.drop('plot_color', axis=1)
+        resc_slopes_df_print = resc_slopes_df.drop('plot_color', axis=1)
         print("Individual point rescaling:")
-        print(rescale_df) # the dataframe of rescaling factors
+        print(rescale_df_print) # the dataframe of rescaling factors
 
         print("\nSlopes of rescale factors for each filter:")
         print(resc_slopes_df) # the dataframe that contains the fitting parameters of rescaling factors
@@ -556,7 +556,6 @@ def _colorevolGRB(
 
     for i, band in enumerate(filters): # loop on the given filter
         colour = scalarMap.to_rgba(i) # mapping the colour into the RGBA
-        #print(colour,band)
         index = rescale_df['band'] == band # selects the magnitudes that have the filter equal to the band on which the loop iterates
         axs2[1].scatter(x_all[index], y_all[index], # options for the plot of the central values
                     s=15,
@@ -604,7 +603,7 @@ def _colorevolGRB(
         #color = resc_slopes_df.loc[band]["plot_color"]
         color=tuple(np.array(re.split('[(),]', resc_slopes_df.loc[band, "plot_color"])[1:-1], dtype=float))
         #print(color)
-        sublight=light.loc[(light['band_approx'] == band)]
+        sublight=light.loc[(light['band_appx'] == band)]
         subx=np.log10(sublight['time_sec'].values)
         suby=sublight['mag'].values
         suberror_y=sublight['mag_err'].values

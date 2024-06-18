@@ -14,8 +14,8 @@ with open("README.rst") as readme_file:
 with open("requirements.txt") as requirements_file:
     requirements = requirements_file.readlines()
 
-with open("requirements_dev.txt") as requirements_test_file:
-    test_requirements = requirements_test_file.readlines()
+# with open("requirements_dev.txt") as requirements_test_file:
+#     test_requirements = requirements_test_file.readlines()
 
 # Thank you Andy Casey for this nice versioning method
 major, minor1, minor2, release, serial = sys.version_info
@@ -32,8 +32,8 @@ with open(
 
 
 setup(
-    author="Sam Young",
-    author_email="youngsam@sas.upenn.edu",
+    author="Ridha Fathima Mohideen Malik",
+    author_email="ridhafathima273@gmail.com",
     python_requires=">=3.6",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
@@ -56,8 +56,8 @@ setup(
         "": ["*.txt"]
     },
     test_suite="tests",
-    tests_require=test_requirements,
-    url="https://github.com/youngsm/grblc",
+    # tests_require=test_requirements,
+    url="https://github.com/SLAC-Gamma-Rays/grbLC",
     version=version,
     zip_safe=False,
 )

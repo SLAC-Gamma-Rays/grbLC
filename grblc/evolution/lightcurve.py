@@ -20,7 +20,6 @@ from .colorevol import _colorevolGRB
 
 class Lightcurve: # define the object Lightcurve
     _name_placeholder = "unknown grb" # assign the name for GRB if not provided
-    _flux_fixed_inplace = False #
 
 
     def __init__(
@@ -49,10 +48,6 @@ class Lightcurve: # define the object Lightcurve
             Name of the GRB, by default :py:class:`Model` name, or ``unknown grb`` if not
             provided.
         """
-        #assert bool(path) ^ (
-        #    xdata is not None and ydata is not None
-        #), "Either provide a path or xdata, ydata."
-
 
         # some default conditions for the name of GRBs and the path of the data file
         if name:
@@ -63,6 +58,7 @@ class Lightcurve: # define the object Lightcurve
         if isinstance(path, str):
             self.path = path  # asserting the path of the data file
             self.set_data(path, appx_bands=appx_bands) #, data_space='lin') # reading the data from a file
+            print(self.df.head())
 
 
     def set_data(self, path: str, appx_bands=True, remove_outliers=False): #, data_space='lin'):
@@ -94,6 +90,7 @@ class Lightcurve: # define the object Lightcurve
         """
 
         df = io.read_data(path) # reads the data, sorts by time, excludes negative time
+        df.insert(4, "band_appx", "") # initialising new column
 
         df = df[df['mag_err'] != 0] # asserting those data points only which does not have limiting nagnitude
         assert len(df)!=0, "Only limiting magnitudes present."
@@ -102,7 +99,7 @@ class Lightcurve: # define the object Lightcurve
         self.ydata = df["mag"].to_numpy() # passing the magnitude as a numpy array in the y column of the data
         self.yerr = df["mag_err"].to_numpy()  # passing the magnitude error as an numpy array y error column of the data
         self.band_original = df["band"].to_list() # passing the original bands (befotre approximation of the bands) as a list
-        self.band = df["band"] = io.convert_data(df["band"]) # passing the reassigned bands (after the reapproximation of the bands) as a list
+        self.band = df["band_appx"] = io.convert_data(df["band"]) # passing the reassigned bands (after the reapproximation of the bands) as a list
         self.system = df["system"].to_list()  # passing the filter system as a list
         self.telescope = df["telescope"].to_list()  # passing the telescope name as a list
         self.extcorr = df["extcorr"].to_list()  # passing the galactic extinction correction detail (if it is corrected or not) as a list
@@ -114,6 +111,7 @@ class Lightcurve: # define the object Lightcurve
         if remove_outliers:
             df = df[df.flag == 'no']
         self.df = df  # passing the whole data as a data frame
+
 
     def displayGRB(self, save_static=False, save_static_type='.png', save_interactive=False, save_in_folder='plots/'):
         # This function plots the magnitudes, excluding the limiting magnitudes
@@ -192,6 +190,7 @@ class Lightcurve: # define the object Lightcurve
 
         return fig
 
+
     def colorevolGRB(self, print_status=True, return_rescaledf=False, save_plot=False, chosenfilter='mostnumerous', save_in_folder='', reportfill=False):
         self.output_colorevol = _colorevolGRB(
                                             grb=self.name, 
@@ -201,11 +200,18 @@ class Lightcurve: # define the object Lightcurve
                                             save_plot=save_plot, 
                                             chosenfilter=chosenfilter, 
                                             save_in_folder=save_in_folder, 
-                                            reportfill=reportfill)
-        return 
+                                            reportfill=reportfill
+                                            )
+        return self.output_colorevol
 
-    def rescaleGRB(self, save_in_folder='', remove_dups=True):
-        return _rescaleGRB(grb=self.name, output_colorevolGRB=self.output_colorevol, save_rescaled_in=save_in_folder, duplicateremove=remove_dups)
+
+    def rescaleGRB(self, save_in_folder='rescale/', remove_dups=True):
+        return _rescaleGRB(
+                        grb = self.name, 
+                        output_colorevolGRB = self.output_colorevol, 
+                        save_in_folder = save_in_folder, 
+                        duplicateremove = remove_dups
+                        )
 
 
 major, *__ = sys.version_info # this command checks the Python version installed locally
@@ -217,6 +223,7 @@ def _readfile(path): # function for basic importation of text files, using the o
     with open(path, **readfile_kwargs) as fp:
         contents = fp.read()
     return contents
+
 
 # re.compile(): compile the regular expression specified by parenthesis to make it match
 version_regex = re.compile('__version__ = "(.*?)"') #

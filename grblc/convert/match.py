@@ -6,7 +6,7 @@ import pandas as pd
 # count functions
 
 # Files with telescopes and filters to identify the wavelengths in the spectrum
-from constants import *
+from .constants import *
 
 def count(str1, str2): 
     '''
