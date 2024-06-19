@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-
+# AB conversion factors
 defaultshift_toAB={
             "U":[0.800527],
             "B":[-0.107512],
@@ -70,9 +70,10 @@ defaultshift_toAB={
 path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
 path2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "reddening.txt")
 path3 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt")
+pfile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pei_extinct.txt')
 
 filters = pd.read_csv(path1, sep='\s+', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
 adps = pd.read_csv(path2, sep='\t', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
 schafly = pd.read_csv(path3, sep='\t', header=0, index_col='lambda_eff')
 
-__all__ = ["filters", "adps", "schafly", "defaultshift_toAB"]
+__all__ = ["filters", "adps", "schafly", "defaultshift_toAB", pfile]

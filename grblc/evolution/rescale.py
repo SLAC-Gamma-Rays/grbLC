@@ -8,7 +8,7 @@ import plotly.express as px
 
 pd.set_option('display.max_rows', None)
 
-def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale', duplicateremove=True): 
+def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale/', duplicateremove=True): 
     
     # This function performs the rescaling of the GRB after the colour evolution analysis.
     # This function takes as input the output previously obtained in the "colevol" function applied on the same "grb"
@@ -18,8 +18,9 @@ def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale', duplicaterem
 
     # the global option is needed when these variables inputed in the current function are output of another function recalled, namely, colorevolGRB
     #global filterforrescaling, light, overlap #, nocolorevolutionlist
-    if not os.path.exists(save_in_folder):
-        os.mkdir(save_in_folder)
+    if save_in_folder is not None:
+        if not os.path.exists(save_in_folder):
+            os.mkdir(save_in_folder)
 
     def _overlap(mag1lower,mag1upper,mag2lower,mag2upper): # this is the condition to state if two magnitude ranges overlap
         if mag1upper <mag2lower or mag1lower > mag2upper:

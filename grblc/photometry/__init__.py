@@ -3,4 +3,6 @@ Import this file into a directory to be used in your command line interfance (e.
 Make sure you are in the directory, and then start Jupyter notebook or Jupyter lab / any other Python instance from there
 and import as any other module.
 """
+__author__ = "Sam Young, Ridha Fathima Mohideen Malik"
+
 from .convert import *

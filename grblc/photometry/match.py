@@ -3,23 +3,15 @@ import os
 import numpy as np
 import pandas as pd
 
-# count functions
-
-# Files with telescopes and filters to identify the wavelengths in the spectrum
+# Module imports files with telescopes and filter information
 from .constants import *
 
-def count(str1, str2): 
-    '''
-    Counts how much percentage two strings match. 
-    
-    Input:
-    ------
-    str1, str2: strings
-    
-    Output:
-    ------
-    match: percentage match
-    '''
+# count functions
+def _count(str1, str2): 
+    """
+    Counts how much percentage two strings match.
+
+    """
     
     str1 = re.sub(r"[\u02BB\u02BC\u066C\u2018\u201A\u275B\u275C\u0027\u02B9\u02BB\u02BC\u02BE\u02C8\u02EE\u0301\u0313\u0315\u055A\u05F3\u07F4\u07F5\u1FBF\u2018\u2019\u2032\uA78C\uFF07]", "p", str1)
     str2 = re.sub(r"[\u02BB\u02BC\u066C\u2018\u201A\u275B\u275C\u0027\u02B9\u02BB\u02BC\u02BE\u02C8\u02EE\u0301\u0313\u0315\u055A\u05F3\u07F4\u07F5\u1FBF\u2018\u2019\u2032\uA78C\uFF07]", "p", str2)
@@ -46,18 +38,11 @@ def count(str1, str2):
     return match
 
 
-def stripcount(str1, str2): 
-    '''
-    Counts how much percentage two strings match excluding special characters 
-    
-    Input:
-    ------
-    str1, str2: strings
-    
-    Output:
-    ------
-    match: percentage match excluding special characters
-    '''
+def _stripcount(str1, str2): 
+    """
+    Counts how much percentage two strings match excluding special characters.
+
+    """
 
     str1 = ''.join(i for i in str1 if i.isalnum()).lower() ## removes special characters
     str2 = ''.join(i for i in str2 if i.isalnum()).lower()
@@ -84,35 +69,48 @@ def stripcount(str1, str2):
     return match
 
 
-def count_hst(str1, str2):
-    '''
+def _count_hst(str1, str2):
+    """
     count() and stripcount() are not sequential leading to strings like F606W and F066W having 100% match. 
     This function place emphasis on the numerical order which is important for HST-like filters.
+
+    """
     
-    Input:
-    ------
-    str1, str2: strings
-    
-    Output:
-    ------
-    match: percentage match excluding special characters
-    '''
     wave1 = re.findall("\d+", str1)
     wave2 = re.findall("\d+", str2)
     if wave1 == wave2:
         str1="".join(re.findall("[a-zA-Z]+", str1))
         str2="".join(re.findall("[a-zA-Z]+", str2))
-        match = count(str1, str2)
+        match = _count(str1, str2)
     else:
         match = 0
 
     return match
 
 
-# function to match filter and telescope info to get band wavelength, zeropoint and extinction correction
+def calibration(band: str, 
+                telescope: str):
+    """
+    Parameters:
+    -----------
+    - band:
+    - telescope: 
 
-def calibration(band: str, telescope: str):
+    Returns:
+    --------
+    - lam: float: Wavelength in units of Angstrom 
+    - shift_toAB: float: Factor to shift to AB system
+    - coeff: float: A_V for R_V = 3.1 from extinction laws
+    - matched_filter: str: ID of filter of the telescope in 'filters.txt', 
+    - coeff_source: source of A_V. Either Schlafly & Finkbeiner (2011) or ADPS (2003).
 
+    Raises:
+    -------
+    - KeyError: If no matching filters found.
+
+    """
+
+    # function to match filter and telescope info to get band wavelength, zeropoint and extinction correction
     ## Step 1: initialising data input
 
     ## finding the bandpass and filter in data
@@ -207,12 +205,12 @@ def calibration(band: str, telescope: str):
     for id in filters.index:       
       grblc_fil = str(id).split(".")[-1]
       if len(filter) >= 5:
-        filters.loc[id, 'match_fil'] = count_hst(grblc_fil, filter)
+        filters.loc[id, 'match_fil'] = _count_hst(grblc_fil, filter)
       else:
         if grblc_fil == filter:
           filters.loc[id, 'match_fil'] = 100
         else:
-          filters.loc[id, 'match_fil'] = count(grblc_fil, filter)
+          filters.loc[id, 'match_fil'] = _count(grblc_fil, filter)
 
     matched_fil = filters.loc[filters['match_fil'] == 100]
     if len(matched_fil) == 0 and len(filter) <= 2:
@@ -236,8 +234,8 @@ def calibration(band: str, telescope: str):
 
         matched_fil.loc[id, 'match_obs'] = 'found'
 
-        match_tel =  count(grblc_tel.casefold(), telescope.casefold())
-        match_ins =  count(grblc_ins.casefold(), instrument.casefold())
+        match_tel =  _count(grblc_tel.casefold(), telescope.casefold())
+        match_ins =  _count(grblc_ins.casefold(), instrument.casefold())
 
         if match_tel == 100:
           matched_fil.loc[id, 'match_tel'] = 1
@@ -292,16 +290,16 @@ def calibration(band: str, telescope: str):
       matched_gen =  matched_fil.sort_values(by=['match_status'], na_position='last')
       probablefilters = list(matched_gen.index)
 
-    correctfilter = probablefilters[0]
+    matched_filter = probablefilters[0]
     
     try:
-      lam = float(matched_fil.loc[correctfilter,'lambda_eff'])
+      lam = float(matched_fil.loc[matched_filter,'lambda_eff'])
     except TypeError:
-      lam = float(matched_fil.loc[correctfilter,'lambda_eff'][0])
+      lam = float(matched_fil.loc[matched_filter,'lambda_eff'][0])
     
     lam_round = round(lam, -1)
 
-    shift_toAB = matched_fil.loc[correctfilter,'mag_fromVega_toAB']
+    shift_toAB = matched_fil.loc[matched_filter,'mag_fromVega_toAB']
 
     try:
         coeff = schafly.loc[lam_round, '3.1']
@@ -310,4 +308,4 @@ def calibration(band: str, telescope: str):
         coeff = adps.loc[lam_round, 'coeff']
         coeff_source = "APDS+02"
     
-    return lam, shift_toAB, coeff, correctfilter, coeff_source
+    return lam, shift_toAB, coeff, matched_filter, coeff_source

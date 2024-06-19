@@ -19,8 +19,8 @@ pd.set_option('display.max_rows', None)
 
 
 def _colorevolGRB(
-    grb, df, print_status=True, return_rescaledf=False, save_plot=False,
-    chosenfilter='mostnumerous', save_in_folder='colorevol', reportfill=False
+    grb, df, print_status=True, return_rescaledf=False,
+    chosenfilter='mostnumerous', save_in_folder=None, reportfill=False
 ):
     
     # The colorevolGRB function takes as input the GRB dataframe, performs the colour evolution analysis (see Section 3.3 of https://arxiv.org/abs/2405.02263) 
@@ -36,8 +36,10 @@ def _colorevolGRB(
     # rescale_df: the dataframe that contains the information about the rescaling factors
     # nocolorevolutionlist: the list of filters in GRB dataframe that show no colour evolution according to the "variable a" fitting
     # colorevolutionlist: the list of filters in GRB dataframe that show colour evolution according to the "variable a" fitting
-    if not os.path.exists(save_in_folder):
-        os.mkdir(save_in_folder)
+    
+    if save_in_folder is not None:
+        if not os.path.exists(save_in_folder):
+            os.mkdir(save_in_folder)
 
     light = pd.DataFrame()  # Here the original light curve dataframe is defined
     light['time_sec'] = df.time_sec  # Time is linear
@@ -546,7 +548,7 @@ def _colorevolGRB(
     
     #plt.savefig("new-plots/"+str(grbtitle)+"_lc_colorevol.pdf", bbox_inches='tight') #DECOMMENT TO EXPORT THE PLOTS
     
-    if save_plot:
+    if save_in_folder:
         #plt.savefig(str(grb)+'_colorevol.pdf', dpi=300) # option to export the pdf plot of rescaling factors
         plt.savefig(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_colorevol.pdf'), bbox_inches='tight', dpi=300) # option to export the pdf plot of rescaling factors        
     
@@ -666,7 +668,7 @@ def _colorevolGRB(
     
     #plt.savefig("new-plots/"+str(grbtitle)+"_lc_colorevol.pdf", bbox_inches='tight') #DECOMMENT TO EXPORT THE PLOTS
     
-    if save_plot:
+    if save_in_folder:
         plt.savefig(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_colorevol_a0.pdf'), bbox_inches='tight', dpi=300) 
         # option to export the pdf plot of rescaling factors        
 

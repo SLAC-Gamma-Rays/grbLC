@@ -1,3 +1,4 @@
+import os
 import math
 import scipy
 import numpy as np
@@ -7,8 +8,9 @@ from lmfit import Model, Parameters
 import warnings
 warnings.filterwarnings("ignore")
 
-from grblc.convert.extinction import pei_av
-from grblc.convert.match import calibration
+from ..convert.extinction import pei_av
+from ..convert.match import calibration
+from .io import read_data
 
 
 def model_MW(
@@ -45,7 +47,7 @@ def model_SMC(
     return sed
 
 def maketable(
-    filename
+    path
     ):
     dtype = {
         "time_sec": np.float64,
@@ -55,21 +57,11 @@ def maketable(
         "system": str,
         "telescope": str,
         "extcorr": str,
-        "source": str,
-        "flag": str
+        "source": str
     }
     names = list(dtype.keys())
     #import raw data file
-    mag_table = pd.read_csv(
-        filename,
-        delimiter=r"\t+|\s+",
-        names=names,
-        dtype=dtype,
-        index_col=None,
-        header=0,
-        engine="python",
-        encoding="ISO-8859-1"
-    )
+    mag_table = read_data(path=path)
 
     df = {k: [] for k in ("time_sec", "mag_corr", "mag_err", "lambda", "band", "source", "telescope", "flag")}
     for __, row in mag_table.iterrows():
@@ -80,6 +72,7 @@ def maketable(
         source = row["source"]
         telescope = row["telescope"]
         flag = row["flag"]
+        
         #applying calibration without coefficient for galactic extinction correction
         lambda_x, *__ = calibration(band, telescope)
         A_x = 0 # again assuming correction has ALREADY BEEN APPLIED
@@ -96,6 +89,7 @@ def maketable(
             df["source"].append(source)
             df["telescope"].append(telescope)
             df["flag"].append(flag)
+
     df = pd.DataFrame(df)
     df = df.sort_values(by=['time_sec'], ascending=True)
     
@@ -121,19 +115,27 @@ def maketable(
 
 def beta_marquardt(
     grb, 
-    filename,
+    path,
     z,
+    print_status = True,
+    save_in_folder = 'beta/'
     ):
     
     # This function provides the Spectral Energy Distribution fitting following the Equation 3 of https://arxiv.org/pdf/2405.02263
     # The fitting parameters are: beta (optical spectral index), A_V (host extinction in V-band), and the intercept
     # For the spectral shape, a power-law is assumed, in combination with the host extinction galaxy through the maps of Pei (1992)
-    # This function takes as input the GRB dataframe ("filename") and the redshift ("z")
+    # This function takes as input the GRB dataframe ("path") and the redshift ("z")
     # The cases with uncertainty on the beta greater than the beta values themselves are excluded
     # In the comparison between the 3 host models (SMC,LMC,MW) for each time epoch, the most probable fitting is the chosen one
     # The function gives as output the "dfexp" variable that contains all the fitting details
 
-    print("GRB = ", grb, ", at z =", z, ", host galaxy model (Pei 1992)")
+    if save_in_folder:
+        if not os.path.exists(save_in_folder):
+            os.mkdir(save_in_folder)
+
+    if print_status:
+        print("GRB = ", grb, ", at z =", z, ", host galaxy model (Pei 1992)")
+        
     plotnumber = 0
 
     gamma = []
@@ -168,9 +170,10 @@ def beta_marquardt(
     gooddata_telescope = []
             
     # create table of matching times
-    df = maketable(filename=filename)
+    df = maketable(path=path)
 
-    print(df)
+    if print_status:
+        print(df)
     if len(df) != 0:
         df = df[df["mag_err"] != 0]
         iters = [*set(df["time_index"].values)]
@@ -232,7 +235,8 @@ def beta_marquardt(
                 parsSMC.add('z', value=z)
                 parsSMC['z'].vary = False
 
-                print("Fitting SMC model...")
+                if print_status:
+                    print("Fitting SMC model...")
                 resultsSMC = modelSMC.fit(y, parsSMC, x=X, weights=weights_list)                       
                 chisquareSMC = resultsSMC.chisqr
                 rsquaredSMC = resultsSMC.rsquared
@@ -257,7 +261,8 @@ def beta_marquardt(
                 parsLMC.add('z', value=z)
                 parsLMC['z'].vary = False
 
-                print("Fitting LMC model...")
+                if print_status:
+                    print("Fitting LMC model...")
                 resultsLMC = modelLMC.fit(y, parsLMC, x=X, weights=weights_list)                       
                 chisquareLMC = resultsLMC.chisqr
                 rsquaredLMC = resultsLMC.rsquared
@@ -282,7 +287,8 @@ def beta_marquardt(
                 parsMW.add('z', value=z)
                 parsMW['z'].vary = False
 
-                print("Fitting MW model...")
+                if print_status:
+                    print("Fitting MW model...")
                 resultsMW = modelMW.fit(y, parsMW, x=X, weights=weights_list)                       
                 chisquareMW = resultsMW.chisqr
                 rsquaredMW = resultsMW.rsquared
@@ -353,14 +359,16 @@ def beta_marquardt(
 
                     prob = probSMC
 
-                print("The selected model according to its probability is ",hostmodel)
+                if print_status:
+                    print("The selected model according to its probability is ",hostmodel)
                 
                 reject_plot = False
 
                 if slope < 0:
                     reject_plot = False
 
-                print(plotnumber,prob)
+                if print_status:
+                    print(plotnumber,prob)
                 
                 # 26feb commented
                 if abs(slopeerr) > abs(slope):
@@ -394,12 +402,14 @@ def beta_marquardt(
                         source_list_outlier.append(sources_list[i])
                         telescope_list_outlier.append(telescope_list[i])
 
-                        print("Single outlier telescope")
-                        print(telescope_list[i])
+                        if print_status:
+                            print("Single outlier telescope")
+                            print(telescope_list[i])
                         
                         if (telescope_list[i] in gooddata_telescope) and (np.char.isnumeric(sources_list[i])):
                             warningstring=str(grb)+" "+str(telescope_list[i])+" "+str(sources_list[i])
-                            print("WARNING ",warningstring)
+                            if print_status:
+                                print("WARNING ",warningstring)
 
                             with open(str(grb)+'_warnings.txt', 'a') as warnfile:
                                 warnfile.write(warningstring)
@@ -408,10 +418,10 @@ def beta_marquardt(
                                 
                 if len(log_lam_marquardt_outlier)==0:
                     outliersprint="NaN"
-                    outlierlabelfilename=""
+                    outlierlabelpath=""
                 else:
                     outliersprint="_".join(set(source_list_outlier))
-                    outlierlabelfilename="_outliers"
+                    outlierlabelpath="_outliers"
                 
                 for band_now in set(bands):
                     if reject_plot:
@@ -460,45 +470,14 @@ def beta_marquardt(
                 beta_bf_marquardt.append(np.negative(betaoldmarquardt))
                 beta_bf_marquardt_err.append(betaoldmarquardterr)
 
-                print(
-                    "Marquardt Levenberg Beta:",
-                    slope,
-                    "Marquardt Levenberg Beta error:",
-                    betaoldmarquardterr,
-                )
+                if print_status:
+                    print(
+                        "Marquardt Levenberg Beta:",
+                        slope,
+                        "Marquardt Levenberg Beta error:",
+                        betaoldmarquardterr,
+                    )
 
-                # y_marquardtforoutliers = [interceptfit - 2.5*slope*xi -2.5*(pei_av(10**xi,A_V=avfit,gal=galnumber,R_V=RVnumber)-pei_av((10**xi)/(1+z),A_V=avfit,gal=galnumber,R_V=RVnumber))  for xi in X]
-                
-                # for i in range(len(mag)):
-
-                #     if abs(y[i] - y_marquardtforoutliers[i]) <= 3 * mag_err[i]:
-                #         gooddata_source.append(sources_list[i])
-                #         gooddata_telescope.append(telescope_list[i])
-                
-                # for i in range(len(mag)):
-                    
-                #     if abs(y[i] - y_marquardtforoutliers[i]) > 3 * mag_err[i]:
-                #         log_lam_marquardt_outlier.append(log_lam[i])
-                #         mag_marquardt_outlier.append(mag[i])
-                #         mag_err_marquardt_outlier.append(mag_err[i])
-                #         filters_list_outlier.append(filters_list[i])
-                #         timebands_list_outlier.append(timebands_list[i])
-                #         source_list_outlier.append(sources_list[i])
-                #         telescope_list_outlier.append(telescope_list[i])
-
-                #         print("Single outlier telescope")
-                #         print(telescope_list[i])
-                        
-                #         if (telescope_list[i] in gooddata_telescope) and (np.char.isnumeric(sources_list[i])):
-                #             print("WARNING ",telescope_list[i]," ",sources_list[i])
-                
-                # if len(log_lam_marquardt_outlier)==0:
-                #     outliersprint="NaN"
-                #     outlierlabelfilename=""
-                # else:
-                #     outliersprint="_".join(set(source_list_outlier))
-                #     outlierlabelfilename="_outliers"
-                
                 X = np.sort(X)
                 y_marquardt = [interceptfit - 2.5*slope*xi -2.5*(pei_av(10**xi,A_V=avfit,gal=galnumber,R_V=RVnumber)-pei_av((10**xi)/(1+z),A_V=avfit,gal=galnumber,R_V=RVnumber))  for xi in X]                        
                 fig, ax = plt.subplots()
@@ -522,15 +501,17 @@ def beta_marquardt(
                     plt.legend()
                     fig.tight_layout()
                     fig.text(0.1, 0.1, "GRB " + str(grb), fontsize=18, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=ax.transAxes)
-                    plt.savefig(
-                        str(grb) + "_beta"
-                        + str(round(slope, 3))
-                        + "_betaerr"
-                        + str(round(betaoldmarquardterr, 3))
-                        + "_plotn"
-                        + str(plotnumber)
-                        + outlierlabelfilename
-                        + ".png")
+
+                    if save_in_folder: 
+                        plt.savefig(
+                            str(grb) + "_beta"
+                            + str(round(slope, 3))
+                            + "_betaerr"
+                            + str(round(betaoldmarquardterr, 3))
+                            + "_plotn"
+                            + str(plotnumber)
+                            + outlierlabelpath
+                            + ".png")
                     plt.clf()
 
                     dataframegrb.append(str(grb))
@@ -549,10 +530,6 @@ def beta_marquardt(
                     dataframeoutliersources.append(outliersprint)
                     dataframeplotnumber.append(str(plotnumber))
 
-                    # print(str(grb)+" "+str(round(slope,3))+" "+str(round(betaoldmarquardterr, 3))+" "+str(round(avfit,3))+" "+str(round(avfiterr,3))
-                    #      +" "+str(hostmodel)+" "+str(round(interceptfit,3))+" "+str(round(interceptfiterr,3))+" "+str(round(min(timebands_list), 4))
-                    #      +" "+str(set(filters_list))+" "+str(round(redchisquare, 2))+" "+rsquared+" "+prob+" "+outliersprint+" "+str(plotnumber))
-                
                 else:
                     plt.title(
                         'Bands=' + str(set(filters_list))
@@ -565,14 +542,16 @@ def beta_marquardt(
                     plt.legend()
                     fig.tight_layout()
                     fig.text(0.1, 0.1, "GRB " + str(grb), fontsize=18, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=ax.transAxes)
-                    plt.savefig(
+                    
+                    if save_in_folder: 
+                        plt.savefig(
                         str(grb) + "_beta"
                         + str(round(slope, 3))
                         + "_betaerr"
                         + str(round(betaoldmarquardterr, 3))
                         + "_plotn"
                         + str(plotnumber)
-                        + outlierlabelfilename
+                        + outlierlabelpath
                         + ".png")
                     plt.clf()
 
@@ -592,15 +571,13 @@ def beta_marquardt(
                     dataframeoutliersources.append(outliersprint)
                     dataframeplotnumber.append(str(plotnumber))
 
-                    # print(str(grb)+" "+str(round(slope,3))+" "+str(round(betaoldmarquardterr, 3))+" "+str(round(avfit,3))+" "+str(round(avfiterr,3))
-                    #      +" "+str(hostmodel)+" "+str(round(interceptfit,3))+" "+str(round(interceptfiterr,3))+" "+str(round(min(timebands_list), 4))
-                    #      +" "+str(set(filters_list))+" "+str(round(redchisquare, 2))+" "+rsquared+" "+prob+" "+outliersprint+" "+str(plotnumber))
-            
             else:
-                print("Not 4 different bands at least for the fitting")
+                if print_status:
+                    print("Not 4 different bands at least for the fitting")
 
         else:
-            print("No matching GRB found in the dataset.")
+            if print_status:
+                print("No matching GRB found in the dataset.")
 
 
         dict = {"GRB": dataframegrb, "beta": dataframebetas, "beta_err": dataframebetaerrors, "AV": dataframeAV, "AV_err": dataframeAVerrors,
@@ -609,6 +586,7 @@ def beta_marquardt(
                         
         dfexp = pd.DataFrame(dict, columns=["GRB","beta","beta_err","AV","AV_err","Gal.model","intercept","intercept_err","log10t","filters","Red.Chi2","R-squared","probability","outliers","plotnumb"]) # "redchi2"
 
-        #dfexp.to_csv(str(grb)+'-results.csv')
+        if save_in_folder: 
+            dfexp.to_csv(str(grb)+'_sed_results.txt', sep='\t')
 
     return dfexp

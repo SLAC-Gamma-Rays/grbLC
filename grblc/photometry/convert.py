@@ -3,40 +3,44 @@ import re
 
 import numpy as np
 import pandas as pd
-import astropy.units as u
 
 from .constants import *
 from .match import *
-from grblc.evolution import io
+from ..io import read_data
 from .sfd import data_dir
 from .extinction import *
 
 
-# conversion for mag in AB and corrected for extinction
-@np.vectorize
-def toAB(grb: str,
-         ra: str,
-         dec: str,
-         band: str,
-         system: str,
-         extcorr: str,
-         telescope: str,
-         mag: float):
+def _toAB(
+    grb: str,
+    ra: str,
+    dec: str,
+    band: str,
+    system: str,
+    extcorr: str,
+    telescope: str,
+    mag: float
+):
+    
+    "Corrects individual magnitude points."
 
     try:
         lambda_x, shift_toAB, coeff, filter_id, coeff_source = calibration(band, telescope)
+
     except KeyError:
         raise KeyError(f"Band '{band}' of telescope '{telescope}' is not currently supported.")
 
     # get correction for galactic extinction to be added to magnitude if not already supplied
     if extcorr == 'y':
         mag_corr = mag    
+
     else:
         A_x = coeff * ebv(grb, ra, dec)
         mag_corr = mag - A_x
 
     if 'ab' or 'sdss' or 'panstarrs' in system.casefold:
         mag_corr = mag_corr
+
     else:
         if shift_toAB != 'notfound':
             mag_corr = mag_corr + float(shift_toAB)
@@ -51,28 +55,45 @@ def toAB(grb: str,
     return mag_corr, filter_id, coeff_source
 
 
-# main conversion function to call
-def correctGRB(
-    grb: str,
-    ra: str,
-    dec: str,
-    path: str = None,
+# Conversion to AB system and galactic extinction correction
+def _convertGRB(
+    grb: str = None,
+    ra: str = None,
+    dec: str = None,
+    mag_table: pd.DataFrame = None,
     save_in_folder: str = None,
     debug: bool = False,
 ):
+    """
+    Function to convert GRB magnitudes to AB system and correct for galactic extinction.
+
+    Parameters:
+    -----------
+    - grb: str: GRB name.
+    - ra: str: Right ascension of GRB.
+    - dec: str: Declination of GRB.
+    - mag_table: pandas.DataFrame: DataFrame containing GRB magnitudes.
+    - save_in_folder: str: Path to store the converted file.
+    - debug: bool: More information saved for debugging the conversion. By default, False.
+
+    Returns:
+    --------
+    - converted: pandas.DataFrame: Corrected magnitude file.
+
+    Raises:
+    -------
+    - KeyError: If the telescope and filter is not found.
+    - ImportError: If the code can't find grb table at the given path.
+
+    """
     
     assert bool(grb and ra and dec), "Must provide either grb name or location."
 
-    # try to import magnitude table to convert
-    try:
-        global directory
-        mag_table = io.read_data(path, approximate_band=True)
-    except ValueError as error:
-        raise error
-    except IndexError:
-        raise ImportError(message=f"Couldn't find grb table at {path}.")
+    if save_in_folder is not None:
+        if not os.path.exists(save_in_folder):
+            os.mkdir(save_in_folder)
 
-    converted = {k: [] for k in ('time_sec', 'mag', 'mag_err', 'band', 'system', 'telescope', 'extcorr', 'source')}
+    converted = {k: [] for k in ('time_sec', 'mag', 'mag_err', 'band', 'system', 'telescope', 'extcorr', 'source', 'flag')}
 
     if debug:
         converted_debug = {
@@ -89,7 +110,8 @@ def correctGRB(
                 'telescope',
                 'extcorr',
                 'coeff_source'
-                'mag_source'
+                'mag_source',
+                'flag'
             )
         }
 
@@ -103,10 +125,11 @@ def correctGRB(
         telescope = row['telescope']
         extcorr = row['extcorr']
         source = row['source']
+        flag = row['flag']
 
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
-            mag_corr, filter_id, coeff_source = toAB(
+            mag_corr, filter_id, coeff_source = _toAB(
                 grb,
                 ra,
                 dec,
@@ -128,6 +151,7 @@ def correctGRB(
         converted['telescope'].append(telescope)
         converted['extcorr'].append("y")
         converted['source'].append(source)
+        converted['flag'].append(flag)
 
         # verbosity if you want it
         if debug:
@@ -143,20 +167,27 @@ def correctGRB(
             converted_debug['extcorr'].append("y")
             converted_debug['coeff_source'].append(coeff_source)
             converted_debug['mag_source'].append(source)
+            converted_debug['flag'].append(flag)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
-        save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr.txt")
-        pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
+        if save_in_folder:
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr.txt")
+            pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
+
+        return converted
+
     else:
-        save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr_DEBUG.txt")
-        pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
+        if save_in_folder:
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr_DEBUG.txt")
+            pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
 
-# 05 April 2024: correction for host extinction and k-correction
+        return converted_debug
 
-def hostpeikcorr(
+
+def _hostpei_kcorr(
     grb: str,
-    data: str,
+    sed_results: str,
     band: str,
     telescope: str,
     time_sec: float,
@@ -165,7 +196,15 @@ def hostpeikcorr(
     kcorr = True,
     hostcorr = True
 ):
-    
+    """
+    Function to correct for host extinction and perform k-correction for individual magnitudes.
+    """
+
+    try:
+        data = sed_results.loc[grb]
+        data = data.reset_index()
+    except KeyError:
+        raise KeyError(f"GRB '{grb}' is not present in the sample.")    
     
     if kcorr:   
         if data.shape[1]!=13:
@@ -226,10 +265,8 @@ def hostpeikcorr(
                         stopcondition=True
 
         kcorr = 2.5*(betaneeded-1)*np.log10(1+zneeded)
-        #print('k-correction: '+str(kcorr))
-        kcorrerr = (2.5*np.log10(1+zneeded)*betaneedederr)**2 # already squared
-        #print('k-correction error: '+str(kcorrerr))
-        
+        kcorrerr = (2.5*np.log10(1+zneeded)*betaneedederr)**2 # already squared        
+  
     else:
         kcorr = 0
         kcorrerr = 0
@@ -311,47 +348,33 @@ def hostpeikcorr(
         
     return finalmag, finalmagerr, filter_id
 
-# main conversion function to call
-def KcorrecthostGRB(
-    grb: str,
-    #ra: str,
-    #dec: str,
-    filename: str = None,
+
+def _host_kcorrectGRB(
+    grb: str = None,
+    mag_table: pd.DataFrame = None,
+    sed_results: str = None,
     save_in_folder: str = None,
     debug: bool = False,
 ):
+    """
+    Parameters:
+    -----------
+    - grb: str: GRB name.
+    - mag_table: pandas.DataFrame: DataFrame containing GRB magnitudes.
+    - sed_results: str: SED results containing host galaxy and z information.
+    - save_in_folder: str: Path to store the converted file.
+    - debug: bool: More information saved for debugging the conversion. By default, False.
 
-    # assign column names and datatypes before importing
-    dtype = {
-        'time_sec': np.float64,
-        'mag': np.float64,
-        'mag_err': np.float64,
-        'band': str,
-        'system': str,
-        'telescope': str,
-        'extcorr': str,
-        'source': str,
-        'flag': str,
-    }
-    names = list(dtype.keys())
+    Returns:
+    --------
+    - converted: pandas.DataFrame: Corrected magnitude file.
 
-    # try to import magnitude table to convert
-    try:
-        global directory
-        mag_table = pd.read_csv(
-            filename,
-            delimiter=r'\t+|\s+',
-            names=names,
-            dtype=dtype,
-            index_col=None,
-            header=0,
-            engine='python',
-            encoding='ISO-8859-1'
-        )
-    except ValueError as error:
-        raise error
-    except IndexError:
-        raise ImportError(message=f"Couldn't find grb table at {filename}.")
+    Raises:
+    -------
+    - KeyError: If the telescope and filter is not found.
+    - ImportError: If the code can't find grb table at the given path.
+
+    """
 
     converted = {k: [] for k in ('time_sec', 'mag', 'mag_err', 'band', 'system', 'telescope', 'extcorr', 'source', 'flag')}
 
@@ -389,8 +412,9 @@ def KcorrecthostGRB(
 
         # attempt to convert a single magnitude to flux given a band, position in the sky, mag_err, and photon index
         try:
-            mag_corr, mag_err_corr, filter_id = hostpeikcorr(
+            mag_corr, mag_err_corr, filter_id = _hostpei_kcorr(
                 grb,
+                sed_results,
                 band,
                 telescope,
                 time_sec,
@@ -403,7 +427,6 @@ def KcorrecthostGRB(
         except KeyError as error:
             print("KeyError")
             continue
-
 
         converted['time_sec'].append(time_sec)
         converted['mag'].append(mag_corr)
@@ -431,11 +454,18 @@ def KcorrecthostGRB(
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
-        save_path = os.path.join(save_in_folder+'/', f"{grb}_corrected.txt")
-        pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
+        if save_in_folder:
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected.txt")
+            pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
+
+        return converted
+
     else:
-        save_path = os.path.join(save_in_folder+'/', f"{grb}_corrected_DEBUG.txt")
-        pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
+        if save_in_folder:
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected_DEBUG.txt")
+            pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
+        
+        return converted_debug
 
 
 # simple checker that downloads the SFD dust map if it's not already there

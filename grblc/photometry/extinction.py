@@ -1,40 +1,39 @@
 from numpy import loadtxt,log,hstack
 from scipy.interpolate import interp1d
+import astropy.units as u
+from .constants import pfile
 
-import os
 
-def ebv(grb: str, ra="", dec=""):
-    r"""A function that returns the galactic extinction correction
-       at a given position for a given band.
+def ebv(
+    grb: str = None,
+    ra: str = None,
+    dec: str = None
+):
+    """
+    Author: Sam Young
 
-                            This takes data from Schlegel, Finkbeiner & Davis (1998) in the form
-                            of the SFD dust map, and is queried using the dustmaps python package.
-                            Updated coefficient conversion values for the SFD is taken from Schlafly & Finkbeiner (2011)
-                            and is found in SF11_conversions.txt.
+    A function that returns the galactic extinction correction at a given position for a given band.
 
-        Author: Sam Young
+    This takes data from Schlegel, Finkbeiner & Davis (1998) in the form
+    of the SFD dust map, and is queried using the dustmaps python package.
+    Updated coefficient conversion values for the SFD is taken from Schlafly & Finkbeiner (2011)
+    and is found in SF11_conversions.txt.
 
     Parameters
     ----------
-    grb : str
-        Gamma ray burst name
-    bandpass : str
-        One of the 94 bandpasses supported. See SF11_conversion.txt for these bandpasses.
-    ra : str, optional
-        Right ascension, by default None
-    dec : str, optional
-        Declination, by default None
+    - grb : str: GRB name.
+    - bandpass : str: One of the 94 bandpasses supported. See SF11_conversion.txt for these bandpasses.
+    - ra : str, optional: Right ascension, by default None.
+    - dec : str, optional: Declination, by default None
 
     Returns
     -------
-    float
-        Galactic extinction correction in magnitude ($A_\nu$).
+    - ebv: float: Galactic extinction correction in magnitude ($A_\nu$).
 
     Raises
     ------
-    astroquery.exceptions.RemoteServiceError
-        If the GRB position cannot be found with `astroquery`, then
-        the user is prompted to enter the RA and DEC manually.
+    - astroquery.exceptions.RemoteServiceError: If the GRB position cannot be found with `astroquery`, then
+                                                the user is prompted to enter the RA and DEC manually.
     """
 
     from astropy.coordinates import SkyCoord
@@ -65,15 +64,22 @@ def ebv(grb: str, ra="", dec=""):
 
     return ebv
 
-pfile=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pei_extinct.txt')
-l1,x1,l2,x2,l3,x3 = loadtxt(pfile,unpack=True)
-
-def pei_av(lam,A_V=1.0,gal=3,R_V=0.0):
+def pei_av(
+    lam: float = 0.0,
+    A_V: float = 1.0,
+    gal: float = 3,
+    R_V: float = 0.0
+):
     """
-      lam in units of Angstroms
+    Author: Nathaniel R. Butler. 
 
-      # Author: Nathaniel R. Butler
+    Function to perform host extinction correction for MV, SMC and LMC models, according to Pei (1992).
+
+    Note: lam: float: Wavelength in units of Angstroms.
+
     """
+    l1,x1,l2,x2,l3,x3 = loadtxt(pfile,unpack=True)
+
     if (gal==1):
         # Milky Way
         if (R_V==0): R_V=3.08

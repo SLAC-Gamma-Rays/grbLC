@@ -12,10 +12,11 @@ import plotly.express as px
 pd.set_option('display.max_rows', None)
 
 # custom modules
-from grblc.util import get_dir
-from . import io
-from .rescale import _rescaleGRB
-from .colorevol import _colorevolGRB
+from .util import get_dir
+from .io import read_data, convert_data
+from .photometry.convert import _convertGRB, _host_kcorrectGRB
+from .evolution.colorevol import _colorevolGRB
+from .evolution.rescale import _rescaleGRB
 
 
 class Lightcurve: # define the object Lightcurve
@@ -27,6 +28,9 @@ class Lightcurve: # define the object Lightcurve
         path: str = None,
         appx_bands: str = True, # if it is True it enables the approximation of bands, e.g. u' approximated to u,.....
         name: str = None,
+        ra: str = None,
+        dec: str = None,
+        beta: float = 1.0
     ):
         """The main module for fitting lightcurves.
 
@@ -54,6 +58,12 @@ class Lightcurve: # define the object Lightcurve
             self.name = name  # asserting the name of the GRB
         else:
             self.name = self._name_placeholder  # asserting the name of the GRB as 'Unknown GRB' if the name is not provided
+
+        if ra:
+            self.ra = ra
+
+        if dec:
+            self.dec = dec
 
         if isinstance(path, str):
             self.path = path  # asserting the path of the data file
@@ -89,7 +99,7 @@ class Lightcurve: # define the object Lightcurve
             Whether the data inputted is in logarithmic or linear space, by default 'log'.
         """
 
-        df = io.read_data(path) # reads the data, sorts by time, excludes negative time
+        df = read_data(path) # reads the data, sorts by time, excludes negative time
         df.insert(4, "band_appx", "") # initialising new column
 
         df = df[df['mag_err'] != 0] # asserting those data points only which does not have limiting nagnitude
@@ -99,7 +109,7 @@ class Lightcurve: # define the object Lightcurve
         self.ydata = df["mag"].to_numpy() # passing the magnitude as a numpy array in the y column of the data
         self.yerr = df["mag_err"].to_numpy()  # passing the magnitude error as an numpy array y error column of the data
         self.band_original = df["band"].to_list() # passing the original bands (befotre approximation of the bands) as a list
-        self.band = df["band_appx"] = io.convert_data(df["band"]) # passing the reassigned bands (after the reapproximation of the bands) as a list
+        self.band = df["band_appx"] = convert_data(df["band"]) # passing the reassigned bands (after the reapproximation of the bands) as a list
         self.system = df["system"].to_list()  # passing the filter system as a list
         self.telescope = df["telescope"].to_list()  # passing the telescope name as a list
         self.extcorr = df["extcorr"].to_list()  # passing the galactic extinction correction detail (if it is corrected or not) as a list
@@ -112,6 +122,15 @@ class Lightcurve: # define the object Lightcurve
             df = df[df.flag == 'no']
         self.df = df  # passing the whole data as a data frame
 
+    def convertGRB(self):
+        self.df = _convertGRB(
+                            grb = self.name,
+                            ra = self.ra,
+                            dec = self.dec,
+                            mag_table = self.df,
+                            save_in_folder = 'converted/',
+                            debug = False
+                            )
 
     def displayGRB(self, save_static=False, save_static_type='.png', save_interactive=False, save_in_folder='plots/'):
         # This function plots the magnitudes, excluding the limiting magnitudes
@@ -191,13 +210,12 @@ class Lightcurve: # define the object Lightcurve
         return fig
 
 
-    def colorevolGRB(self, print_status=True, return_rescaledf=False, save_plot=False, chosenfilter='mostnumerous', save_in_folder='', reportfill=False):
+    def colorevolGRB(self, print_status=True, return_rescaledf=False, chosenfilter='mostnumerous', save_in_folder=None, reportfill=False):
         self.output_colorevol = _colorevolGRB(
                                             grb=self.name, 
                                             df=self.df, 
                                             print_status=print_status, 
                                             return_rescaledf=return_rescaledf, 
-                                            save_plot=save_plot, 
                                             chosenfilter=chosenfilter, 
                                             save_in_folder=save_in_folder, 
                                             reportfill=reportfill
@@ -205,7 +223,7 @@ class Lightcurve: # define the object Lightcurve
         return self.output_colorevol
 
 
-    def rescaleGRB(self, save_in_folder='rescale/', remove_dups=True):
+    def rescaleGRB(self, save_in_folder=None, remove_dups=True):
         return _rescaleGRB(
                         grb = self.name, 
                         output_colorevolGRB = self.output_colorevol, 
