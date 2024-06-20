@@ -148,18 +148,20 @@ def _convertGRB(
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
+        converted_df = pd.DataFrame.from_dict(converted)
+
         if save_in_folder:
-            save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr.txt")
-            pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
-
-        return converted
-
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected.txt")
+            
     else:
-        if save_in_folder:
-            save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr_DEBUG.txt")
-            pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
+        converted_df = pd.DataFrame.from_dict(converted_debug)
 
-        return converted_debug
+        if save_in_folder:
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected_DEBUG.txt")
+            
+    converted_df.to_csv(save_path, sep='\t', index=False)
+        
+    return converted_df
 
 
 def _hostpei_kcorr(
@@ -336,23 +338,6 @@ def _host_kcorrectGRB(
 ):
     """
     Function to perform host extinction correction and k-correction for redshift effects.
-    
-    Parameters:
-    -----------
-    - grb: str: GRB name.
-    - mag_table: pandas.DataFrame: DataFrame containing GRB magnitudes.
-    - sed_results: str: SED results containing host galaxy and z information.
-    - save_in_folder: str: Path to store the converted file.
-    - debug: bool: More information saved for debugging the conversion. By default, False.
-
-    Returns:
-    --------
-    - converted: pandas.DataFrame: Corrected magnitude file.
-
-    Raises:
-    -------
-    - KeyError: If the telescope and filter is not found.
-    - ImportError: If the code can't find grb table at the given path.
 
     """
 
@@ -434,18 +419,20 @@ def _host_kcorrectGRB(
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
+        converted_df = pd.DataFrame.from_dict(converted)
+
         if save_in_folder:
             save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected.txt")
-            pd.DataFrame.from_dict(converted).to_csv(save_path, sep='\t', index=False)
-
-        return converted
-
+            
     else:
+        converted_df = pd.DataFrame.from_dict(converted_debug)
+
         if save_in_folder:
             save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected_DEBUG.txt")
-            pd.DataFrame.from_dict(converted_debug).to_csv(save_path, sep='\t', index=False)
+            
+    converted_df.to_csv(save_path, sep='\t', index=False)
         
-        return converted_debug
+    return converted_df
 
 
 # simple checker that downloads the SFD dust map if it's not already there

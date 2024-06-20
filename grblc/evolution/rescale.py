@@ -6,13 +6,11 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-pd.set_option('display.max_rows', None)
-
 def _rescaleGRB(
     grb: str, 
     output_colorevolGRB: list, 
     remove_duplicate: bool =True,
-    save_in_folder: str ='rescale/'
+    save_in_folder: str = None
 ): 
     """
     Function to rescale the GRB after colour evolution analysis has been performed.
@@ -28,7 +26,6 @@ def _rescaleGRB(
     def _duplicate_remover(df):
 
         df = df.sort_values('band_appx_occurrences', ascending=False).drop_duplicates(subset='time_sec', keep="first")
-
 
         df = df.sort_values('time_sec', ascending=True)
 
@@ -77,8 +74,7 @@ def _rescaleGRB(
 
     figunresc['layout']['yaxis']['autorange'] = 'reversed' # here the y axis is reversed, so that higher magnitudes are down and lower are up
     figunresc.update_yaxes(title_text="<b>Magnitude<b>", # updating plot options in the y-axes
-                    title_font_color='black',
-                    title_font_size=28,
+                    titlefont=font_dict,
                     showline=True,
                     showticklabels=True,
                     showgrid=False,
@@ -94,8 +90,7 @@ def _rescaleGRB(
                     )
 
     figunresc.update_xaxes(title_text="<b>log10 Time (s)<b>", # updating plot options in the x-axes
-                    title_font_color='black',
-                    title_font_size=35,
+                    titlefont=font_dict,
                     showline=True,
                     showticklabels=True,
                     showgrid=False,
@@ -109,10 +104,6 @@ def _rescaleGRB(
                     tickprefix="<b>",
                     ticksuffix ="</b><br>"
                     )
-
-    #figunresc.update_layout(title="GRB " + self.name, # updating the layout of the plot
-    #                title_font_size=25,
-    #                font=font_dict,
     
     figunresc.update_layout(plot_bgcolor='white',
                     width=960,
@@ -204,20 +195,12 @@ def _rescaleGRB(
                 labels={"color": "      <b>Band<b>"}
                 )
 
-        font_dict=dict(family='arial',
-                    size=26,
-                    color='black'
-                    )
-
-        #figresc.update_layout(legend=dict(font=dict(size=26)))
-
         figresc.update_layout(legend_font_size=26, legend_font_color='black')
         figresc.for_each_trace(lambda t: t.update(name = '<b>' + t.name +'</b>'))
 
         figresc['layout']['yaxis']['autorange'] = 'reversed'
         figresc.update_yaxes(title_text="<b>Magnitude<b>",
-                        title_font_color='black',
-                        title_font_size=28,
+                        titlefont=font_dict,
                         showline=True,
                         showticklabels=True,
                         showgrid=False,
@@ -233,8 +216,7 @@ def _rescaleGRB(
                         )
 
         figresc.update_xaxes(title_text="<b>log10 Time (s)<b>",
-                        title_font_color='black',
-                        title_font_size=35,
+                        titlefont=font_dict,
                         showline=True,
                         showticklabels=True,
                         showgrid=False,
@@ -248,10 +230,6 @@ def _rescaleGRB(
                         tickprefix="<b>",
                         ticksuffix ="</b><br>"
                         )
-
-        #figresc.update_layout(title="GRB " + self.name + " rescaled",
-        #                title_font_size=25,
-        #                font=font_dict,
         
         figresc.update_layout(plot_bgcolor='white',
                         width=960,
@@ -291,6 +269,7 @@ def _rescaleGRB(
         resc_mag_df['flag'] = light['flag']
 
         # The option for exporting the rescaled magnitudes as a dataframe
-        resc_mag_df.to_csv(os.path.join(save_in_folder+'/' + str(grb).split("/")[-1]+  '_rescaled_to_'+str(filterforrescaling)+'.txt'),sep=' ',index=False)
+        if save_in_folder is not None:
+            resc_mag_df.to_csv(os.path.join(save_in_folder+'/' + str(grb).split("/")[-1]+  '_rescaled_to_'+str(filterforrescaling)+'.txt'),sep=' ',index=False)
 
     return figunresc, figresc, resc_mag_df

@@ -4,4 +4,4 @@ __author__ = """Sam Young"""
 __email__ = "youngsam@sas.upenn.edu"
 __version__ = "0.2.0"
 
-# from . import convert, fitting, search  # noqa F401
+from .util import get_dir, set_dir

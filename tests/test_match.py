@@ -1,5 +1,5 @@
 import unittest
-from grblc.convert.match import count, stripcount, count_hst
+from grblc.photometry.match import count, stripcount, count_hst
 
 class TestStringMatching(unittest.TestCase):
 

@@ -1,13 +1,13 @@
 # Standard libs
 import os
 import re
+import math
 
 # Third-party libs
 import numpy as np
 import pandas as pd
 import lmfit as lf
 from lmfit import Parameters, Model
-import math
 import scipy
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors

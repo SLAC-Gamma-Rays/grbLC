@@ -1,7 +1,7 @@
-from numpy import loadtxt,log,hstack
 from scipy.interpolate import interp1d
 import astropy.units as u
-from .constants import pfile
+from numpy import loadtxt,log,hstack
+from .constants import *
 
 
 def ebv(
@@ -78,7 +78,6 @@ def pei_av(
     Note: lam: float: Wavelength in units of Angstroms.
 
     """
-    l1,x1,l2,x2,l3,x3 = loadtxt(pfile,unpack=True)
 
     if (gal==1):
         # Milky Way

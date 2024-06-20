@@ -26,7 +26,7 @@ import astropy.units as units
 import numpy as np
 from astropy.coordinates import SkyCoord
 
-from grblc.convert.sfd import json_serializers
+from grblc.photometry.sfd import json_serializers
 
 
 class TestSerializers(unittest.TestCase):

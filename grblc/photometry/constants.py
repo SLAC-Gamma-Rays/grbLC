@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import numpy as np
+
 
 # AB conversion factors
 defaultshift_toAB={
@@ -67,13 +69,17 @@ defaultshift_toAB={
             "F892N":[0.487505]
 }
 
+path0 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "grb_info.csv")
 path1 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "filters.txt")
 path2 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "reddening.txt")
 path3 = os.path.join(os.path.dirname(os.path.realpath(__file__)), "SF11_conversions.txt")
 pfile = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pei_extinct.txt')
 
+grbinfo = pd.read_csv(path0, sep=',', header=0, index_col='grb', engine='python')
 filters = pd.read_csv(path1, sep='\s+', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
 adps = pd.read_csv(path2, sep='\t', header=0, index_col=0, engine='python', encoding='ISO-8859-1')
 schafly = pd.read_csv(path3, sep='\t', header=0, index_col='lambda_eff')
+l1,x1,l2,x2,l3,x3 = np.loadtxt(pfile, unpack=True)
 
-__all__ = ["filters", "adps", "schafly", "defaultshift_toAB", pfile]
+
+__all__ = ["grbinfo", "filters", "adps", "schafly", "defaultshift_toAB", "l1", "x1", "l2", "x2", "l3", "x3"]

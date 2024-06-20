@@ -32,9 +32,9 @@ except ImportError as error:
 import os
 import time
 
-import grblc.convert.sfd.sfd as sfd
-from grblc.convert.convert import _check_dust_maps
-from grblc.convert.sfd.std_paths import *
+import grblc.photometry.sfd.sfd as sfd
+from grblc.photometry.convert import _check_dust_maps
+from grblc.photometry.sfd.std_paths import *
 
 class TestSFD(unittest.TestCase):
     @classmethod

@@ -212,7 +212,8 @@ def calibration(band: str,
         else:
           filters.loc[id, 'match_fil'] = _count(grblc_fil, filter)
 
-    matched_fil = filters.loc[filters['match_fil'] == 100]
+    matched_fil = filters[filters['match_fil'] == 100].copy()
+
     if len(matched_fil) == 0 and len(filter) <= 2:
       matched_fil = filters.loc[filters['match_fil'] >= 50]
       if len(matched_fil) == 0:
@@ -227,7 +228,6 @@ def calibration(band: str,
     probablefilters = []
     
     for id in matched_fil.index:
-      
       grblc_obs, grblc_tel, grblc_ins, *__ = str(id).split(".")
         
       if grblc_obs.casefold() == observatory.casefold():
