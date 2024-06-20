@@ -21,8 +21,9 @@ def _toAB(
     telescope: str,
     mag: float
 ):
-    
-    "Corrects individual magnitude points."
+    """
+    Corrects individual magnitude points.
+    """
 
     try:
         lambda_x, shift_toAB, coeff, filter_id, coeff_source = calibration(band, telescope)
@@ -67,31 +68,7 @@ def _convertGRB(
     """
     Function to convert GRB magnitudes to AB system and correct for galactic extinction.
 
-    Parameters:
-    -----------
-    - grb: str: GRB name.
-    - ra: str: Right ascension of GRB.
-    - dec: str: Declination of GRB.
-    - mag_table: pandas.DataFrame: DataFrame containing GRB magnitudes.
-    - save_in_folder: str: Path to store the converted file.
-    - debug: bool: More information saved for debugging the conversion. By default, False.
-
-    Returns:
-    --------
-    - converted: pandas.DataFrame: Corrected magnitude file.
-
-    Raises:
-    -------
-    - KeyError: If the telescope and filter is not found.
-    - ImportError: If the code can't find grb table at the given path.
-
     """
-    
-    assert bool(grb and ra and dec), "Must provide either grb name or location."
-
-    if save_in_folder is not None:
-        if not os.path.exists(save_in_folder):
-            os.mkdir(save_in_folder)
 
     converted = {k: [] for k in ('time_sec', 'mag', 'mag_err', 'band', 'system', 'telescope', 'extcorr', 'source', 'flag')}
 
@@ -198,6 +175,7 @@ def _hostpei_kcorr(
 ):
     """
     Function to correct for host extinction and perform k-correction for individual magnitudes.
+
     """
 
     try:
@@ -357,6 +335,8 @@ def _host_kcorrectGRB(
     debug: bool = False,
 ):
     """
+    Function to perform host extinction correction and k-correction for redshift effects.
+    
     Parameters:
     -----------
     - grb: str: GRB name.

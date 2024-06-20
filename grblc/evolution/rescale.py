@@ -8,19 +8,16 @@ import plotly.express as px
 
 pd.set_option('display.max_rows', None)
 
-def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale/', duplicateremove=True): 
-    
-    # This function performs the rescaling of the GRB after the colour evolution analysis.
-    # This function takes as input the output previously obtained in the "colevol" function applied on the same "grb"
-    # The output of the function is the "resc_mag_df", namely the input dataframe where the rescaling of the filters
-    # is applied in the cases where there is no colour evolution.
-    # All the other cases (filters with colour evolution or undetermined behaviour) are left in the "resc_mag_df" without any rescaling.
+def _rescaleGRB(
+    grb: str, 
+    output_colorevolGRB: list, 
+    remove_duplicate: bool =True,
+    save_in_folder: str ='rescale/'
+): 
+    """
+    Function to rescale the GRB after colour evolution analysis has been performed.
 
-    # the global option is needed when these variables inputed in the current function are output of another function recalled, namely, colorevolGRB
-    #global filterforrescaling, light, overlap #, nocolorevolutionlist
-    if save_in_folder is not None:
-        if not os.path.exists(save_in_folder):
-            os.mkdir(save_in_folder)
+    """
 
     def _overlap(mag1lower,mag1upper,mag2lower,mag2upper): # this is the condition to state if two magnitude ranges overlap
         if mag1upper <mag2lower or mag1lower > mag2upper:
@@ -29,26 +26,11 @@ def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale/', duplicatere
             return max(mag1upper, mag2upper) # in the case of overlap, a value>0 is returned
 
     def _duplicate_remover(df):
-        
-        # df['freq'] = "" # initialise column
-        # print(df)
-
-        # freq_df = pd.DataFrame(df['band_appx'].value_counts())
-        # #freq_df.rename(columns = {'band_appx':'freq'}, inplace = True)  # renaming because counts of band_appx 
-        #                                                                 # is named band_appx by Pandas
-        # #time = df['time_sec']
-        # #df['logtime']=logtime
-        # print(freq_df)
-
-        # for i,j in zip(df.index, df['band_appx']):
-        #     df.loc[i, 'freq'] = freq_df.loc[j, 'count']
 
         df = df.sort_values('band_appx_occurrences', ascending=False).drop_duplicates(subset='time_sec', keep="first")
 
 
         df = df.sort_values('time_sec', ascending=True)
-
-        #display(df)
 
         return df
 
@@ -56,10 +38,10 @@ def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale/', duplicatere
 
     #output_colorevolGRB = self.colorevolGRB(print_status=False, return_rescaledf=False, save_plot=False, chosenfilter=chosenfilter, save_in_folder=save_rescaled_in)
     input = output_colorevolGRB
-    nocolorevolutionlist = input[2] # 3rd output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are compatible with zero in 3sigma or are < 0.10
-    colorevolutionlist =input[3] # 4th output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are incompatible with zero in 3sigma and are>0.10
-    filterforrescaling = input[4] # 5th output of colorevolGRB function, this is the filter chosen for rescaling
-    light = input[5] # 6th output of colorevolGRB function, is the original dataframe (since the filter chosen for rescaling is present here and it is needed)
+    filterforrescaling = input[2] # 3rd output of colorevolGRB function, this is the filter chosen for rescaling
+    nocolorevolutionlist = input[3] # 4th output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are compatible with zero in 3sigma or are < 0.10
+    colorevolutionlist =input[4] # 5th output of colorevolGRB function, this is the list of filters whose resc.fact. slopes are incompatible with zero in 3sigma and are>0.10
+    light = input[7] # 8th output of colorevolGRB function, is the original dataframe (since the filter chosen for rescaling is present here and it is needed)
     
     # Before rescaling the magnitudes, the following instructions plot the magnitudes in the unrescaled case
     
@@ -164,9 +146,7 @@ def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale/', duplicatere
     print(nocolorevolutionlist)
 
     if len(nocolorevolutionlist) == 0:
-        print("No filters to rescale.")
-
-        return figunresc, None, None
+        raise ValueError("No filters to rescale.")
 
     else:
 
@@ -200,7 +180,7 @@ def _rescaleGRB(grb, output_colorevolGRB, save_in_folder='rescale/', duplicatere
                 light.loc[rr, "mag_rescaled_to_"+filterforrescaling] = light.loc[rr, "mag"]
                 light.loc[rr, "mag_rescaled_err"] = light.loc[rr, "mag_err"]
 
-        if duplicateremove:
+        if remove_duplicate:
 
             light=_duplicate_remover(light)
 

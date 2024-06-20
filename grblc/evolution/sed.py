@@ -8,9 +8,9 @@ from lmfit import Model, Parameters
 import warnings
 warnings.filterwarnings("ignore")
 
-from ..convert.extinction import pei_av
-from ..convert.match import calibration
-from .io import read_data
+from ..photometry.extinction import pei_av
+from ..photometry.match import calibration
+from ..io import read_data
 
 
 def model_MW(
@@ -19,7 +19,7 @@ def model_MW(
     AV,
     x,
     z
-    ):
+):
     lam = 10**x
     sed = intercept - 2.5*beta*x - 2.5*(pei_av(lam,A_V=AV,gal=1,R_V=3.08) - pei_av(lam/(1+z),A_V=AV,gal=1,R_V=3.08))
     return sed
@@ -30,7 +30,7 @@ def model_LMC(
     AV,
     x,
     z
-    ):
+):
     lam = 10**x
     sed = intercept - 2.5*beta*x - 2.5*(pei_av(lam,A_V=AV,gal=2,R_V=3.16) - pei_av(lam/(1+z),A_V=AV,gal=2,R_V=3.16))
     return sed
@@ -41,14 +41,14 @@ def model_SMC(
     AV,
     x,
     z
-    ):
+):
     lam = 10**x
     sed = intercept - 2.5*beta*x - 2.5*(pei_av(lam,A_V=AV,gal=3,R_V=2.93) - pei_av(lam/(1+z),A_V=AV,gal=3,R_V=2.93))
     return sed
 
 def maketable(
     path
-    ):
+):
     dtype = {
         "time_sec": np.float64,
         "mag": np.float64,
@@ -119,7 +119,7 @@ def beta_marquardt(
     z,
     print_status = True,
     save_in_folder = 'beta/'
-    ):
+):
     
     # This function provides the Spectral Energy Distribution fitting following the Equation 3 of https://arxiv.org/pdf/2405.02263
     # The fitting parameters are: beta (optical spectral index), A_V (host extinction in V-band), and the intercept

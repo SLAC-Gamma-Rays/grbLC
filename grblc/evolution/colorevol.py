@@ -15,31 +15,19 @@ import matplotlib.cm as cmx
 import matplotlib.ticker as mt
 import matplotlib.font_manager as font_manager
 
-pd.set_option('display.max_rows', None)
-
 
 def _colorevolGRB(
-    grb, df, print_status=True, return_rescaledf=False,
-    chosenfilter='mostnumerous', save_in_folder=None, reportfill=False
+    grb: str, 
+    df: pd.DataFrame, 
+    chosenfilter: str ='mostnumerous', 
+    print_status: bool =True, 
+    save_in_folder: str =None, 
+    debug: bool =False
 ):
-    
-    # The colorevolGRB function takes as input the GRB dataframe, performs the colour evolution analysis (see Section 3.3 of https://arxiv.org/abs/2405.02263) 
-    # and returns the following output:
+    """
+    Function to perform colour evolution analysis.
 
-    # fig: the plot of magnitudes and rescaling factors versus log10(time) in the case of variable slope approach ("variable a")
-    # fig2: the plot of magnitudes and rescaling factors versus log10(time) in the case of fixed slope as zero ("a=0")
-    # resc_slopes_df: the dataframe that contains all the information about the rescaling factors fitting both in the cases of "variable a" and "a=0"
-    # nocolorevolutionlista0: the list of filters in GRB dataframe that show no colour evolution according to the "a=0" fitting
-    # colorevolutionlista0: the list of filters in GRB dataframe that show colour evolution according to the "a=0" fitting
-    # filterforrescaling: the filter used for rescaling (by default, the most numerous, otherwise the customized one)
-    # light: the dataframe that contains the GRB photometric information (time, magnitude, magnitude error, filter...)
-    # rescale_df: the dataframe that contains the information about the rescaling factors
-    # nocolorevolutionlist: the list of filters in GRB dataframe that show no colour evolution according to the "variable a" fitting
-    # colorevolutionlist: the list of filters in GRB dataframe that show colour evolution according to the "variable a" fitting
-    
-    if save_in_folder is not None:
-        if not os.path.exists(save_in_folder):
-            os.mkdir(save_in_folder)
+    """
 
     light = pd.DataFrame()  # Here the original light curve dataframe is defined
     light['time_sec'] = df.time_sec  # Time is linear
@@ -226,8 +214,7 @@ def _colorevolGRB(
     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)  # The ScalarMappable applies data normalization before returning RGBA colors from the given colormap
 
     # Plot each filter
-    fig, axs = plt.subplots(2, 1, sharex=True)
-    # fig = plt.figure()
+    fig_avar, axs = plt.subplots(2, 1, sharex=True)
 
     for i, band in enumerate(filters):  # Loop on the given filter
         colour = scalarMap.to_rgba(i)  # Mapping the colour into the RGBA
@@ -503,10 +490,7 @@ def _colorevolGRB(
         ax.yaxis.set_major_formatter(xyticks)
         ax.xaxis.set_major_formatter(xyticks)
 
-    #axs[1].rcParams['legend.title_fontsize'] = 'xx-large'
-    #axs[1].title('Rescaling factors for '+ str(grbtitle),fontsize=20)
     axs[0].invert_yaxis()
-    #axs[0].set_xlabel('Log time (s)',fontsize=22)
     axs[0].set_ylabel('Magnitude', labelpad=15, fontsize=16, fontdict=dict(weight='bold'))
     axs[0].tick_params(labelsize=16, direction='in', width=2)
     axs[0].locator_params(axis='x', nbins=5)
@@ -518,11 +502,8 @@ def _colorevolGRB(
         tick.set_fontweight('bold')
 
     for axis in ['top', 'bottom', 'left', 'right']:
+        axs[0].spines[axis].set_linewidth(2.2)
 
-        axs[0].spines[axis].set_linewidth(2.2)  # change width  
-
-    
-    #axs[1].title('Rescaling factors for '+ str(grbtitle),fontsize=20)
     axs[1].set_xlabel(r"$\bf{log_{10} t\, (s)}$", fontsize=17, fontdict=dict(weight='bold'))
     axs[1].set_ylabel('Resc. fact. (rf)', labelpad=15, fontsize=17, fontdict=dict(weight='bold')) #+filterforrescaling, labelpad=15, fontsize=15)
     axs[1].tick_params(labelsize=16, direction='in', width=2)
@@ -538,23 +519,24 @@ def _colorevolGRB(
 
     font = font_manager.FontProperties(weight='bold', style='normal', size=20) # 20
 
-    fig.legend(title="$\\bf{Band: rf=(a \pm \sigma_{a}) *\\log_{10}(t) + (b \pm \sigma_{b})}$", bbox_to_anchor=(1, 1), loc='upper left', fontsize="20", title_fontsize="20", prop=font) # 21 21
+    fig_avar.legend(
+        title="$\\bf{Band: rf=(a \pm \sigma_{a}) *\\log_{10}(t) + (b \pm \sigma_{b})}$", 
+        bbox_to_anchor=(1, 1), 
+        loc='upper left', 
+        fontsize="20", 
+        title_fontsize="20", 
+        prop=font
+        )
 
-    #fig.legend(title='Band: slope±err', bbox_to_anchor=(1, 0.946), loc='upper left', fontsize="21", title_fontsize="21")
-    #plt.rcParams['legend.title_fontsize'] = 'x-large'
-    plt.rcParams['figure.figsize'] = [16, 9] #15,8 16,9
-    #plt.rcParams.update({'legend.fontsize': 14})
+    plt.rcParams['figure.figsize'] = [16, 9] 
     plt.tight_layout()
     
-    #plt.savefig("new-plots/"+str(grbtitle)+"_lc_colorevol.pdf", bbox_inches='tight') #DECOMMENT TO EXPORT THE PLOTS
-    
     if save_in_folder:
-        #plt.savefig(str(grb)+'_colorevol.pdf', dpi=300) # option to export the pdf plot of rescaling factors
         plt.savefig(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_colorevol.pdf'), bbox_inches='tight', dpi=300) # option to export the pdf plot of rescaling factors        
     
     ############################################## Plotting the case where a=0 ############################################
 
-    fig2, axs2 = plt.subplots(2, 1, sharex=True)
+    fig_a0, axs2 = plt.subplots(2, 1, sharex=True)
 
     for i, band in enumerate(filters): # loop on the given filter
         colour = scalarMap.to_rgba(i) # mapping the colour into the RGBA
@@ -659,20 +641,15 @@ def _colorevolGRB(
 
     font = font_manager.FontProperties(weight='bold', style='normal', size=22) # 20
 
-    fig2.legend(title="$\\bf{Band: rf=(a=0) *\\log_{10}(t) + (b \pm \sigma_{b})}$", bbox_to_anchor=(1, 1), loc='upper left', fontsize="18", title_fontsize="20", prop=font) # 21 21
-
-    #fig.legend(title='Band: slope±err', bbox_to_anchor=(1, 0.946), loc='upper left', fontsize="21", title_fontsize="21")
-    #plt.rcParams['legend.title_fontsize'] = 'x-large'
+    fig_a0.legend(title="$\\bf{Band: rf=(a=0) *\\log_{10}(t) + (b \pm \sigma_{b})}$", bbox_to_anchor=(1, 1), loc='upper left', fontsize="18", title_fontsize="20", prop=font) # 21 21
+    
     plt.rcParams['figure.figsize'] = [16, 9] #15,8 16,9
     plt.tight_layout()
-    
-    #plt.savefig("new-plots/"+str(grbtitle)+"_lc_colorevol.pdf", bbox_inches='tight') #DECOMMENT TO EXPORT THE PLOTS
     
     if save_in_folder:
         plt.savefig(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_colorevol_a0.pdf'), bbox_inches='tight', dpi=300) 
         # option to export the pdf plot of rescaling factors        
 
-    
     nocolorevolutionlista0=[] # this is the list of filters with slopes that are compatible with zero in 3 sigma
     colorevolutionlista0=[] # this is the list of filters with slopes that ARE NOT compatible with zero in 3 sigma        
     for band in resc_slopes_df.index:
@@ -710,8 +687,15 @@ def _colorevolGRB(
     rescale_df.drop(labels='plot_color', axis=1, inplace=True)     # before printing that dataframe, the code removes the columns of plot_color
     resc_slopes_df.drop(labels='plot_color', axis=1, inplace=True) # since this column was needed only for assigning the plot colors
                                                                     # these columns have no scientific meaning
-
-    if reportfill:
+    resc_slopes_df.insert(0, 'GRB', str(grb.split("/")[-1]))
+    resc_slopes_df.insert(1, 'filter_chosen', str(filterforrescaling))
+    
+    # Option that saves the dataframe that contains the rescaling factors
+    if save_in_folder:
+        rescale_df.to_csv(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_rescalingfactors_to_'+str(filterforrescaling)+'.txt'),sep='\t',index=False)
+        resc_slopes_df.to_csv(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_fittingresults'+'.txt'), sep='\t',index=True)
+        
+    if debug:
 
         if len(nocolorevolutionlista0)>len(colorevolutionlista0):
             rescflag='yes'
@@ -722,29 +706,4 @@ def _colorevolGRB(
         reportfile.write(grb.split("/")[-1]+" "+str(nocolorevolutionlista0).replace(' ','')+" "+str(colorevolutionlista0).replace(' ','')+" "+rescflag+" "+filterforrescaling+"\n")
         reportfile.close()
 
-        #stringnew=grb+" " # this is the general printing of all the slopes
-        #for band in resc_slopes_df.index:
-
-            #if (np.isnan(resc_slopes_df.loc[band, 'slope'])) or (np.isnan(resc_slopes_df.loc[band, 'slope_err'])):
-                #stringnew=stringnew
-            #else:
-                #stringnew=stringnew+"$"+band+"$"+":"+str(round(resc_slopes_df.loc[band, 'slope'],3))+"+/-"+str(round(resc_slopes_df.loc[band, 'slope_err'],3))+"; "
-
-        #slopesfile = open('report_slopes.txt', 'a')
-        #slopesfile.write(stringnew+"\n")
-        #slopesfile.close()
-
-    if return_rescaledf: # variables returned in case the option return_rescaledf is enabled
-
-        # Option that saves the dataframe that contains the rescaling factors
-        rescale_df.to_csv(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_rescalingfactors_to_'+str(filterforrescaling)+'.txt'),sep=' ',index=False)
-        
-        resc_slopes_df.insert(0, 'GRB', str(grb.split("/")[-1]))
-        resc_slopes_df.insert(1, 'filter_chosen', str(filterforrescaling))
-        
-        resc_slopes_df.to_csv(os.path.join(save_in_folder+'/'+str(grb.split("/")[-1])+'_fittingresults'+'.txt'),sep=' ',index=True)
-        
-        return fig, resc_slopes_df, nocolorevolutionlista0, colorevolutionlista0, filterforrescaling, light, rescale_df, nocolorevolutionlist, colorevolutionlist, fig2
-
-    return fig, resc_slopes_df, nocolorevolutionlista0, colorevolutionlista0, filterforrescaling, light, nocolorevolutionlist, colorevolutionlist, fig2 # the variables in the other case
-
+    return fig_avar, fig_a0, filterforrescaling, nocolorevolutionlist, colorevolutionlist, nocolorevolutionlista0, colorevolutionlista0, light, resc_slopes_df, rescale_df

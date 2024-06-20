@@ -61,9 +61,13 @@ def isfloat(value):
 #         return n  # <-- the final stop in our recursion journey
 
 
-def read_data(path, data_space='lin'):
+def read_data(
+    path: str, 
+    data_space='lin'
+):
     """
-    Reads data, sorts by time, excludes negative time, converts time to log
+    Reads data, sorts by time, excludes negative time, converts data_space.
+
     """
     
     dtype = {
@@ -105,12 +109,12 @@ def read_data(path, data_space='lin'):
                     index_col=None,
                     engine="python").sort_values(by=['time_sec'])
 
-    if data_space=='lin':
+    if data_space=='log':
         try:
             data['time_sec'] = np.log10(data['time_sec'])
         except Exception as e:
             print("Issue with logT calculation. Check if negative values are given for time.\nError:", e)
-    elif data_space=='log':
+    elif data_space=='lin':
         pass
     else:
         raise Exception("Dataspace could be either 'log' or 'lin")
