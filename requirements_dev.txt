@@ -1,0 +1,26 @@
+# Testing frameworks
+pytest
+unittest
+
+# Mocking and coverage
+pytest-mock
+coverage
+pytest-cov
+
+# # Linters and formatters
+# flake8
+# black
+# pylint
+
+# Documentation
+Sphinx
+sphinx-rtd-theme
+
+# Build tools
+wheel
+twine
+setuptools
+
+# Development utilities
+ipython
+# ipdb
