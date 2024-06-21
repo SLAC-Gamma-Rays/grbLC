@@ -10,7 +10,8 @@ import plotly.express as px
 
 # custom modules
 from .util import get_dir
-from .io import read_data, convert_data
+from .io import read_data, _appx_bands
+from .data.load import get_grb
 from .photometry.constants import grbinfo
 from .photometry.convert import _convertGRB, _host_kcorrectGRB
 from .photometry.sed import _beta_marquardt
@@ -27,9 +28,9 @@ class Lightcurve: # define the object Lightcurve
         grb: str = None,
         path: str = None,
         data_space: str = 'lin',
-        appx_bands: bool = True,
+        appx_bands: bool = False,
         remove_outliers: bool = False, 
-        save_in_folder: str = None,
+        save: bool = True,
     ):
         """
         Function to set the `xdata` and `ydata`, and optionally `xerr` and `yerr` of the lightcurve.
@@ -39,12 +40,13 @@ class Lightcurve: # define the object Lightcurve
         Parameters:
         -----------
         - grb: str: GRB name.
-        - path: str: Path to the magnitude file. 
+        - path: str: Path to the magnitude file. Enter 'raw' or 'converted' to directly access our catalogue.
         - data_space : str, {log, lin}: Whether to convert the data to logarithmic or linear space, by default 'lin'.
-        - appx_bands: bool: If True, approximates certain bands, e.g. u' approximated to u, etc.
+        - appx_bands: bool: If True, approximates certain bands, e.g. u' approximated to u, etc. By default False.
                             See the :py:meth:`io.convert_data` for more information.
         - remove_outliers: bool: If True, removes outliers identified in our analysis, by default False. 
                                 See Dainotti et al. (2024): https://arxiv.org/pdf/2405.02263.
+        - save: bool: If True, creates folder to save results.
 
         Returns:
         --------
@@ -61,26 +63,46 @@ class Lightcurve: # define the object Lightcurve
         if grb:
             self.name = grb 
 
-        if isinstance(path, str):
+        if path == 'raw' or 'converted':
+            self.path = get_grb(grb, type=path)
+
+        else:
             self.path = path 
-            self._set_data(data_space, appx_bands, remove_outliers) # reading the data from a file
-            print(self.df.head())
+
+        # reading the data from a file
+        self.set_data(data_space, appx_bands, remove_outliers)
 
         # create directory to save results
-        if save_in_folder is None:
+        if save:
             self.main_dir = self.name+"/"
             if not os.path.exists(self.main_dir):
                 os.mkdir(self.main_dir)
 
 
-    def _set_data(
+    def set_data(
         self, 
-        data_space: str ='lin',
-        appx_bands: bool =True, 
-        remove_outliers: bool =False
+        data_space: str = 'lin',
+        appx_bands: bool = True, 
+        remove_outliers: bool = False
     ): 
         """
         Function to set the data.
+        
+        Parameters:
+        -----------
+        - data_space : str, {log, lin}: Whether to convert the data to logarithmic or linear space, by default 'lin'.
+        - appx_bands: bool: If True, approximates certain bands, e.g. u' approximated to u, etc.
+                            See the :py:meth:`io.convert_data` for more information.
+        - remove_outliers: bool: If True, removes outliers identified in our analysis, by default False. 
+                                See Dainotti et al. (2024): https://arxiv.org/pdf/2405.02263.
+        
+        Raises:
+        -------
+        - AssertionError: If only limiting magnitudes are present.
+
+        Returns:
+        --------
+        - None
         
         """
 
@@ -88,8 +110,6 @@ class Lightcurve: # define the object Lightcurve
         df = read_data(self.path, data_space) 
         
         # initialising a new column
-        df.insert(4, "band_appx", "") 
-
         # asserting those data points only which does not have limiting nagnitude
         df = df[df['mag_err'] != 0] 
         assert len(df)!=0, "Only limiting magnitudes present."
@@ -108,7 +128,8 @@ class Lightcurve: # define the object Lightcurve
             # passing the original bands (befotre approximation of the bands) as a list
         
         if appx_bands:
-            self.band = df["band_appx"] = convert_data(df["band"]) 
+            df.insert(4, "band_appx", "") 
+            self.band = df["band_appx"] = _appx_bands(df["band"]) 
             # passing the reassigned bands (after the reapproximation of the bands) as a list
         
         else:
@@ -281,7 +302,7 @@ class Lightcurve: # define the object Lightcurve
 
     def betaGRB(
         self,
-        print_status: bool = True,
+        print_status: bool = False,
         save: bool = False,
     ):
         """
@@ -297,8 +318,8 @@ class Lightcurve: # define the object Lightcurve
         
         Parameters:
         -----------
-        - self:  Lightcurve object should be initialised to call correctGRB()
-        - print_status: If True, prints intermediate steps
+        - self:  Lightcurve object should be initialised to call correctGRB().
+        - print_status: If True, prints intermediate steps. By default, False.
         - save: bool: If True, saves results.
         
         Returns:
@@ -366,8 +387,8 @@ class Lightcurve: # define the object Lightcurve
 
     def colorevolGRB(
         self, 
-        chosenfilter: str ='mostnumerous', 
-        print_status: bool =True,
+        chosenfilter: str = 'mostnumerous', 
+        print_status: bool = False,
         save: bool = False, 
         debug: bool = False
     ):

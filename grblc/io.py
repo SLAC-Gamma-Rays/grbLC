@@ -6,15 +6,16 @@ import numpy as np
 import pandas as pd
 
 
-def isfloat(value):
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-
 # Removed in version 0.2.0 since the format is unified
+
+# def isfloat(value):
+#     try:
+#         float(value)
+#         return True
+#     except ValueError:
+#         return False
+
+
 # def check_header(path, n=None, debug=False, more_than_one_row=False):
 #     """
 #     Returns what line a header is at
@@ -60,6 +61,11 @@ def isfloat(value):
 #     else:
 #         return n  # <-- the final stop in our recursion journey
 
+# def readin(directory="."):
+#     import glob2
+
+#     return np.asarray(glob2.glob(directory + "/*.txt"))
+
 
 def read_data(
     path: str, 
@@ -83,13 +89,15 @@ def read_data(
         }
     
     try:
-        data = pd.read_csv(path, sep=r"\t+|\s+", 
-                    dtype=dtype,
-                    names=list(dtype.keys()),
-                    header=0, 
-                    index_col=None,
-                    comment='#',
-                    engine="python").sort_values(by=['time_sec'])
+        data = pd.read_csv(path, 
+                        sep='\t', 
+                        dtype=dtype,
+                        names=list(dtype.keys()),
+                        header=0, 
+                        index_col=None,
+                        engine="python"
+                        ).sort_values(by=['time_sec'])
+        
     except:
         dtype = {
         "time_sec": np.float64,
@@ -101,21 +109,25 @@ def read_data(
         "extcorr": str,
         "source": str
         }
-
-        data = pd.read_csv(path, sep=r"\t+|\s+", 
-                    dtype=dtype,
-                    names=list(dtype.keys()),
-                    header=0, 
-                    index_col=None,
-                    engine="python").sort_values(by=['time_sec'])
+        
+        data = pd.read_csv(path, 
+                        sep='\t', 
+                        dtype=dtype,
+                        names=list(dtype.keys()),
+                        header=0, 
+                        index_col=None,
+                        engine="python"
+                        ).sort_values(by=['time_sec'])
 
     if data_space=='log':
         try:
             data['time_sec'] = np.log10(data['time_sec'])
         except Exception as e:
             print("Issue with logT calculation. Check if negative values are given for time.\nError:", e)
+            
     elif data_space=='lin':
         pass
+
     else:
         raise Exception("Dataspace could be either 'log' or 'lin")
 
@@ -126,13 +138,10 @@ def read_data(
     return pd.DataFrame(data)
 
 
-def readin(directory="."):
-    import glob2
-
-    return np.asarray(glob2.glob(directory + "/*.txt"))
-
-# converting the data here in the required format for color evolution analysis
-def convert_data(data):
+def _appx_bands(data):
+    """
+    Function to approximate bands.
+    """
 
     data = list(data) # reading the data as a list
 

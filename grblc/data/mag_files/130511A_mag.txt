@@ -1,0 +1,9 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+149	19.18	0.15	white	AB	NGSO/Swift/UVOT	n	14620	no
+3738	19.6	0.0	R	USNO	Xinglong/TNT(0.8m)/VersArray1300B	n	14623	no
+13920	20.7	0.0	g'	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	14625	no
+13920	20.7	0.0	Rc	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	14625	no
+13920	19.8	0.0	Ic	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	14625	no
+2571	20.0	0.1	Rc	USNO	HigashiHiroshima/KANATA(1.5m)/HOWPol	n	14626	no
+8768	21.0	0.2	Rc	USNO	HigashiHiroshima/KANATA(1.5m)/HOWPol	n	14626	no
+8365	20.78	0.13	R	USNO	SOAO/0.6m/CCD	n	14628	no

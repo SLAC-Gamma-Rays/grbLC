@@ -1,0 +1,3 @@
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+41440.5	21.875591404902693	0.0	U	AB	NGSO/Swift/UVOT	y	16451	no
+41894.5	21.785001612630776	0.0	white	AB	NGSO/Swift/UVOT	y	16451	no

@@ -1,0 +1,9 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+10080.0	15.5	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2986	no
+10434.0	15.0	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
+10484.0	15.0	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
+10533.0	15.3	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
+12483.0	15.6	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
+12070.0	16.5	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
+12783.0	17.0	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
+15671.8	19.45	0.17	Ks	2MASS	KO/Keck-1/NIRC	n	astro-ph0502468	no

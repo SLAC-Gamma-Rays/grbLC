@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+158.5	20.3	0.0	white	AB	NGSO/Swift/UVOT	n	23437	no
+196128.0	23.3	0.0	J	AB	LCO/Magellan2Clay(6.5m)/MMIRS	n	arXiv2007.03715	no
+3207.5	20.1	0.0	U	AB	NGSO/Swift/UVOT	n	23437	no
+32832.0	25.1	0.39	i	AB	MKO/Gemini-North(8.1m)/GMOS	n	arXiv2007.03715	no
+3306.5	21.0	0.0	white	AB	NGSO/Swift/UVOT	n	23437	no
+3437.5	20.1	0.0	B	AB	NGSO/Swift/UVOT	n	23437	no
+37152.0	23.2	0.0	J	AB	KO/Keck-1/DEIMOS	n	arXiv2007.03715	no
+421.0	19.5	0.0	U	AB	NGSO/Swift/UVOT	n	23437	no
+5774.0	19.8	0.0	V	AB	NGSO/Swift/UVOT	n	23437	no
+5917.0	19.8	0.0	UVW2	AB	NGSO/Swift/UVOT	n	23437	no
+8422.0	20.2	0.0	UVW1	AB	NGSO/Swift/UVOT	n	23437	no
+8668.0	20.5	0.0	UVM2	AB	NGSO/Swift/UVOT	n	23437	no
+33120.0	23.32	0.25	i	AB	MKO/Gemini-North(8.1m)/GMOS	n	23439	no
+33120.0	22.94	0.19	J	AB	KO/Keck-1/MOSFIRE	n	23440	yes/X/Y
+72767.0	18.1	0.0	Unfiltered	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	23444	no

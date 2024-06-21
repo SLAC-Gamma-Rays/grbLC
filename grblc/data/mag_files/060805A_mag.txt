@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+126.5	17.7	0	Clear	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5400	no
+186.5	16.7	0	I	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5400	no
+214.0	18.0	0	Clear	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5400	no
+258.5	16.8	0	V	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5400	no
+240.0	19.0	0	R	USNO	PO/60inches/SEDM	n	5401	no
+3364.5	20.1	0	white	AB	NGSO/Swift/UVOT	n	5402	no
+5929.0	20.3	0	V	AB	NGSO/Swift/UVOT	n	5402	no
+3554.0	20.6	0	B	AB	NGSO/Swift/UVOT	n	5402	no
+3439.5	20.2	0	U	AB	NGSO/Swift/UVOT	n	5402	no
+3325.5	19.7	0	UVW1	AB	NGSO/Swift/UVOT	n	5402	no
+8344.5	20.6	0	UVM2	AB	NGSO/Swift/UVOT	n	5402	no
+5787.0	20.7	0	UVW2	AB	NGSO/Swift/UVOT	n	5402	no
+51300.0	21.5	0	R	Vega	Skinakas/1.3m/CCD	n	5405	no
+62640.0	22.9	0	r'	SDSS	ORM/Liverpool(2m)/RATCAM	n	5406	no
+64627.2	22.6	0	i'	SDSS	ORM/Liverpool(2m)/RATCAM	n	5406	no

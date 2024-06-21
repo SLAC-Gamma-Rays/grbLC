@@ -1,0 +1,11 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+153431	22.0	0.0	R	Landolt	CTIO/SMARTS(1.5m)/OSIRIS	n	381	no
+238403	22.3	0.0	R	Landolt	CTIO/SMARTS(1.5m)/OSIRIS	n	381	no
+24563	16.57	0.05	H	Vega	LSO/NTT(3.58m)/SOFI	n	astro-ph9912423v1	no
+64897	18.38	0.05	H	Vega	LSO/NTT(3.58m)/SOFI	n	astro-ph9912423v1	no
+111527	19.9	0.0	H	Vega	LSO/NTT(3.58m)/SOFI	n	astro-ph9912423v1	no
+166753	13.9	0.0	L	Vega	CARA/Spirex(0.6m)/ABU	n	astro-ph9912423v1	no
+63425	22.0	0.2	V	Vega	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	astro-ph9912423v1	yes/Z
+67301	21.9	0.0	B	Vega	LSO/MPG-ESO(2.2m)/WFI	n	astro-ph9912423v1	no
+152739	22.3	0.0	V	Vega	LSO/MPG-ESO(2.2m)/WFI	n	astro-ph9912423v1	no
+238265	23.0	0.0	V	Vega	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	astro-ph9912423v1	no

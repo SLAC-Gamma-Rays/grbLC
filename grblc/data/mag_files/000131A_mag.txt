@@ -1,0 +1,17 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+303418.0	25.85	0.0	B	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+303590.0	24.66	0.1	V	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	yes/Y
+303763.0	23.26	0.04	R	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+309902.0	22.03	0.07	I	Landolt	LSO/Danish(1.54m)/DFOSC	y	astro-ph0010322	yes/Y
+479933.0	25.4	0.0	V	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+480538.0	24.35	0.14	R	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+480974.0	23.7	0.0	I	Landolt	LSO/Danish(1.54m)/DFOSC	y	astro-ph0010322	no
+645449.0	25.13	0.19	R	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+642101.0	22.45	0.0	J	Landolt	LSO/NTT(3.58m)/SOFI	y	astro-ph0010322	no
+644753.0	22.25	0.3	H	Landolt	LSO/NTT(3.58m)/SOFI	y	astro-ph0010322	yes/Y
+646786.0	21.47	0.41	Ks	Landolt	LSO/NTT(3.58m)/SOFI	y	astro-ph0010322	yes/Y
+2890000.0	25.7	0.0	R	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+2890000.0	24.85	0.0	I	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
+302918.0	24.0	0.0	R	Johnson	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	534	no
+478310.0	24.6	0.0	R	Johnson	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	534	no
+351338.0	21.0	0.0	V	Johnson	VBO/VBT(2.3m)/CCD	n	537	no

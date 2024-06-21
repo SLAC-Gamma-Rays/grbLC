@@ -62,14 +62,12 @@ def _rescaleGRB(
             #hover_data=light['source'].values
             )
 
-    figunresc.update_layout(legend=dict(font=dict(size=26)))
-
     font_dict=dict(family='arial', # font of the plot's layout
-                size=26,
+                size=20,
                 color='black'
                 )
-
-    figunresc.update_layout(legend_font_size=26, legend_font_color='black')
+    
+    figunresc.update_layout(legend=dict(font=font_dict))
     figunresc.for_each_trace(lambda t: t.update(name = '<b>' + t.name +'</b>'))
 
     figunresc['layout']['yaxis']['autorange'] = 'reversed' # here the y axis is reversed, so that higher magnitudes are down and lower are up
@@ -111,30 +109,26 @@ def _rescaleGRB(
                     margin=dict(l=40,r=40,t=50,b=40)
                     )
 
-    figunresc.add_annotation(
-    text = ('<b>'+"GRB "+ grb +'</b>')
-    , showarrow=False
-    , x = 0.08
-    , y = 0.15
-    , xref='paper'
-    , yref='paper' 
-    , xanchor='left'
-    , yanchor='bottom'
-    , xshift=-1
-    , yshift=-5
-    , font=dict(size=35, color="black")
-    , align="left"
-    ,)
+    figunresc.add_annotation(text = ('<b>'+"GRB " + grb +'</b>'),
+                            showarrow=False,
+                            x = 0.05,
+                            y = 0.12,
+                            xref='paper',
+                            yref='paper', 
+                            xanchor='left',
+                            yanchor='bottom',
+                            xshift=-1,
+                            yshift=-5,
+                            font=font_dict,
+                            align="left"
+                            )
 
-    figunresc.update_traces(marker={'size': 9})
+    figunresc.update_traces(marker={'size': 7})
 
     # Two additive columns must be inserted in the light dataframe
 
     light["mag_rescaled_to_"+filterforrescaling] = "" # the column with rescaled magnitudes
     light["mag_rescaled_err"] = "" # the column with magnitude errors, propagating the uncertainties on the magnitude itself and on the rescaling factor
-
-    print("Filters with no colour evolution:\n")
-    print(nocolorevolutionlist)
 
     if len(nocolorevolutionlist) == 0:
         raise ValueError("No filters to rescale.")
@@ -195,7 +189,7 @@ def _rescaleGRB(
                 labels={"color": "      <b>Band<b>"}
                 )
 
-        figresc.update_layout(legend_font_size=26, legend_font_color='black')
+        figresc.update_layout(legend=dict(font=font_dict))
         figresc.for_each_trace(lambda t: t.update(name = '<b>' + t.name +'</b>'))
 
         figresc['layout']['yaxis']['autorange'] = 'reversed'
@@ -237,20 +231,19 @@ def _rescaleGRB(
                         margin=dict(l=40,r=40,t=50,b=40)
                         )
         
-        figresc.add_annotation(
-        text = ('<b>'+"GRB " + grb + "<br>    rescaled"+'</b>')
-        , showarrow=False
-        , x = 0.05
-        , y = 0.12
-        , xref='paper'
-        , yref='paper' 
-        , xanchor='left'
-        , yanchor='bottom'
-        , xshift=-1
-        , yshift=-5
-        , font=dict(size=35, color="black")
-        , align="left"
-        ,)
+        figresc.add_annotation(text = ('<b>'+"GRB " + grb + "<br>    rescaled"+'</b>'),
+                            showarrow=False,
+                            x = 0.05,
+                            y = 0.12,
+                            xref='paper',
+                            yref='paper', 
+                            xanchor='left',
+                            yanchor='bottom',
+                            xshift=-1,
+                            yshift=-5,
+                            font=font_dict,
+                            align="left"
+                            )
 
         figresc.update_traces(marker={'size': 9})
 

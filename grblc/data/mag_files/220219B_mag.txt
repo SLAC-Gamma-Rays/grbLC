@@ -1,0 +1,3 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+210787	19.19	0.03	R	Lupton	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	31643	no
+297161	19.34	0.03	R	Lupton	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	31643	no

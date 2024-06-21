@@ -1,0 +1,7 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+596.98	17.6	0.0	R	Vega	MKO/Gemini-North(8.1m)/GMOS	n	16425	no
+5191.98	18.8	0.0	R	Vega	MKO/Gemini-North(8.1m)/GMOS	n	16425	no
+40750.0	19.78	0.1	U	AB	NGSO/Swift/UVOT	n	16432	no
+124650.0	20.38	0.18	U	AB	NGSO/Swift/UVOT	n	16432	no
+151348.0	21.9	0.15	R	UCAC	Konkoly/60-90cm/ApogeeAltaU16	n	16440	no
+59541.7	20.37	0.09	R	USNO	TSAO/Zeiss-1000/CCD	n	16453	no

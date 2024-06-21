@@ -1,0 +1,15 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+192.0	19.6	0.0	white	AB	NGSO/Swift/UVOT	n	13510	no
+828.0	20.5	0.3	i	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	n	13511	no
+647.0	20.7	0.0	clear	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	18183	no
+36505.0	20.97	0.09	R	USNO	MAO/AZT-22(1.5m)/SITe2k	n	13520	no
+192.0	21.3	0.0	white	AB	NGSO/Swift/UVOT	n	13516	no
+455.0	20.5	0.0	U	AB	NGSO/Swift/UVOT	n	13516	no
+619.0	19.8	0.0	U	AB	NGSO/Swift/UVOT	n	13516	no
+1118.0	19.2	0.0	V	AB	NGSO/Swift/UVOT	n	13516	no
+958.0	20.01	0.41	B	AB	NGSO/Swift/UVOT	n	13516	no
+895.5	20.5	0.37	U	AB	NGSO/Swift/UVOT	n	13516	no
+1270.5	19.2	0.0	UVW1	AB	NGSO/Swift/UVOT	n	13516	no
+1333.0	18.4	0.0	UVM2	AB	NGSO/Swift/UVOT	n	13516	no
+1007.5	19.5	0.0	UVW2	AB	NGSO/Swift/UVOT	n	13516	no
+736.0	21.54	0.45	white	AB	NGSO/Swift/UVOT	n	13516	no

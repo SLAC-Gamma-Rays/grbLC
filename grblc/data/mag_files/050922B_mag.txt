@@ -1,0 +1,13 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+1876.0	16.1	0	Unfiltered	Vega	Miyazaki/RIMOTS(30cm)/CCD	n	4009	no
+258.3	17.3	0	Unfiltered	Vega	SSO/ROTSE-IIIa(0.45m)/CCD	n	4010	no
+648.5	15.5	0	Rc	Vega	RIKEN/ART(14inches)/CCD	n	4024	no
+3793.0	17.1	0	Ic	Vega	RIKEN/ART(14inches)/CCD	n	4024	no
+49357.9	22.5	0	r'	Vega	ORM/INT(2.54m)/CCD	n	4025	no
+3169.5	20.1	0	V	AB	NGSO/Swift/UVOT	n	4028	no
+1104.5	20.2	0	B	AB	NGSO/Swift/UVOT	n	4028	no
+5954.0	20.5	0	U	AB	NGSO/Swift/UVOT	n	4028	no
+4098.0	20.3	0	UVW1	AB	NGSO/Swift/UVOT	n	4028	no
+3675.0	20.6	0	UVM2	AB	NGSO/Swift/UVOT	n	4028	no
+1164.5	20.1	0	UVW2	AB	NGSO/Swift/UVOT	n	4028	no
+1758.0	16.0	0	R	Vega	UAFO/0.4m/CCD	n	4047	no

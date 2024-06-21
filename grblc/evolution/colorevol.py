@@ -238,8 +238,6 @@ def _colorevolGRB(
         0.1, 0.1, "GRB " + (grb.split("/")[-1]).split("_")[0], fontsize=22, fontweight='bold', horizontalalignment='left', verticalalignment='bottom', transform=axs[0].transAxes
     )
 
-    # 0.1, 0.1 or 0.45,s 0.65
-
     resc_slopes_df = pd.DataFrame() # initialize of the rescaling factors fitting dataframe
     resc_slopes_df.index = filters # the filters are taken as index            
     resc_slopes_df['slope_lin'] = "" # placeholder, default set to empty, then it will change - slope of the linear fit

@@ -1,0 +1,8 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+12060.0	18.91	0.06	R	Lupton	PO/Oschin(1.2m)/ZTF	n	16668	no
+17676.0	19.29	0.1	R	Lupton	PO/Oschin(1.2m)/ZTF	n	16668	no
+12384.0	18.3	0.06	R	Lupton	PO/Oschin(1.2m)/ZTF	n	16668	yes/X/Z
+44531.5	22.3	0.0	white	AB	NGSO/Swift/UVOT	n	16672	no
+44978.5	20.7	0.0	V	AB	NGSO/Swift/UVOT	n	16672	no
+46903.5	21.2	0.0	U	AB	NGSO/Swift/UVOT	n	16672	no
+56639.4	20.6	0.1	R	Bessel	IAO/HCT(2.01m)/HFOSC	n	16684	no

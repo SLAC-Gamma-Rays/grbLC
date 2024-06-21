@@ -1,0 +1,9 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+146.0	20.6	0.0	white	AB	NGSO/Swift/UVOT	n	25128	no
+408.0	20.6	0.0	U	AB	NGSO/Swift/UVOT	n	25128	no
+413.5	20.8	0.0	white	AB	NGSO/Swift/UVOT	n	25128	no
+494.5	20.5	0.0	U	AB	NGSO/Swift/UVOT	n	25128	no
+635.0	19.9	0.0	B	AB	NGSO/Swift/UVOT	n	25128	no
+710.0	18.7	0.0	V	AB	NGSO/Swift/UVOT	n	25128	no
+759.0	19.2	0.0	UVW1	AB	NGSO/Swift/UVOT	n	25128	no
+476928.0	23.03	0.12	r	AB	ORM/NOT(2.56m)/ALFOSC	n	25144	no

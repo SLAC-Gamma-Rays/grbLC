@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+17964.0	23.0	0	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	9941	no
+20088.0	23.0	0	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	9941	no
+9720.0	19.9	0	R	Johnson	CTIO/PROMPT(16inch)/ApogeeAltaU47	n	9996	no
+9720.0	18.2	0	V	Johnson	CTIO/PROMPT(16inch)/ApogeeAltaU47	n	9996	no
+9720.0	18.2	0	I	Johnson	CTIO/PROMPT(16inch)/ApogeeAltaU47	n	9996	no
+28692.0	23.0	0	R	Johnson	PAO/ANTU-VLT(8.2m)/FORS2	n	9944	no
+173.0	21.02	0	white	AB	NGSO/Swift/UVOT	n	9949	no
+1322.0	21.21	0	white	AB	NGSO/Swift/UVOT	n	9949	no
+1372.0	19.19	0	V	AB	NGSO/Swift/UVOT	n	9949	no
+3271.5	20.32	0	B	AB	NGSO/Swift/UVOT	n	9949	no
+435.0	20.3	0	U	AB	NGSO/Swift/UVOT	n	9949	no
+3307.5	20.22	0	U	AB	NGSO/Swift/UVOT	n	9949	no
+3193.0	20.25	0	UVW1	AB	NGSO/Swift/UVOT	n	9949	no
+5390.0	19.77	0	UVM2	AB	NGSO/Swift/UVOT	n	9949	no
+1002.5	19.09	0	UVW2	AB	NGSO/Swift/UVOT	n	9949	no

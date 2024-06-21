@@ -1,0 +1,13 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+20326.5	22.7	0.08	r	AB	PAO/VLT-UT3-Melipal/X-SHOOTER	n	33521	no
+20420.4	22.35	0.08	z	AB	PAO/VLT-UT3-Melipal/X-SHOOTER	n	33521	no
+20499.3	22.16	0.23	g	AB	PAO/VLT-UT3-Melipal/X-SHOOTER	n	33521	no
+177.0	20.1	0.0	white	AB	NGSO/Swift/UVOT	n	33522	no
+427.0	19.2	0.0	U	AB	NGSO/Swift/UVOT	n	33522	no
+2162.0	20.8	0.0	white	AB	NGSO/Swift/UVOT	n	33522	no
+4534.0	18.9	0.0	V	AB	NGSO/Swift/UVOT	n	33522	no
+3918.0	20.0	0.0	B	AB	NGSO/Swift/UVOT	n	33522	no
+2710.0	19.3	0.0	U	AB	NGSO/Swift/UVOT	n	33522	no
+4945.0	19.9	0.0	UVW1	AB	NGSO/Swift/UVOT	n	33522	no
+4739.5	19.8	0.0	UVM2	AB	NGSO/Swift/UVOT	n	33522	no
+4329.5	20.2	0.0	UVW2	AB	NGSO/Swift/UVOT	n	33522	no

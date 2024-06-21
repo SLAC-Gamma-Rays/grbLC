@@ -1,0 +1,15 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+15273.5	20.3	0.0	U	AB	NGSO/Swift/UVOT	n	17828	no
+60648.0	20.3	0.2	R	AB	Xinglong/2.16m/BFOSC	n	17829	yes/X/Z
+65880.0	21.2	0.1	r'	AB	Yunnan/GMG(2.4m)/YFOSC	n	17830	no
+111636.0	21.26	0.04	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	17831	no
+111636.0	21.04	0.04	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	17831	no
+111636.0	20.08	0.0	z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	17831	no
+158220.0	20.7	0.0	R	Vega	Xinglong/TNT(0.8m)/VersArray1300B	n	17835	no
+156237.0	20.1	0.0	CR	Vega	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	17838	no
+3291.0	17.1	0.0	P/	Vega	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	17838	no
+3299.0	18.5	0.0	P|	Vega	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	17838	no
+858656.0	19.9	0.0	CR	Vega	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	17838	no
+57670.0	20.7	0.0	g'	GSC	OAO/MITSuME(50cm)/Alta-U6	n	17841	no
+57670.0	20.4	0.3	Rc	GSC	OAO/MITSuME(50cm)/Alta-U6	n	17841	no
+57670.0	19.7	0.43	Ic	GSC	OAO/MITSuME(50cm)/Alta-U6	n	17841	no

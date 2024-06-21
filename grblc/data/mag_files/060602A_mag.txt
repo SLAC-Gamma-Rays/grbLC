@@ -1,0 +1,9 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+61.6	15.0	0.0	R	USNO	OSN/BOOTES-IR(0.6m)/nIR	n	5201	no
+1800.0	22.5	0.3	R	SDSS	ORM/NOT(2.56m)/ALFOSC	n	5203	no
+232675.2	21.3	0.0	V	AB	NGSO/Swift/UVOT	n	5245	no
+233020.8	22.3	0.0	B	AB	NGSO/Swift/UVOT	n	5245	no
+232848.0	22.1	0.0	U	AB	NGSO/Swift/UVOT	n	5245	no
+230126.4	21.7	0.0	UVW1	AB	NGSO/Swift/UVOT	n	5245	no
+232848.0	22.0	0.0	UVM2	AB	NGSO/Swift/UVOT	n	5245	no
+235224.0	22.3	0.0	UVW2	AB	NGSO/Swift/UVOT	n	5245	no

@@ -1,0 +1,9 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+931.0	19.2	0	U	AB	NGSO/Swift/UVOT	n	12279	no
+22140.0	22.3	0	R	USNO	PAO/VLT(8.2m)/X-SHOOTER	n	12284	no
+7401.0	20.8	0	V	AB	NGSO/Swift/UVOT	n	12286	no
+9559.5	22.2	0	B	AB	NGSO/Swift/UVOT	n	12286	no
+4230.5	20.4	0	U	AB	NGSO/Swift/UVOT	n	12286	no
+4116.0	20.9	0	UVW1	AB	NGSO/Swift/UVOT	n	12286	no
+7499.0	20.9	0	UVM2	AB	NGSO/Swift/UVOT	n	12286	no
+10370.5	21.2	0	UVW2	AB	NGSO/Swift/UVOT	n	12286	no

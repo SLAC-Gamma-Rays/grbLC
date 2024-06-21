@@ -1,0 +1,14 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+13132.8	19.94	0.11	i'	SDSS	Ondrejov/D50/CCD	n	31028	no
+157.0	18.4	0.1	r	SDSS	Xinjiang/NEXT(0.6m)/CCD	n	30984	no
+18369.0	20.4	0.4	V	AB	NGSO/Swift/UVOT	n	31005	no
+21470.4	20.27	0.05	i'	AB	CAHA/2.2m/CAFOS	n	30995	no
+378.0	17.6	0.0	r	SDSS	Xinjiang/NEXT(0.6m)/CCD	n	30984	no
+5721.0	18.8	0.2	U	AB	NGSO/Swift/UVOT	n	31005	no
+5876.5	20.0	0.4	B	AB	NGSO/Swift/UVOT	n	31005	no
+6132.0	20.1	0.5	UVW2	AB	NGSO/Swift/UVOT	n	31005	no
+6337.0	19.2	0.4	V	AB	NGSO/Swift/UVOT	n	31005	no
+6542.0	19.3	0.3	UVM2	AB	NGSO/Swift/UVOT	n	31005	no
+6747.0	19.2	0.3	UVW1	AB	NGSO/Swift/UVOT	n	31005	no
+6952.0	19.3	0.3	U	AB	NGSO/Swift/UVOT	n	31005	no
+7310.0	19.5	0.5	UVW2	AB	NGSO/Swift/UVOT	n	31005	no

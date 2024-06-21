@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+10482.0	23.0	0.0	R	USNO	ORM/TNG(3.58m)/DOLORES	n	4890	no
+1127.5	20.7	0.0	white	AB	NGSO/Swift/UVOT	n	4894	no
+1137.5	19.9	0.0	UVM2	AB	NGSO/Swift/UVOT	n	4894	no
+1227.0	19.8	0.0	UVW1	AB	NGSO/Swift/UVOT	n	4894	no
+1250.5	20.0	0.0	U	AB	NGSO/Swift/UVOT	n	4894	no
+1275.0	20.2	0.0	B	AB	NGSO/Swift/UVOT	n	4894	no
+1308.5	20.2	0.0	UVW2	AB	NGSO/Swift/UVOT	n	4894	no
+1325.0	19.9	0.0	V	AB	NGSO/Swift/UVOT	n	4894	no
+162.0	17.7	0.0	R	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	4888	no
+190.0	18.0	0.0	white	AB	NGSO/Swift/UVOT	n	4885	no
+19440.0	19.0	0.3	K	2MASS	ORM/WHT(4.2m)/LIRIS	n	4897	yes/X/Z
+330.0	19.0	0.0	R	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	4892	no
+450.0	19.0	0.0	R	USNO	ORM/Liverpool(2m)/RATCAM	n	4889	no
+5220.0	21.0	0.0	R	Vega	Teide/IAC80(0.82m)/CAMELOT2	n	4896	no
+19740.0	19.0	0.3	K	2MASS	ORM/WHT(4.2m)/LIRIS	n	4897	yes/X/Z

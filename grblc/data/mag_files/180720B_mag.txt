@@ -1,0 +1,14 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+10200.0	16.23	0.03	Rc	UCAC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	23004	no
+10200.0	16.24	0.05	Ic	UCAC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	23004	no
+13950.0	16.53	0.06	g'	UCAC	OAO/MITSuME(50cm)/Alta-U6	n	22983	no
+13950.0	16.67	0.06	Rc	UCAC	OAO/MITSuME(50cm)/Alta-U6	n	22983	no
+13950.0	16.25	0.08	Ic	UCAC	OAO/MITSuME(50cm)/Alta-U6	n	22983	no
+153180.0	20.07	0.02	w	AB	OAN/COATLI(50cm)/INTERIM	n	23017	no
+20236.0	17.1	0.1	R	Vega	TSAO/Zeiss-1000/CCD	n	22979	no
+32437.0	17.4	0.15	R	Vega	Castelgrande/ISON-ORI-22(22cm)/FLI	n	23020	no
+39328.2	17.53	0.03	Rc	Vega	OSN/T90(0.9m)/CCDT90	n	22985	no
+40536.0	17.77	0.05	r	AB	OAJ/JAST80(0.8m)/T80Cam	n	23040	no
+42768.0	17.85	0.1	r	AB	Teide/COAST(0.43m)/KAF-09000	n	22988	no
+49320.0	15.65	0.22	H	2MASS	LSO/REM(0.6m)/TORTORA	n	23021	yes/X/Z
+88.0	9.4	0.0	R	Vega	HigashiHiroshima/KANATA(1.5m)/HOWPol+HigashiHiroshima/KANATA(1.5m)/HONIR	n	22977	no

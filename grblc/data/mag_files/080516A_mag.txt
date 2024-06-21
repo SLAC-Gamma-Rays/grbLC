@@ -1,0 +1,8 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+4193.0	21.6	0.0	I	Landolt	CTIO/SMARTS(1.3m)/ANDICAM	n	7738	no
+4193.0	19.5	0.0	J	2MASS	CTIO/SMARTS(1.3m)/ANDICAM	n	7738	no
+3600.0	21.92	0.2	r'	NOMAD	LSO/MPG-ESO(2.2m)/GROND	n	7747(errata_corrige7740)	no
+3600.0	23.0	0.0	g'	NOMAD	LSO/MPG-ESO(2.2m)/GROND	n	7747	no
+94.6	13.5	0.0	R	USNO	LSO/TAROT-S(25cm)/ANDOR-IKON-DW-436-N	n	7798	no
+146.0	15.0	0.0	R	USNO	LSO/TAROT-S(25cm)/ANDOR-IKON-DW-436-N	n	7798	no
+281.0	17.7	0.0	V	AB	NGSO/Swift/UVOT	n	7733	no

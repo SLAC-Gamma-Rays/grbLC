@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+9626.0	19.6	0.0	white	AB	NGSO/Swift/UVOT	n	10775	no
+10092.0	20.7	0.0	R	USNO	NL/BOOTES-3-YA(60cm)/EMCCD	n	10778	no
+294.0	19.4	0.1	R	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	n	10779	no
+588.0	18.8	0.2	i	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	n	10779	no
+9626.0	22.4	0.0	white	AB	NGSO/Swift/UVOT	n	10781	no
+16777.5	20.7	0.0	V	AB	NGSO/Swift/UVOT	n	10781	no
+10164.5	21.7	0.0	B	AB	NGSO/Swift/UVOT	n	10781	no
+17567.5	20.9	0.0	UVM2	AB	NGSO/Swift/UVOT	n	10781	no
+13927.0	21.6	0.0	UVW2	AB	NGSO/Swift/UVOT	n	10781	no
+79620.0	25.3	0.0	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	10782	no
+79620.0	23.8	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	10782	no
+79620.0	23.6	0.2	i'	AB	LSO/MPG-ESO(2.2m)/GROND	n	10782	no
+79620.0	23.5	0.2	z'	AB	LSO/MPG-ESO(2.2m)/GROND	n	10782	no
+8942.0	20.6	0.0	R	Johnson	NL/BOOTES-3-YA(60cm)/EMCCD	n	AlbertoCastroTirado	no
+16191.0	20.7	0.0	R	Johnson	NL/BOOTES-3-YA(60cm)/EMCCD	n	AlbertoCastroTirado	no

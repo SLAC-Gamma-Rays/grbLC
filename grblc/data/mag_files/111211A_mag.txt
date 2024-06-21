@@ -1,0 +1,10 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+30600.0	19.0	0.0	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	12668	no
+105480.0	19.5	0.1	R	Vega	ORM/NOT(2.56m)/StanCam	n	12675	no
+92683.9	19.25	0.1	R	USNO	TO/Zeiss-600/CCD	n	12704	no
+1322460.0	22.6	0.0	r	SDSS	ORM/GTC(10.4m)/OSIRIS	n	12802	no
+806826.5	21.7	0.22	white	AB	NGSO/Swift/UVOT	n	Michal	no
+847522.0	21.81	0.0	white	AB	NGSO/Swift/UVOT	n	Michal	no
+951988.5	22.49	0.0	white	AB	NGSO/Swift/UVOT	n	Michal	no
+66722.5	19.44	0.04	white	AB	NGSO/Swift/UVOT	n	Michal	no
+74110.0	19.48	0.05	white	AB	NGSO/Swift/UVOT	n	Michal	no

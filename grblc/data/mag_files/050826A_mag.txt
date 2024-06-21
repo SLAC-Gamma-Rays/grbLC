@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+18092.2	20.66	0.15	R	Vega	MDM/Hiltner(2.4m)/BollerandChivens	y	arXiv0704.3069	no
+18178.6	21.24	0.0	R	Vega	MDM/Hiltner(2.4m)/BollerandChivens	y	arXiv0704.3069	no
+105183.0	21.24	0.0	R	Vega	MDM/Hiltner(2.4m)/BollerandChivens	y	arXiv0704.3069	no
+155.0	19.0	0.0	V	AB	NGSO/Swift/UVOT	n	3884	no
+3325.0	19.4	0.0	V	AB	NGSO/Swift/UVOT	n	3887	no
+8350.5	21.2	0.0	B	AB	NGSO/Swift/UVOT	n	3887	no
+6283.5	19.0	0.0	U	AB	NGSO/Swift/UVOT	n	3887	no
+5896.5	19.7	0.0	UVW1	AB	NGSO/Swift/UVOT	n	3887	no
+5435.5	19.3	0.0	UVM2	AB	NGSO/Swift/UVOT	n	3887	no
+1175.0	20.3	0.0	UVW2	AB	NGSO/Swift/UVOT	n	3887	no
+18090.0	21.0	0.2	R	Vega	MDM/McGrawHill(1.3m)/TIFKAM	n	3891	no
+104562.0	21.6	0.2	R	Vega	MDM/McGrawHill(1.3m)/TIFKAM	n	3891	no
+50760.0	20.3	0.0	R	Vega	Lulin/1m/TRIPOL	n	3898	no
+15840.0	22.23	0.15	R	Vega	MDM/McGrawHill(1.3m)/TIFKAM	n	4749	no
+102312.0	22.8	0.0	R	Vega	MDM/McGrawHill(1.3m)/TIFKAM	n	4749	no

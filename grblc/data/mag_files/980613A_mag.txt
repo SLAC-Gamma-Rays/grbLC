@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+104585.0	21.5	0.0	I	Bessel	Teide/IAC80(0.82m)/CAMELOT2	n	103	no
+286025.0	20.96	0.0	r_Gunn	Johnson	PO/60inches/SEDM	n	105	no
+129641.0	22.3	0.0	I	Bessel	MDM/Hiltner(2.4m)/WideFieldCCD	n	106	yes/X/Z
+145193.0	22.0	0.0	I	Landolt	APO/ARC(3.5m)/GRIM-II	n	108	yes/X/Z
+270474.0	24.5	0.5	R	USNO	KO/Keck-2(10m)/NIRES	n	117	no
+661465.0	23.17	0.08	Rc	Johnson	SAO-RAS/BTA(6m)/PhotonMAX-512B	n	118	no
+92489.0	18.0	0.0	K	DSS	KPNO/NicholasUMayall(4m)/Mosaic3	n	119	no
+92489.0	22.96	0.09	R	Landolt	MDM/Hiltner(2.4m)/SITe	n	134	no
+89033.0	22.53	0.09	I	Landolt	MDM/Hiltner(2.4m)/SITe	n	134	no
+174569.0	22.83	0.15	I	Landolt	MDM/Hiltner(2.4m)/SITe	n	134	no
+62549.0	23.19	0.2	Rc	Johnson	ORM/NOT(2.56m)/ALFOSC	y	astro-ph0205126	no
+86214.0	23.13	0.2	Ic	Johnson	MDM/Hiltner(2.4m)/SITe	y	astro-ph0205126	no
+89670.0	23.53	0.2	Rc	Johnson	MDM/Hiltner(2.4m)/SITe	y	astro-ph0205126	no
+171750.0	24.1	0.4	Ic	Johnson	MDM/Hiltner(2.4m)/SITe	y	astro-ph0205126	no
+406758.0	24.4	0.0	Rc	Johnson	ORM/NOT(2.56m)/ALFOSC	y	astro-ph0205126	no

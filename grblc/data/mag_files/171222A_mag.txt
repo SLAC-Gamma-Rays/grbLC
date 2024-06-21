@@ -1,0 +1,16 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+48059.0	21.0	0.0	unfiltered	Vega	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	22273	no
+1113.5	20.3	0.0	B	AB	NGSO/Swift/UVOT	n	22275	no
+1139.5	19.6	0.0	UVW2	AB	NGSO/Swift/UVOT	n	22275	no
+1164.0	19.2	0.0	V	AB	NGSO/Swift/UVOT	n	22275	no
+1188.0	19.3	0.0	UVM2	AB	NGSO/Swift/UVOT	n	22275	no
+1213.0	19.4	0.0	UVW1	AB	NGSO/Swift/UVOT	n	22275	no
+2358.0	19.3	0.0	R	Vega	Xinjiang/0.35m/CCD	n	22276	no
+27612.0	21.44	0.09	R	Vega	ORM/NOT(2.56m)/StanCam	n	22269	no
+28332.0	21.72	0.22	R	Vega	Xinjiang/NOWT(1m)/CCD	n	22274	no
+301.0	20.6	0.0	U	AB	NGSO/Swift/UVOT	n	22275	no
+47159.0	21.0	0.0	Unfiltered	Johnson	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	22273	no
+601.0	20.3	0.0	U	AB	NGSO/Swift/UVOT	n	22275	no
+6732.0	20.86	0.21	R	Vega	Xinjiang/NOWT(1m)/CCD	n	22274	no
+8460.0	15.3	0.0	R	Vega	Sagamihara/AROMA-N(12inches)/Apogee-U47	n	22279	no
+9648.0	21.47	0.22	R	Vega	Xinjiang/NOWT(1m)/CCD	n	22274	no

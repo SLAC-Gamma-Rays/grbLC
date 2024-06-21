@@ -1,0 +1,14 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+69.2	17.4	0.0	Unfiltered	Vega	McDonald/ROTSE-IIIb(0.45m)/CCD	n	3978	no
+178.7	18.1	0.0	Unfiltered	Vega	McDonald/ROTSE-IIIb(0.45m)/CCD	n	3978	no
+5760.0	18.0	0.0	CR	Vega	MtJohn/MOA-I(0.6m)/MOA-cam2	n	3980	no
+1098.0	21.0	0.0	R	Vega	PO/60inches/SEDM	n	3981	no
+1218.0	20.5	0.0	i	Vega	PO/60inches/SEDM	n	3981	no
+297.5	18.2	0.0	Unfiltered	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	3985	no
+3119.5	20.3	0.0	V	AB	NGSO/Swift/UVOT	n	3986	no
+8630.5	20.6	0.0	B	AB	NGSO/Swift/UVOT	n	3986	no
+6531.0	20.9	0.0	U	AB	NGSO/Swift/UVOT	n	3986	no
+6071.0	20.5	0.0	UVW1	AB	NGSO/Swift/UVOT	n	3986	no
+3465.5	20.2	0.0	UVM2	AB	NGSO/Swift/UVOT	n	3986	no
+461.5	19.6	0.0	UVW2	AB	NGSO/Swift/UVOT	n	3986	no
+1201.0	18.25	0.16	H	Vega	FLWO/PAIRITEL(1.3m)/TRES	n	3990	no

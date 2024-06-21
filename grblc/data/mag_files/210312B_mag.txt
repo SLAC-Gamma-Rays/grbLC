@@ -1,0 +1,5 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+10231.1	21.69	0.0	Rc	AB	OSN/T90(0.9m)/CCDT90+OSN/T150(1.5m)/CCDT150	n	29716	no
+17393.8	22.36	0.03	r'	AB	ORM/GTC(10.4m)/OSIRIS	n	29655	no
+7523.28	21.52	0.06	r'	AB	ORM/GTC(10.4m)/OSIRIS	n	29653	no
+93744.0	23.04	0.07	Rc	AB	OSN/T90(0.9m)/CCDT90+OSN/T150(1.5m)/CCDT150	n	29716	no

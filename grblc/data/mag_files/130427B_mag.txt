@@ -1,0 +1,15 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+162.0	17.19	0	white	AB	NGSO/Swift/UVOT	n	14460	no
+276.0	15.5	0	R	Vega	Haleakala/Faulkes-North(2m)/MuSCAT3	n	14461	no
+19778.7	18.0	0	g'	GSC	OAO/MITSuME(50cm)/Alta-U6	n	14477	no
+19778.7	18.3	0	Rc	GSC	OAO/MITSuME(50cm)/Alta-U6	n	14477	no
+19778.7	17.9	0	Ic	GSC	OAO/MITSuME(50cm)/Alta-U6	n	14477	no
+78210.0	22.08	0	r'	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	14496	no
+78210.0	22.06	0	i'	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	14496	no
+78210.0	21.28	0	Z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	14496	no
+78210.0	20.77	0	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	14496	no
+78210.0	20.57	0	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	14496	no
+78210.0	19.84	0	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	14496	no
+108361.0	20.6	0	g'	GSC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	14499	no
+108361.0	20.7	0	Rc	GSC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	14499	no
+108361.0	20.1	0	Ic	GSC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	14499	no

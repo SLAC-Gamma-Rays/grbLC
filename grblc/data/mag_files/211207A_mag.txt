@@ -1,0 +1,13 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+1073.5	18.7	0.0	UVW1	AB	NGSO/Swift/UVOT	n	31204	no
+1111.0	18.5	0.0	V	AB	NGSO/Swift/UVOT	n	31204	no
+1173.0	19.0	0.0	UVW2	AB	NGSO/Swift/UVOT	n	31204	no
+159.5	17.52	0.04	white	AB	NGSO/Swift/UVOT	n	31204	no
+36144.0	22.16	0.05	r	AB	PAO/VLT-UT3-Melipal/X-SHOOTER	n	31188	no
+421.5	18.15	0.09	U	AB	NGSO/Swift/UVOT	n	31204	no
+4219.0	14.6	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	31183	no
+4419.0	14.5	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	31183	no
+4619.0	14.8	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	31183	no
+4819.0	15.3	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	31183	no
+648.0	19.08	0.31	B	AB	NGSO/Swift/UVOT	n	31204	no
+962.0	18.7	0.0	UVM2	AB	NGSO/Swift/UVOT	n	31204	no

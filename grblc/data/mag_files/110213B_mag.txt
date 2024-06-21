@@ -1,0 +1,6 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+133560.0	19.8	0.0	R	USNO	PO/60inches/SEDM	n	11732	no
+211910.0	20.8	0.1	r'	SDSS	LSO/MPG-ESO(2.2m)/GROND	n	11743	no
+256301.0	20.78	0.0	white	AB	NGSO/Swift/UVOT	n	11749	no
+256564.5	19.23	0.0	V	AB	NGSO/Swift/UVOT	n	11749	no
+256032.5	19.62	0.0	U	AB	NGSO/Swift/UVOT	n	11749	no

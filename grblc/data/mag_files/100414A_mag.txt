@@ -1,0 +1,11 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+109830.0	21.0	0.0	R	SDSS	PO/Oschin(1.2m)/ZTF	n	10603	no
+273243.0	20.37	0.03	i'	USNO	MKO/Gemini-North(8.1m)/GMOS	n	10606	yes/X/Z
+262920.0	21.3	0.1	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	10607	no
+262920.0	20.9	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	10607	no
+316875.0	21.4	0.09	Rc	Lupton	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	10618	no
+322145.0	21.75	0.08	V	Lupton	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	10618	no
+448416.0	22.46	0.05	r'	SDSS	MKO/CFHT(3.58m)/WIRCam	n	10641	no
+533088.0	22.84	0.05	r'	SDSS	MKO/CFHT(3.58m)/WIRCam	n	10641	no
+146133.0	20.54	0.1	white	AB	NGSO/Swift/UVOT	n	10609	no
+193295.5	20.86	0.06	white	AB	NGSO/Swift/UVOT	n	10609	no

@@ -1,0 +1,14 @@
+Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+925.5	18.64	0.1	r	Vega	PAO/VLT-UT2-Kueyen/X-SHOOTER	n	22591	no
+48.0	19.8	0.0	Unfiltered	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	22593	no
+31968.0	21.3	0.3	r	SDSS	SSO/Faulkes-South(2m)/Merope	n	22603	no
+165.0	19.47	0.09	white	AB	NGSO/Swift/UVOT	n	22605	no
+430.0	19.34	0.1	white	AB	NGSO/Swift/UVOT	n	22605	no
+48928.0	21.66	0.0	white	AB	NGSO/Swift/UVOT	n	22605	no
+2905.5	18.9	0.0	V	AB	NGSO/Swift/UVOT	n	22605	no
+654.0	19.4	0.0	B	AB	NGSO/Swift/UVOT	n	22605	no
+427.0	18.95	0.12	U	AB	NGSO/Swift/UVOT	n	22605	no
+514.5	18.95	0.14	U	AB	NGSO/Swift/UVOT	n	22605	no
+691.5	17.8	0.0	UVW1	AB	NGSO/Swift/UVOT	n	22605	no
+666.0	17.4	0.0	UVM2	AB	NGSO/Swift/UVOT	n	22605	no
+2850.5	19.45	0.28	UVW2	AB	NGSO/Swift/UVOT	n	22605	no
