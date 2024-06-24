@@ -10,4 +10,5 @@ recursive-exclude * *.py[co]
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 
-recursive-include grbLC/grblc/data *
+recursive-include grbLC/grblc/data/mag_files *
+recursive-include grbLC/grblc/data/magAB_extcorr_files *

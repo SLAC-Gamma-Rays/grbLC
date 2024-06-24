@@ -292,7 +292,7 @@ class Lightcurve: # define the object Lightcurve
         self.df = _convertGRB(
                             grb = self.name,
                             ra = grbinfo.loc[self.name, 'ra'],
-                            dec = grbinfo.loc[self.name, 'ra'],
+                            dec = grbinfo.loc[self.name, 'dec'],
                             mag_table = self.df,
                             save_in_folder = save_in_folder,
                             debug = debug

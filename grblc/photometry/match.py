@@ -1,7 +1,5 @@
 import re
-import os
 import numpy as np
-import pandas as pd
 
 # Module imports files with telescopes and filter information
 from .constants import *
@@ -36,6 +34,28 @@ def _count(str1, str2):
         match = 0
 
     return match
+
+# from collections import Counter
+
+# def _count(str1, str2): 
+#     """
+#     Calculate the percentage of characters in str1 that are present in str2.
+
+#     """
+    
+#     # ensure str1 is the longer or equal length string
+#     if len(str2) > len(str1):
+#         str1, str2 = str2, str1
+
+#     # count character frequencies
+#     count1 = Counter(str1)
+#     count2 = Counter(str2)
+
+#     match_count = sum(min(count1[char], count2[char]) for char in count2)
+
+#     match_percent = (match_count / len(str1) * 100) if str1 else 0
+
+#     return match_percent
 
 
 def _stripcount(str1, str2): 

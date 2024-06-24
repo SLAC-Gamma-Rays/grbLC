@@ -116,35 +116,36 @@ def _convertGRB(
                 telescope,
                 mag
                 )
+
+            converted['time_sec'].append(time_sec)
+            converted['mag'].append(mag_corr)
+            converted['mag_err'].append(mag_err)
+            converted['band'].append(band)
+            converted['system'].append("AB")
+            converted['telescope'].append(telescope)
+            converted['extcorr'].append("y")
+            converted['source'].append(source)
+            converted['flag'].append(flag)
+
+            # verbosity if you want it
+            if debug:
+                converted_debug['time_sec'].append(time_sec)
+                converted_debug['mag_corr'].append(mag_corr)
+                converted_debug['mag_init'].append(mag)
+                converted_debug['mag_err'].append(mag_err)
+                converted_debug['band'].append(band)
+                converted_debug['band_match'].append(filter_id)
+                converted_debug['system_init'].append(system)
+                converted_debug['system_final'].append("AB")
+                converted_debug['telescope'].append(system)
+                converted_debug['extcorr'].append("y")
+                converted_debug['coeff_source'].append(coeff_source)
+                converted_debug['mag_source'].append(source)
+                converted_debug['flag'].append(flag)
+
         except KeyError as error:
-            print("KeyError")
+            print(f"Filter {band} of {telescope} not found for the data point at {time_sec} seconds.")
             continue
-
-        converted['time_sec'].append(time_sec)
-        converted['mag'].append(mag_corr)
-        converted['mag_err'].append(mag_err)
-        converted['band'].append(band)
-        converted['system'].append("AB")
-        converted['telescope'].append(telescope)
-        converted['extcorr'].append("y")
-        converted['source'].append(source)
-        converted['flag'].append(flag)
-
-        # verbosity if you want it
-        if debug:
-            converted_debug['time_sec'].append(time_sec)
-            converted_debug['mag_corr'].append(mag_corr)
-            converted_debug['mag_init'].append(mag)
-            converted_debug['mag_err'].append(mag_err)
-            converted_debug['band_init'].append(band)
-            converted_debug['band_match'].append(filter_id)
-            converted_debug['system_init'].append(system)
-            converted_debug['system_final'].append("AB")
-            converted_debug['telescope'].append(system)
-            converted_debug['extcorr'].append("y")
-            converted_debug['coeff_source'].append(coeff_source)
-            converted_debug['mag_source'].append(source)
-            converted_debug['flag'].append(flag)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
@@ -388,34 +389,34 @@ def _host_kcorrectGRB(
                 kcorr = True,
                 hostcorr = True
                 )
-            
+
+            converted['time_sec'].append(time_sec)
+            converted['mag'].append(mag_corr)
+            converted['mag_err'].append(mag_err_corr)
+            converted['band'].append(band)
+            converted['system'].append(system)
+            converted['telescope'].append(telescope)
+            converted['extcorr'].append(extcorr)
+            converted['source'].append(source)
+            converted['flag'].append(flag)
+
+            # verbosity if you want it
+            if debug:
+                converted_debug['time_sec'].append(time_sec)
+                converted_debug['mag_corr'].append(mag_corr)
+                converted_debug['mag_init'].append(mag)
+                converted_debug['mag_err'].append(mag_err_corr)
+                converted_debug['band'].append(band)
+                converted_debug['band_match'].append(filter_id)
+                converted_debug['system'].append(system)
+                converted_debug['telescope'].append(telescope)
+                converted_debug['extcorr'].append(extcorr)
+                converted_debug['mag_source'].append(source)
+                converted_debug['flag'].append(flag)
+
         except KeyError as error:
-            print("KeyError")
+            print(f"Filter {band} of {telescope} not found for the data point at {time_sec} seconds.")
             continue
-
-        converted['time_sec'].append(time_sec)
-        converted['mag'].append(mag_corr)
-        converted['mag_err'].append(mag_err_corr)
-        converted['band'].append(band)
-        converted['system'].append(system)
-        converted['telescope'].append(telescope)
-        converted['extcorr'].append(extcorr)
-        converted['source'].append(source)
-        converted['flag'].append(flag)
-
-        # verbosity if you want it
-        if debug:
-            converted_debug['time_sec'].append(time_sec)
-            converted_debug['mag_corr'].append(mag_corr)
-            converted_debug['mag_init'].append(mag)
-            converted_debug['mag_err'].append(mag_err_corr)
-            converted_debug['band_init'].append(band)
-            converted_debug['band_match'].append(filter_id)
-            converted_debug['system'].append(system)
-            converted_debug['telescope'].append(telescope)
-            converted_debug['extcorr'].append(extcorr)
-            converted_debug['mag_source'].append(source)
-            converted_debug['flag'].append(flag)
 
     # after converting everything, go from dictionary -> DataFrame -> csv!
     if not debug:
