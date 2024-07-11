@@ -50,7 +50,7 @@ setup(
     packages=find_packages(include=["grblc", "grblc.*"]),
     include_package_data=True,
     package_data={
-        "": ["*.txt", "*.csv"],
+        'grblc': ['grblc/data/*'],
     },
     test_suite="tests",
     # tests_require=test_requirements,
