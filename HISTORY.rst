@@ -11,4 +11,4 @@ History
 0.1.0 (2024-06-24)
 ------------------
 
-* Second release on PyPI.
+* Second release on GitHub.
