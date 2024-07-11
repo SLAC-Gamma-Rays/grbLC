@@ -29,7 +29,7 @@ with open(
 setup(
     author="Ridha Fathima Mohideen Malik",
     author_email="ridhafathima273@gmail.com",
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Science/Research",
@@ -50,7 +50,7 @@ setup(
     packages=find_packages(include=["grblc", "grblc.*"]),
     include_package_data=True,
     package_data={
-        'grblc': ['grblc/data/*', '*.txt', '*.csv'],
+        'grblc': ['grblc/data/*', 'grblc/photometry/*.txt'],
     },
     test_suite="tests",
     # tests_require=test_requirements,
