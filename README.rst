@@ -3,10 +3,12 @@ grbLC
 =====
 
 A Python package for GRB optical light curve studies.
+We refer the user to [Dainotti et al. 2024](https://doi.org/10.1093/mnras/stae1484) for more details on the analysis packaged here.
+
+Visit https://grblc-catalog.streamlit.app/ to access the repository.
 
 
 * Free software: MIT license
-
 
 -------
 
