@@ -6,8 +6,6 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from ..lightcurve import displayGRB
-
 def _rescaleGRB(
     grb: str, 
     output_colorevolGRB: list, 
