@@ -19,10 +19,10 @@ import matplotlib.font_manager as font_manager
 def _colorevolGRB(
     grb: str, 
     df: pd.DataFrame, 
-    chosenfilter: str ='mostnumerous', 
-    print_status: bool =True, 
-    save_in_folder: str =None, 
-    debug: bool =False
+    chosenfilter: str = 'mostnumerous', 
+    print_status: bool = True, 
+    save_in_folder: str = None, 
+    debug: bool = False
 ):
     """
     Function to perform colour evolution analysis.
@@ -420,7 +420,7 @@ def _colorevolGRB(
 
     for band in resc_slopes_df.index:
         #color = resc_slopes_df.loc[band]["plot_color"]
-        color=tuple(np.array(re.split('[(),]', resc_slopes_df.loc[band, "plot_color"])[1:-1], dtype=float))
+        color=tuple(np.array(re.split('[(),]', resc_slopes_df.loc[band, "plot_color"])[1:-1], dtype=float)) # ValueError: could not convert string to float: 'np.float64' in Python 3.11
         sublight=light.loc[(light['band_appx'] == band)]
         subx=np.log10(sublight['time_sec'].values)
         suby=sublight['mag'].values

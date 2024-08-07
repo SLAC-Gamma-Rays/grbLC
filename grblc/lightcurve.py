@@ -107,7 +107,7 @@ class Lightcurve: # define the object Lightcurve
         """
 
         # reads the data, sorts by time, excludes negative time
-        df = read_data(self.path, data_space) 
+        df = read_data(path = self.path, data_space = data_space) 
         
         # initialising a new column
         # asserting those data points only which does not have limiting nagnitude
@@ -186,11 +186,11 @@ class Lightcurve: # define the object Lightcurve
             if not os.path.exists(save_in_folder):
                 os.mkdir(save_in_folder)
 
-        fig = px.scatter(data_frame=self.df,
-                    x=np.log10(self.xdata),
-                    y=self.ydata,
-                    error_y=self.yerr,
-                    color=self.band,
+        fig = px.scatter(data_frame=read_data(df = self.df, data_space='log'),
+                    x='time_sec',
+                    y='mag',
+                    error_y='mag_err',
+                    color='band',
                     color_discrete_sequence=px.colors.qualitative.Set1,
                     hover_data=['telescope', 'source'],
                 )

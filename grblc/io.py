@@ -68,13 +68,16 @@ import pandas as pd
 
 
 def read_data(
-    path: str, 
-    data_space='lin'
+    path: str = None, 
+    df: pd.DataFrame = None,
+    data_space: str ='lin'
 ):
     """
     Reads data, sorts by time, excludes negative time, converts data_space.
 
     """
+
+    assert path or df is not None, "Provide either the dataframe or the path"
     
     dtype = {
         "time_sec": np.float64,
@@ -88,40 +91,42 @@ def read_data(
         "flag": str
         }
     
-    try:
-        data = pd.read_csv(path, 
-                        sep='\t', 
-                        dtype=dtype,
-                        names=list(dtype.keys()),
-                        header=0, 
-                        index_col=None,
-                        engine="python"
-                        ).sort_values(by=['time_sec'])
-        
-    except:
-        dtype = {
-        "time_sec": np.float64,
-        "mag": np.float64,
-        "mag_err": np.float64,
-        "band": str,
-        "system": str,
-        "telescope": str,
-        "extcorr": str,
-        "source": str
-        }
-        
-        data = pd.read_csv(path, 
-                        sep='\t', 
-                        dtype=dtype,
-                        names=list(dtype.keys()),
-                        header=0, 
-                        index_col=None,
-                        engine="python"
-                        ).sort_values(by=['time_sec'])
+    if path:
+    
+        try:
+            df = pd.read_csv(path, 
+                            sep='\t', 
+                            dtype=dtype,
+                            names=list(dtype.keys()),
+                            header=0, 
+                            index_col=None,
+                            engine="python"
+                            ).sort_values(by=['time_sec'])
+            
+        except:
+            dtype = {
+            "time_sec": np.float64,
+            "mag": np.float64,
+            "mag_err": np.float64,
+            "band": str,
+            "system": str,
+            "telescope": str,
+            "extcorr": str,
+            "source": str
+            }
+            
+            df = pd.read_csv(path, 
+                            sep='\t', 
+                            dtype=dtype,
+                            names=list(dtype.keys()),
+                            header=0, 
+                            index_col=None,
+                            engine="python"
+                            ).sort_values(by=['time_sec'])
 
     if data_space=='log':
         try:
-            data['time_sec'] = np.log10(data['time_sec'])
+            df['time_sec'] = np.log10(df['time_sec'])
         except Exception as e:
             print("Issue with logT calculation. Check if negative values are given for time.\nError:", e)
             
@@ -131,11 +136,11 @@ def read_data(
     else:
         raise Exception("Dataspace could be either 'log' or 'lin")
 
-    data = data.reset_index(drop=True)
+    df = df.reset_index(drop=True)
 
-    data = data[data['time_sec']>0]
+    df = df[df['time_sec']>0]
 
-    return pd.DataFrame(data)
+    return pd.DataFrame(df)
 
 
 def _appx_bands(data):
