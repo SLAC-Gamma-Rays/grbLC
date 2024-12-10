@@ -86,7 +86,7 @@ def _convertGRB(
                 'system_final',
                 'telescope',
                 'extcorr',
-                'coeff_source'
+                'coeff_source',
                 'mag_source',
                 'flag'
             )
@@ -97,8 +97,8 @@ def _convertGRB(
         time_sec = row['time_sec']
         mag = row['mag']
         mag_err = row['mag_err']
-        system = row['system']
         band = row['band']
+        system = row['system']
         telescope = row['telescope']
         extcorr = row['extcorr']
         source = row['source']
@@ -137,13 +137,13 @@ def _convertGRB(
                 converted_debug['band_match'].append(filter_id)
                 converted_debug['system_init'].append(system)
                 converted_debug['system_final'].append("AB")
-                converted_debug['telescope'].append(system)
+                converted_debug['telescope'].append(telescope)
                 converted_debug['extcorr'].append("y")
                 converted_debug['coeff_source'].append(coeff_source)
                 converted_debug['mag_source'].append(source)
                 converted_debug['flag'].append(flag)
 
-        except KeyError as error:
+        except KeyError:
             print(f"Filter {band} of {telescope} not found for the data point at {time_sec} seconds.")
             continue
 
@@ -152,13 +152,13 @@ def _convertGRB(
         converted_df = pd.DataFrame.from_dict(converted)
 
         if save_in_folder:
-            save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected.txt")
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr.txt")
             
     else:
         converted_df = pd.DataFrame.from_dict(converted_debug)
 
         if save_in_folder:
-            save_path = os.path.join(save_in_folder+'/', f"{grb}_khost_corrected_DEBUG.txt")
+            save_path = os.path.join(save_in_folder+'/', f"{grb}_magAB_extcorr_DEBUG.txt")
             
     converted_df.to_csv(save_path, sep='\t', index=False)
         
@@ -414,7 +414,7 @@ def _host_kcorrectGRB(
                 converted_debug['mag_source'].append(source)
                 converted_debug['flag'].append(flag)
 
-        except KeyError as error:
+        except KeyError:
             print(f"Filter {band} of {telescope} not found for the data point at {time_sec} seconds.")
             continue
 

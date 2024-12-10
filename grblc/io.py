@@ -5,6 +5,9 @@ import os
 import numpy as np
 import pandas as pd
 
+# can be removed for pandas 3.0
+pd.options.mode.copy_on_write = True
+
 
 # Removed in version 0.2.0 since the format is unified
 
@@ -70,7 +73,8 @@ import pandas as pd
 def read_data(
     path: str = None, 
     df: pd.DataFrame = None,
-    data_space: str ='lin'
+    data_space: str ='lin',
+    limiting_mags: bool = False
 ):
     """
     Reads data, sorts by time, excludes negative time, converts data_space.
@@ -124,6 +128,11 @@ def read_data(
                             engine="python"
                             ).sort_values(by=['time_sec'])
 
+    # asserting those data points only which does not have limiting nagnitude
+    if not limiting_mags:
+        df = df[df['mag_err'] != 0] 
+        assert len(df)!=0, "Only limiting magnitudes present."
+
     if data_space=='log':
         try:
             df['time_sec'] = np.log10(df['time_sec'])
@@ -143,58 +152,90 @@ def read_data(
     return pd.DataFrame(df)
 
 
-def _appx_bands(data):
+def _format_bands(data):
     """
-    Function to approximate bands.
+    Function to approximate bands for conversion, matching it with the filters.txt
     """
 
     data = list(data) # reading the data as a list
 
+    # here we format the bands to match filters.txt
+    assume_R = ['-', '—', '|', '\\', '/', '35', '145',\
+            'P-', 'P—', 'P|', 'P\\', 'P/', 'polarised', 'polarized',\
+            'unfiltered', 'clear', 'CR', 'lum', 'IR-cut', 'TR-rgb', 'RM'] 
+    # Excluded P, there is a P filter. Excluded N, present in list
+
+    # Mapping replacements
+    band_format = {
+        'UJ': 'U',
+        'BJ': 'B',
+        'VJ': 'V',
+        'CV': 'V',  # CV clear calibrated as V
+        'UB': 'U',
+        'UM': 'U',
+        'BM': 'B',
+        'RM': 'R',
+        'KS': 'Ks',
+        'IC': 'Ic',
+        'RC': 'Rc'
+    }
+
+    sep = ['-','_','.',',']
+      
     for i, band in enumerate(data):
-        if band.lower() in ['clear', 'unfiltered', 'lum']:  # here it is checking for existence of the bands in lower case for three filters 'clear', 'unfiltered', 'lum'
-            band == band.lower()  # here it passes the lower case bands
+        # Check for any separators in the band
+        # in cases like Gunn-R, the bandpass needs to be separated from system
+        #  by default bandpass is None
+        bandpass = None
 
-    #if appx_bands:  # here we reassigns the bands (reapproximation of the bands), e.g. u' reaasigned to u,.....
+        for char in sep:
+            if char in band:
+                bandpass, band = band.split(char, 1)  # split only once
+                if len(band) > len(bandpass):
+                    if any(band.lower() == k.lower() for k in assume_R):
+                        break
+                else:
+                    band, bandpass = band.split(char in band for char in sep) 
+                    break
+    
+        # Check if band should be set to 'Rc'
+        if any(band.lower() == k.lower() for k in assume_R):
+            data[i] = 'Rc'
+
+        else:
+            if band in band_format:
+                data[i] = band_format[band]
+                
+            if "'" in band:
+                data[i] = band.replace("'", "p")
+
+            if "*" in band:
+                data[i] = band.replace("*", "p")
+
+    return data
+
+
+def _appx_bands(data):
+    """
+    Function to approximate bands for color evolution
+    """
+    
+    data = list(data) # reading the data as a list
+
+    # Define the mapping of bands
+    band_appx = {
+        "up": "u",
+        "gp": "g",
+        "rp": "r",
+        "ip": "i",
+        "zp": "z",
+        "Js": "J",
+        "Ks": "K",
+        "Kp": "K"
+    }
+
     for i, band in enumerate(data):
-        if band=="u'":
-            data[i]="u"
-        if band=="g'":
-            data[i]="g"
-        if band=="r'":
-            data[i]="r"
-        if band=="i'":
-            data[i]="i"
-        if band=="z'":
-            data[i]="z"
-        if band.upper()=="BJ":
-            data[i]="B"
-        if band.upper()=="VJ":
-            data[i]="V"
-        if band.upper()=="UJ":
-            data[i]="U"
-        if band.upper()=="RM":
-            data[i]="R"
-        if band.upper()=="BM":
-            data[i]="B"
-        if band.upper()=="UM":
-            data[i]="U"
-        if band.upper()=="JS":
-            data[i]="J"
-        if band.upper()=="KS":
-            data[i]="K"
-        if band.upper()=="K'":
-            data[i]="K"
-        if band.upper()=="KP":
-            data[i]="K"
-        if band.upper()=="CR":
-            data[i]="R"
-        if band.upper()=="CLEAR":
-            data[i]="Clear"
-        if band.upper()=="N":
-            data[i]="Unfiltered"
-        if band.upper()=="UNFILTERED":
-            data[i]="Unfiltered"
+        if band in band_appx:
+                data[i] = band_appx[band]
 
-    bands = data
-
-    return bands
+    return data

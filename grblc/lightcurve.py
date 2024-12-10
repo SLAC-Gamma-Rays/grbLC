@@ -10,7 +10,7 @@ import plotly.express as px
 
 # custom modules
 from .util import get_dir
-from .io import read_data, _appx_bands
+from .io import read_data, _appx_bands, _format_bands
 from .data.load import get_grb
 from .photometry.constants import grbinfo
 from .photometry.convert import _convertGRB, _host_kcorrectGRB
@@ -30,6 +30,7 @@ class Lightcurve: # define the object Lightcurve
         data_space: str = 'lin',
         appx_bands: bool = False,
         remove_outliers: bool = False, 
+        limiting_mags: bool = False,
         save: bool = True,
     ):
         """
@@ -70,7 +71,7 @@ class Lightcurve: # define the object Lightcurve
             self.path = path 
 
         # reading the data from a file
-        self.set_data(data_space, appx_bands, remove_outliers)
+        self.set_data(data_space, appx_bands, remove_outliers,limiting_mags)
 
         # create directory to save results
         if save:
@@ -83,7 +84,8 @@ class Lightcurve: # define the object Lightcurve
         self, 
         data_space: str = 'lin',
         appx_bands: bool = True, 
-        remove_outliers: bool = False
+        remove_outliers: bool = False, 
+        limiting_mags: bool = False
     ): 
         """
         Function to set the data.
@@ -107,14 +109,14 @@ class Lightcurve: # define the object Lightcurve
         """
 
         # reads the data, sorts by time, excludes negative time
-        df = read_data(path = self.path, data_space = data_space) 
-        
-        # initialising a new column
-        # asserting those data points only which does not have limiting nagnitude
-        df = df[df['mag_err'] != 0] 
-        assert len(df)!=0, "Only limiting magnitudes present."
-
+        df = read_data(
+                    path = self.path, 
+                    data_space = data_space, 
+                    limiting_mags = limiting_mags
+                    ) 
+    
         # initialising data to self
+        
         self.xdata = df["time_sec"].to_numpy()  
             # passing the time in sec as a numpy array in the x column of the data
 
@@ -124,8 +126,8 @@ class Lightcurve: # define the object Lightcurve
         self.yerr = df["mag_err"].to_numpy()  
             # passing the magnitude error as an numpy array y error column of the data
 
-        self.band_original = df["band"].to_list() 
-            # passing the original bands (befotre approximation of the bands) as a list
+        self.band_original = df["band"] = _format_bands(df["band"]) 
+            # passing the original bands (formatted but befotre approximation of the bands) as a list
         
         if appx_bands:
             df.insert(4, "band_appx", "") 
@@ -191,8 +193,8 @@ class Lightcurve: # define the object Lightcurve
                     y='mag',
                     error_y='mag_err',
                     color='band',
-                    color_discrete_sequence=px.colors.qualitative.Set1,
-                    hover_data=['telescope', 'source'],
+                    color_discrete_sequence=px.colors.qualitative.Alphabet,
+                    hover_data=['telescope', 'source', 'flag'],
                 )
 
         font_dict=dict(family='arial',
