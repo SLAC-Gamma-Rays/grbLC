@@ -193,7 +193,7 @@ class Lightcurve: # define the object Lightcurve
                     y='mag',
                     error_y='mag_err',
                     color='band',
-                    color_discrete_sequence=px.colors.qualitative.Alphabet,
+                    color_discrete_sequence=px.colors.qualitative.Dark24,
                     hover_data=['telescope', 'source', 'flag'],
                 )
 

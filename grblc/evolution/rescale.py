@@ -57,7 +57,7 @@ def _rescaleGRB(
             error_y=light['mag_err'].values,
             #color=light['band'].values,
             color=freq,
-            color_discrete_sequence=px.colors.qualitative.Set1,
+            color_discrete_sequence=px.colors.qualitative.Dark24,
             labels={"color": "      <b>Band<b>"}
             #hover_data=light['source'].values
             )
@@ -185,7 +185,7 @@ def _rescaleGRB(
                 error_y=light["mag_rescaled_err"].values,
                 #color=light["band_appx"],
                 color=freq,
-                color_discrete_sequence=px.colors.qualitative.Set1,
+                color_discrete_sequence=px.colors.qualitative.Dark24,
                 labels={"color": "      <b>Band<b>"}
                 )
 
