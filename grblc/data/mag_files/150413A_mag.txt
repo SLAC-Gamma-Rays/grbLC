@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 146.0	17.88	0.16	P|	USNO	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	arXiv1511.02641	no
 146.0	17.92	0.12	P|	USNO	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	arXiv1511.02641	no
 243.0	16.93	0.09	P|	USNO	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	arXiv1511.02641	no

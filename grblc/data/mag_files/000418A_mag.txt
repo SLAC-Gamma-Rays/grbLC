@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 214572.0	21.63	0.04	Rc	USNO	ORM/TNG(3.58m)/DOLORES	y	astro-ph0007201	no
 215736.0	17.5	0.5	K'	USNO	CAHA/3.5m/Carmenes	y	astro-ph0007201	yes/Y
 219528.0	17.9	0.2	K'	USNO	CAHA/1.23m/Omega-cass	y	astro-ph0007201	yes/Y

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 25042.2	22.26	0.04	R	AB	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv1006.0800	no
 25654.8	20.8	0.02	I	AB	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv1006.0800	no
 116159.0	24.51	0.18	R	AB	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv1006.0800	no
@@ -10,12 +10,12 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 16100000.0	24.2	0.0	H	AB	PAO/VLT-UT4-Yepun/HAWK-I	n	arXiv1006.0800	no
 25200.0	20.7	0.2	i'	AB	LSO/MPG-ESO(2.2m)/GROND	n	8888	no
 116640.0	25.0	0.0	R	AB	PAO/VLT(8.2m)/FORS1	n	8895	no
-167.0	21.1	0.0	white	AB	NGSO/Swift/UVOT	n	8893	no
-3862.5	21.9	0.0	white	AB	NGSO/Swift/UVOT	n	8893	no
-6704.5	20.7	0.0	V	AB	NGSO/Swift/UVOT	n	8893	no
-17718.0	21.7	0.0	B	AB	NGSO/Swift/UVOT	n	8893	no
-375.0	20.5	0.0	U	AB	NGSO/Swift/UVOT	n	8893	no
-9439.5	21.4	0.0	U	AB	NGSO/Swift/UVOT	n	8893	no
-9148.5	21.4	0.0	UVW1	AB	NGSO/Swift/UVOT	n	8893	no
-11876.0	21.4	0.0	UVM2	AB	NGSO/Swift/UVOT	n	8893	no
-6235.0	21.5	0.0	UVW2	AB	NGSO/Swift/UVOT	n	8893	no
+167.0	21.1	0.0	white	Vega	NGSO/Swift/UVOT	n	8893	no
+3862.5	21.9	0.0	white	Vega	NGSO/Swift/UVOT	n	8893	no
+6704.5	20.7	0.0	V	Vega	NGSO/Swift/UVOT	n	8893	no
+17718.0	21.7	0.0	B	Vega	NGSO/Swift/UVOT	n	8893	no
+375.0	20.5	0.0	U	Vega	NGSO/Swift/UVOT	n	8893	no
+9439.5	21.4	0.0	U	Vega	NGSO/Swift/UVOT	n	8893	no
+9148.5	21.4	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	8893	no
+11876.0	21.4	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	8893	no
+6235.0	21.5	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	8893	no

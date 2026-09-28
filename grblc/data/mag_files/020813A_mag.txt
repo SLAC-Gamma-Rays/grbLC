@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 14178.24	18.903	0.005	V	Vega	LCO/Magellan1Baade(6.5m)/TEK5	n	astro-ph0308191	no
 14921.28	18.947	0.005	V	Vega	LCO/Magellan1Baade(6.5m)/TEK5	n	astro-ph0308191	no
 15249.6	18.973	0.005	V	Vega	LCO/Magellan1Baade(6.5m)/TEK5	n	astro-ph0308191	no

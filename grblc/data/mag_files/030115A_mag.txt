@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 9504.0	21.8	0.3	R	Johnson	Asiago/Copernico(1.82m)/AFOSC	y	astro-ph0608166	no
 18144.0	19.19	0.11	J	Johnson	KPNO/2.1m/FLAMINGOS	y	astro-ph0608166	no
 18144.0	17.82	0.09	H	Johnson	KPNO/2.1m/FLAMINGOS	y	astro-ph0608166	no

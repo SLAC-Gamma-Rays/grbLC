@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 105.0	20.78	0.26	Rc	Landolt	Haleakala/Faulkes-North(2m)/MuSCAT3	n	Guidorzi2011	no
 136.0	20.45	0.25	Rc	Landolt	Haleakala/Faulkes-North(2m)/MuSCAT3	n	Guidorzi2011	no
 167.0	21.4	0.52	Rc	Landolt	Haleakala/Faulkes-North(2m)/MuSCAT3	n	Guidorzi2011	no
@@ -84,8 +84,8 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 70327.0	17.14	0.18	Ks	2MASS	FLWO/PAIRITEL(1.3m)/2MASS-3-Band-NIC	n	Guidorzi2011	no
 81686.0	16.82	0.16	Ks	2MASS	FLWO/PAIRITEL(1.3m)/2MASS-3-Band-NIC	n	Guidorzi2011	no
 6444.0	19.1	0.03	r'	Landolt	MKO/Gemini-North(8.1m)/GMOS	n	Guidorzi2011	no
-10445.5	19.376463	0.2920739	V	AB	NGSO/Swift/UVOT	n	Roming2017	no
-11045.7998046875	19.997643	0.18253198	V	AB	NGSO/Swift/UVOT	n	Roming2017	no
-14660.849609375	20.488941	0.5267527	V	AB	NGSO/Swift/UVOT	n	Roming2017	no
-16286.0595703125	20.529533	0.19556585	V	AB	NGSO/Swift/UVOT	n	Roming2017	no
-19862.119140625	20.793665	0.52987707	V	AB	NGSO/Swift/UVOT	n	Roming2017	no
+10445.5	19.376463	0.2920739	V	Vega	NGSO/Swift/UVOT	n	Roming2017	no
+11045.7998046875	19.997643	0.18253198	V	Vega	NGSO/Swift/UVOT	n	Roming2017	no
+14660.849609375	20.488941	0.5267527	V	Vega	NGSO/Swift/UVOT	n	Roming2017	no
+16286.0595703125	20.529533	0.19556585	V	Vega	NGSO/Swift/UVOT	n	Roming2017	no
+19862.119140625	20.793665	0.52987707	V	Vega	NGSO/Swift/UVOT	n	Roming2017	no

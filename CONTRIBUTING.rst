@@ -12,6 +12,14 @@ You can contribute in many ways:
 Types of Contributions
 ----------------------
 
+Data Errors
+~~~~~~~~~~~
+
+We welcome the GRB/transient astronomy community to help us improve the catalog.
+If you find any discrepancies in the data provided and the source, please report at
+https://github.com/SLAC-Gamma-Rays/grblc/issues.
+
+
 Report Bugs
 ~~~~~~~~~~~
 

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 72.0	18.05	0.0	unfiltered	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	23310	no
 642.0	19.98	0.12	r'	PanSTARRS	LCO/1m/Sutherland	n	23311	no
 2106.0	20.3	0.2	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	23312	no
@@ -18,11 +18,11 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 369.0	18.56	0.01	z'	AB	LSO/MPG-ESO(2.2m)/GROND	n	23326	sed/X/Y
 369.0	17.78	0.03	J	AB	LSO/MPG-ESO(2.2m)/GROND	n	23326	sed/X/Y
 369.0	17.02	0.03	H	AB	LSO/MPG-ESO(2.2m)/GROND	n	23326	sed/X/Y
-171.0	19.42	0.09	white	AB	NGSO/Swift/UVOT	n	23317	no
-3474.0	21.0	0.0	white	AB	NGSO/Swift/UVOT	n	23317	no
-4685.0	19.4	0.0	V	AB	NGSO/Swift/UVOT	n	23317	no
-3443.5	20.9	0.0	B	AB	NGSO/Swift/UVOT	n	23317	no
-3213.0	20.6	0.0	U	AB	NGSO/Swift/UVOT	n	23317	no
-5094.5	20.1	0.0	UVW1	AB	NGSO/Swift/UVOT	n	23317	no
-4889.5	20.7	0.0	UVM2	AB	NGSO/Swift/UVOT	n	23317	no
-5198.0	20.5	0.0	UVW2	AB	NGSO/Swift/UVOT	n	23317	no
+171.0	19.42	0.09	white	Vega	NGSO/Swift/UVOT	n	23317	no
+3474.0	21.0	0.0	white	Vega	NGSO/Swift/UVOT	n	23317	no
+4685.0	19.4	0.0	V	Vega	NGSO/Swift/UVOT	n	23317	no
+3443.5	20.9	0.0	B	Vega	NGSO/Swift/UVOT	n	23317	no
+3213.0	20.6	0.0	U	Vega	NGSO/Swift/UVOT	n	23317	no
+5094.5	20.1	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	23317	no
+4889.5	20.7	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	23317	no
+5198.0	20.5	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	23317	no

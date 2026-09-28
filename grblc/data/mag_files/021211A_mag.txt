@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 94.9	14.06	0.08	Rc	USNO	LANL/RAPTOR/CCD	n	1757	no
 68164.0	22.8	0.0	R	USNO	CTIO/VictorMBlanco(4m)/MOSAIC	n	1758	no
 68164.0	22.5	0.0	I	USNO	CTIO/VictorMBlanco(4m)/MOSAIC	n	1758	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 10503.0	18.8	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	30970	no
 10503.0	18.0	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	30970	no
 10583.0	18.0	0.0	Clear	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	30970	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 123947.71200000004	20.9	0.1	V	Johnson	AAO/1.3m/MACHO	n	astro-ph0110315	no
 123947.71200000004	20.7	0.081	R	Johnson	AAO/1.3m/MACHO	n	astro-ph0110315	no
 370706.112	22.299	0.03	R	Johnson	KO/Keck-2(10m)/ESI	n	astro-ph0110315	no

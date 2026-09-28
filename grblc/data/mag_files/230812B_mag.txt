@@ -1,4 +1,4 @@
-Time	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 10804.0	19.3	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34389	no
 10992.0	19.1	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34389	no
 11111.0	17.8	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34389	no
@@ -206,12 +206,12 @@ Time	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source
 3230000.0	22.86	0.06	i	AB	Lowell/DCT(4.3m)/LMI	n	arXiv2310.14397	no
 3310000.0	24.12	0.0	r	AB	Lowell/DCT(4.3m)/LMI	n	arXiv2310.14397	no
 3310000.0	22.96	0.1	i	AB	Lowell/DCT(4.3m)/LMI	n	arXiv2310.14397	no
-25401.6	18.97	0.03	white	AB	NGSO/Swift/UVOT	y	arXiv2310.14310	no
-30931.2	19.28	0.04	white	AB	NGSO/Swift/UVOT	y	arXiv2310.14310	no
-36892.8	19.51	0.05	white	AB	NGSO/Swift/UVOT	y	arXiv2310.14310	no
-191635.2	21.72	0.21	white	AB	NGSO/Swift/UVOT	y	arXiv2310.14310	no
-407808.0	23.4	0.88	white	AB	NGSO/Swift/UVOT	y	arXiv2310.14310	no
-551923.2	22.72	0.0	white	AB	NGSO/Swift/UVOT	y	arXiv2310.14310	no
+25401.6	18.97	0.03	white	Vega	NGSO/Swift/UVOT	y	arXiv2310.14310	no
+30931.2	19.28	0.04	white	Vega	NGSO/Swift/UVOT	y	arXiv2310.14310	no
+36892.8	19.51	0.05	white	Vega	NGSO/Swift/UVOT	y	arXiv2310.14310	no
+191635.2	21.72	0.21	white	Vega	NGSO/Swift/UVOT	y	arXiv2310.14310	no
+407808.0	23.4	0.88	white	Vega	NGSO/Swift/UVOT	y	arXiv2310.14310	no
+551923.2	22.72	0.0	white	Vega	NGSO/Swift/UVOT	y	arXiv2310.14310	no
 82944.0	20.47	0.08	g'	AB	Kottamia/NRIAG(1.88m)/KFISP	y	arXiv2310.14310	no
 607046.4	21.1	0.0	g'	AB	Kottamia/NRIAG(1.88m)/KFISP	y	arXiv2310.14310	no
 85449.6	20.24	0.12	r'	AB	Kottamia/NRIAG(1.88m)/KFISP	y	arXiv2310.14310	no

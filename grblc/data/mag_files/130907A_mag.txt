@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 20101.7	20.15889347411427	0.09898	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	y	Nissim	no
 20202.3	20.12466247411427	0.088574	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	y	Nissim	no
 20295.3	20.14219447411427	0.089227	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	y	Nissim	no
@@ -49,13 +49,13 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 1476.0	16.7	0.1	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	15187	no
 1313.0	15.26	0.03	Ic	Lupton	MDM/Tautenburg(1.34m)/AndoriKon-L-936	n	15194	no
 1486.0	16.57	0.03	Rc	Lupton	MDM/Tautenburg(1.34m)/AndoriKon-L-936	n	15194	no
-149.0	15.45	0.02	white	AB	NGSO/Swift/UVOT	n	15195	no
-626.0	16.29	0.16	V	AB	NGSO/Swift/UVOT	n	15195	no
-552.0	16.78	0.12	B	AB	NGSO/Swift/UVOT	n	15195	no
-411.0	15.87	0.04	U	AB	NGSO/Swift/UVOT	n	15195	no
-889.5	18.54	0.31	UVW1	AB	NGSO/Swift/UVOT	n	15195	no
-1123.5	19.2	0.0	UVM2	AB	NGSO/Swift/UVOT	n	15195	no
-689.0	18.7	0.0	UVW2	AB	NGSO/Swift/UVOT	n	15195	no
+149.0	15.45	0.02	white	Vega	NGSO/Swift/UVOT	n	15195	no
+626.0	16.29	0.16	V	Vega	NGSO/Swift/UVOT	n	15195	no
+552.0	16.78	0.12	B	Vega	NGSO/Swift/UVOT	n	15195	no
+411.0	15.87	0.04	U	Vega	NGSO/Swift/UVOT	n	15195	no
+889.5	18.54	0.31	UVW1	Vega	NGSO/Swift/UVOT	n	15195	no
+1123.5	19.2	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	15195	no
+689.0	18.7	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	15195	no
 16920.0	20.0	0.49	unfiltered	NOMAD	NMS/T21(0.43m)/CCD	n	15201	sed/X/Z
 18792.0	20.06	0.47	R	NOMAD	NMS/T21(0.43m)/CCD	n	15201	sed/X/Z
 20772.0	20.36	0.47	unfiltered	NOMAD	NMS/T21(0.43m)/CCD	n	15201	sed/X/Z

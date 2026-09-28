@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 702.0	20.5	0.0	R	Bessel	CAHA/1.23m/DLR-MKIII-CCD	n	10487	no
 2325.0	20.0	0.0	R	USNO	Calern/TAROT(25cm)/ANDOR-IKON-L936-BEX2-DD	n	10504	no
 61007.0	21.6	0.0	R	USNO	CrAO/ZTSH(2.6m)/FLI-PL4240	n	10521	no
@@ -17,4 +17,4 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 187187.328	26.71	0.08	g'	SDSS	ORM/GTC(10.4m)/OSIRIS	n	https://www.astroscu.unam.mx/rmaa/RMxAC..42/PDF/RMxAC..42_rsanchez.pdf	no
 187303.104	23.83	0.09	z'	SDSS	ORM/GTC(10.4m)/OSIRIS	n	https://www.astroscu.unam.mx/rmaa/RMxAC..42/PDF/RMxAC..42_rsanchez.pdf	no
 10633406.976	25.25	0.04	r'	SDSS	ORM/GTC(10.4m)/OSIRIS	n	https://www.astroscu.unam.mx/rmaa/RMxAC..42/PDF/RMxAC..42_rsanchez.pdf	no
-3275.0	19.6	0.0	white	AB	NGSO/Swift/UVOT	n	10486	no
+3275.0	19.6	0.0	white	Vega	NGSO/Swift/UVOT	n	10486	no

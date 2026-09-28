@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 119394	18.28	0.04	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	23238	no
 119394	18.6	0.05	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	23238	no
 119394	18.75	0.03	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	23238	no
@@ -33,6 +33,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 409018	21.99	0.05	r	SDSS	TuNO/RTT150/TFOSC	n	23288	no
 581818	22.28	0.1	r	SDSS	TuNO/RTT150/TFOSC	n	23288	no
 79013	19.2	0.0	Clear	Johnson	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	23245	no
-83600	18.9	0.23	U	AB	NGSO/Swift/UVOT	n	23241	no
-87200	18.87	0.11	U	AB	NGSO/Swift/UVOT	n	23241	no
-92800	19.05	0.17	U	AB	NGSO/Swift/UVOT	n	23241	no
+83600	18.9	0.23	U	Vega	NGSO/Swift/UVOT	n	23241	no
+87200	18.87	0.11	U	Vega	NGSO/Swift/UVOT	n	23241	no
+92800	19.05	0.17	U	Vega	NGSO/Swift/UVOT	n	23241	no

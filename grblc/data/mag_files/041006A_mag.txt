@@ -1,6 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-12741.37	18.7	0.09	R	Vega	MAO/AZT-22(1.5m)/SITe2k	n	2775	no
-16221.37	19.1	0.1	R	Vega	MAO/AZT-22(1.5m)/SITe2k	n	2775	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 28226.89	19.7	0.3	Rc	USNO	Loiano/Cassini(152cm)/BFOSC	n	2777	no
 29203.21	19.7	0.3	Rc	USNO	Loiano/Cassini(152cm)/BFOSC	n	2777	no
 30335.05	19.8	0.3	Rc	USNO	Loiano/Cassini(152cm)/BFOSC	n	2777	no

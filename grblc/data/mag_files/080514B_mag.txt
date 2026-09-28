@@ -1,9 +1,6 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 62280.0	20.4	0.0	I	SDSS	Teide/IAC80(0.82m)/CAMELOT2	n	7719	no
-75600.0	21.2	0.2	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	7724	no
 81000.0	20.9	0.0	i'	AB	LSO/MPG-ESO(2.2m)/GROND	n	7724	no
-152928.0	22.52	0.1	R	AB	ORM/NOT(2.56m)/ALFOSC	n	7734	no
-2082240.0	23.9	0.2	R	USNO	KO/Keck-1/LRIS	n	7874	no
 37152.0	20.45	0.4	UVW1	Vega	NGSO/Swift/UVOT	n	arXiv0808.0151	no
 37324.8	19.75	0.3	U	Vega	NGSO/Swift/UVOT	n	arXiv0808.0151	no
 37497.6	21.0	0.63	B	Vega	NGSO/Swift/UVOT	n	arXiv0808.0151	no

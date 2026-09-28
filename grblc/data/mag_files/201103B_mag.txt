@@ -1,11 +1,11 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 1735490.0	23.2	0.0	R	USNO	MAO/AZT-22(1.5m)/SITe2k	n	29181	no
 174269.0	20.8	0.2	r	SDSS	Xinjiang/NEXT(0.6m)/CCD	n	28846	no
 171417.6	20.5	0.3	r	SDSS	Xinjiang/NEXT(0.6m)/CCD	n	28846	no
 187434.0	19.0	0.0	Clear	SDSS	ISON-K/RC-360/CCD	n	28875	no
 203976.0	20.7	0.0	r	AB	PAO/VLT-UT3-Melipal/X-SHOOTER	n	28847	no
-205000.0	20.25	0.26	B	AB	NGSO/Swift/UVOT	n	28858	no
-205000.0	19.6	0.0	V	AB	NGSO/Swift/UVOT	n	28858	no
+205000.0	20.25	0.26	B	Vega	NGSO/Swift/UVOT	n	28858	no
+205000.0	19.6	0.0	V	Vega	NGSO/Swift/UVOT	n	28858	no
 245143.0	20.36	0.05	R	SDSS	Xinglong/2.16m/BFOSC	n	28854	no
 254107.0	20.6	0.0	R	USNO	Yunnan/GMG(2.4m)/YFOSC	n	28861	no
 332466.0	20.9	0.0	R	USNO	Yunnan/GMG(2.4m)/YFOSC	n	28863	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 240.0	22.8	0.0	r	USNO	LSO/MPG-ESO(2.2m)/GROND	n	7231	no
 240.0	21.5	0.0	i	USNO	LSO/MPG-ESO(2.2m)/GROND	n	7231	no
 240.0	20.6	0.0	z	2MASS	LSO/MPG-ESO(2.2m)/GROND	n	7231	no
@@ -18,11 +18,11 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 59140.8	22.1	0.0	Ic	Johnson	OSN/T150(1.5m)/CCDT150	n	7241	no
 83762.04	21.9	0.0	Ic	Landolt	CTIO/SMARTS(1.3m)/ANDICAM	n	Kann2010	no
 83762.04	19.7	0.0	J	2MASS	CTIO/SMARTS(1.3m)/ANDICAM	n	Kann2010	no
-3257.0	18.5	0.0	white	AB	NGSO/Swift/UVOT	n	7227	no
-12322.5	21.3	0.0	V	AB	NGSO/Swift/UVOT	n	7246	no
-16143.0	22.2	0.0	B	AB	NGSO/Swift/UVOT	n	7246	no
-15584.0	21.5	0.0	U	AB	NGSO/Swift/UVOT	n	7246	no
-17945.0	21.3	0.0	UVW1	AB	NGSO/Swift/UVOT	n	7246	no
-12940.5	21.2	0.0	UVM2	AB	NGSO/Swift/UVOT	n	7246	no
-10958.5	21.7	0.0	UVW2	AB	NGSO/Swift/UVOT	n	7246	no
-16073.5	23.1	0.0	white	AB	NGSO/Swift/UVOT	n	7246	no
+3257.0	18.5	0.0	white	Vega	NGSO/Swift/UVOT	n	7227	no
+12322.5	21.3	0.0	V	Vega	NGSO/Swift/UVOT	n	7246	no
+16143.0	22.2	0.0	B	Vega	NGSO/Swift/UVOT	n	7246	no
+15584.0	21.5	0.0	U	Vega	NGSO/Swift/UVOT	n	7246	no
+17945.0	21.3	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	7246	no
+12940.5	21.2	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	7246	no
+10958.5	21.7	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	7246	no
+16073.5	23.1	0.0	white	Vega	NGSO/Swift/UVOT	n	7246	no

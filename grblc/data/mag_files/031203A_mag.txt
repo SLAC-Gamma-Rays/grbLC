@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 17912.0	19.0	0.0	I	2MASS	CTIO/SMARTS(1.3m)/ANDICAM	n	2463	no
 20520.0	17.6	0.0	V	USNO	ORM/Mercator(1.2m)/Meropell-CCD	n	2465	no
 22412.0	14.9	0.2	H	2MASS	LSO/REM(0.6m)/CCD	n	2466	yes/X/Y

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 12592.0	18.5	0.0	R	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	28309	no
 14702.0	18.1	0.0	R	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	28315	no
 53643.0	17.98	0.28	R	NOMAD	THO/0.35m/CCD	n	28318	no

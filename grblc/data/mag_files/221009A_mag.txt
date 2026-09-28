@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 13797.0	16.7	0.0	Unfiltered	Vega	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	32634	no
 19620.0	16.21	0.11	Clear	Vega	UMA-CSIC/BOOTES-2-TELMA(0.6m)/EMCCD	n	32644	no
 19920.0	16.57	0.02	R	Vega	OSN/T90(0.9m)/CCDT90	n	32644	no
@@ -14,12 +14,12 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 37692.0	17.36	0.12	r	AB	LSO/REM(0.6m)/CCD	n	32652	no
 37692.0	12.62	0.02	H	Vega	LSO/REM(0.6m)/CCD	n	32755(erratacorrige32652)	no
 19800.0	12.2	0.0	H	2MASS	SAAO/1.8m/PRIME	n	32654	no
-254.0	16.68	0.03	white	AB	NGSO/Swift/UVOT	n	32656	no
-678.0	15.55	0.1	V	AB	NGSO/Swift/UVOT	n	32656	no
-603.0	17.05	0.11	B	AB	NGSO/Swift/UVOT	n	32656	no
-462.0	17.68	0.06	U	AB	NGSO/Swift/UVOT	n	32656	no
-1005.5	18.2	0.0	UVW1	AB	NGSO/Swift/UVOT	n	32656	no
-1018.0	19.1	0.0	UVW2	AB	NGSO/Swift/UVOT	n	32656	no
+254.0	16.68	0.03	white	Vega	NGSO/Swift/UVOT	n	32656	no
+678.0	15.55	0.1	V	Vega	NGSO/Swift/UVOT	n	32656	no
+603.0	17.05	0.11	B	Vega	NGSO/Swift/UVOT	n	32656	no
+462.0	17.68	0.06	U	Vega	NGSO/Swift/UVOT	n	32656	no
+1005.5	18.2	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	32656	no
+1018.0	19.1	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	32656	no
 54236.4	19.66	0.0	B	AB	LOAO/1m/SHOC-SAAO-CCD	n	32659	no
 54409.2	18.74	0.13	V	AB	LOAO/1m/SHOC-SAAO-CCD	n	32659	no
 54495.6	17.55	0.06	R	AB	LOAO/1m/SHOC-SAAO-CCD	n	32659	no
@@ -161,7 +161,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 99705.6	17.56	0.05	i	AB	KAO/SBG/Alta-U32-CCD	n	32795	no
 100742.4	16.93	0.05	z	AB	KAO/SBG/Alta-U32-CCD	n	32795	no
 105667.2	18.15	0.1	R	AB	OTSK/LISNYKY(AZT-8)/QImaging-Rolera-MGi	n	32795	no
-108691.2	18.5	0.1	clear	AB	Oukameiden/MOSS/SBIG-STL11000	n	32795	no
 112406.4	18.96	0.1	r	AB	CotedAzur/C2PU/CCD	n	32795	no
 261532.8	19.7	0.0	clear	AB	Xingjiang/SNOVA/CCD	n	32795	no
 263260.8	19.85	0.1	R	AB	MAO/ST-60cm/CCD	n	32795	no
@@ -182,7 +181,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 25074.0	15.65	0.03	Ic	AB	GRANDMA/T-BRO/CCD	n	32934	no
 49969.2	16.58	0.07	I	AB	GRANDMA/BGO/CCD	n	32934	no
 108482.4	17.47	0.07	I	AB	GRANDMA/Astrolab-IRIS/CCD	n	32934	no
-118836.0	18.76	0.14	Clear	AB	CPO/C11/CCD	n	32934	no
 127900.8	18.89	0.06	R	AB	GRANDMA/Ste-Sophie/CCD	n	32934	no
 135818.4	18.93	0.09	R	AB	GRANDMA/HVO/CCD	n	32934	no
 147289.2	17.85	0.13	I	AB	GRANDMA/SRO-Auberry/CCD	n	32934	no

@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-149	19.18	0.15	white	AB	NGSO/Swift/UVOT	n	14620	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+149	19.18	0.15	white	Vega	NGSO/Swift/UVOT	n	14620	no
 3738	19.6	0.0	R	USNO	Xinglong/TNT(0.8m)/VersArray1300B	n	14623	no
 13920	20.7	0.0	g'	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	14625	no
 13920	20.7	0.0	Rc	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	14625	no

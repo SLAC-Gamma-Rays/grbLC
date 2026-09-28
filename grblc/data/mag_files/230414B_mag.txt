@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-208.0	18.0	0.0	white	AB	NGSO/Swift/UVOT	n	33612	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+208.0	18.0	0.0	white	Vega	NGSO/Swift/UVOT	n	33612	no
 1793.0	16.1	0.0	clear	Vega	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	33614	no
 418.0	19.3	0.0	r	PanSTARRS	Nanshan/HMT(0.5m)/CCD	n	33616	no
 727.8	19.45	0.08	r'	PanSTARRS	IAO/GROWTH-India(0.7m)/AndoriKon-XL	n	33618	no

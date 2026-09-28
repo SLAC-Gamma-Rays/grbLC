@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-140	18.5	0.0	V	AB	NGSO/Swift/UVOT	n	3095	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+140	18.5	0.0	V	Vega	NGSO/Swift/UVOT	n	3095	no
 42904	21.5	0.0	B	Landolt	CTIO/SMARTS(1.3m)/ANDICAM	n	arXiv0712.2186	no
 42904	21.1	0.0	V	Landolt	CTIO/SMARTS(1.3m)/ANDICAM	n	arXiv0712.2186	no
 42904	20.9	0.2	Rc	Landolt	CTIO/SMARTS(1.3m)/ANDICAM	n	arXiv0712.2186	no

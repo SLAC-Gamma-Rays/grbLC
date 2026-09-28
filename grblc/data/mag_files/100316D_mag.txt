@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 747360.0	21.86	0.06	F336W	AB	Hubble/HST/WFC3	y	Cano2011	no
 1365984.0	22.8	0.08	F336W	AB	Hubble/HST/WFC3	y	Cano2011	no
 2147904.0	23.56	0.11	F336W	AB	Hubble/HST/WFC3	y	Cano2011	no

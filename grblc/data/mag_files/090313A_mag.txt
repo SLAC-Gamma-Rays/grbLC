@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 219.6	18.04	0.28	Rc	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	n	Melandri2010	no
 608.4	16.28	0.16	Rc	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	n	Melandri2010	no
 912.6	16.07	0.1	Rc	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	n	Melandri2010	no

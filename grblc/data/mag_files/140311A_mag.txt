@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 36459.1	21.778192931567343	0.081962	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	y	Nissim	no
 36459.1	21.68154302617127	0.076539	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	y	Nissim	no
 36452.75	22.094741404625623	0.324744	Z	AB	OAN/HaroldJohnson(1.5m)/RATIR	y	Nissim	no
@@ -21,10 +21,10 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 142.0	16.27	0.0	P	Johnson	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	15946	no
 20.0	14.0	0.0	P	Johnson	BSPU/MASTER-Amur/Apogee-ALTA-U16M	n	15946	no
 99.0	14.0	0.0	P	Johnson	BSPU/MASTER-Amur/Apogee-ALTA-U16M	n	15946	no
-11445.5	19.0	0.0	V	AB	NGSO/Swift/UVOT	n	15973	no
-38305.0	21.3	0.0	B	AB	NGSO/Swift/UVOT	n	15973	no
-40245.0	19.8	0.0	UVW1	AB	NGSO/Swift/UVOT	n	15973	no
-10947.0	21.2	0.0	UVW2	AB	NGSO/Swift/UVOT	n	15973	no
-9993.0	22.0	0.0	white	AB	NGSO/Swift/UVOT	n	15973	no
+11445.5	19.0	0.0	V	Vega	NGSO/Swift/UVOT	n	15973	no
+38305.0	21.3	0.0	B	Vega	NGSO/Swift/UVOT	n	15973	no
+40245.0	19.8	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	15973	no
+10947.0	21.2	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	15973	no
+9993.0	22.0	0.0	white	Vega	NGSO/Swift/UVOT	n	15973	no
 75293.2	21.4	0.0	R	Lupton	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	15994	no
 173734.8	21.6	0.0	R	Lupton	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	15994	no

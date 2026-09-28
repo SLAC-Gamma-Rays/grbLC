@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 143424.0	23.01	0.17	r	AB	LCO/Magellan1Baade(6.5m)/IMACS	y	arXiv1608.08626	no
 228960.0	23.53	0.26	r	AB	LCO/Magellan1Baade(6.5m)/IMACS	y	arXiv1608.08626	no
 229824.0	22.3	0.0	J	AB	PAO/VLT-UT4-Yepun/HAWK-I	y	arXiv1608.08626	no
@@ -18,6 +18,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 3519936.0	25.1	0.0	F606W	AB	Hubble/HST/WFC3	y	arXiv1608.08626	no
 3769632.0	23.9	0.0	H	AB	PAO/VLT-UT4-Yepun/HAWK-I	y	arXiv1608.08626	no
 4180896.0	24.6	0.0	r	AB	LCO/Magellan1Baade(6.5m)/IMACS	y	arXiv1608.08626	no
-147350.0	18.44	0.3	white	AB	NGSO/Swift/UVOT	n	17268	no
+147350.0	18.44	0.3	white	Vega	NGSO/Swift/UVOT	n	17268	no
 831168.0	20.8	0.0	J	Vega	ORM/TNG(3.58m)/NICS	n	17326	no
 1257980.0	21.5	0.0	J	Vega	ORM/TNG(3.58m)/NICS	n	17326	no

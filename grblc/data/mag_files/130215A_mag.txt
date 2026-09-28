@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 84525.1	20.84	0.06	g	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1405.3114	no
 255424.32	21.73	0.21	g	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1405.3114	no
 846460.8	22.76	0.23	g	AB	ORM/GTC(10.4m)/OSIRIS	n	arXiv1405.3114	no
@@ -229,12 +229,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 5910.0	17.34	0.06	V	NOMAD	NMS/T11(0.51m)/FLI-PL11002M	n	14216	no
 5586.0	17.27	0.05	V	NOMAD	NMS/T11(0.51m)/FLI-PL11002M	n	14216	no
 6500.0	16.62	0.03	CR	NOMAD	NMS/T11(0.51m)/FLI-PL11002M	n	14216	no
-84690.0	21.0	0.1	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	14221	no
-84690.0	20.5	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	14221	no
-84690.0	20.2	0.1	i'	AB	LSO/MPG-ESO(2.2m)/GROND	n	14221	no
-84690.0	19.9	0.1	z'	AB	LSO/MPG-ESO(2.2m)/GROND	n	14221	no
-84690.0	19.4	0.2	J	AB	LSO/MPG-ESO(2.2m)/GROND	n	14221	no
-84690.0	19.0	0.1	H	AB	LSO/MPG-ESO(2.2m)/GROND	n	14221	no
 89496.0	17.23	0.05	Ks	2MASS	PO/Hale(200inches)/WIRC	n	14222	yes/X/Z
 92340.0	17.34	0.05	Ks	2MASS	PO/Hale(200inches)/WIRC	n	14222	yes/X/Z
 175500.0	17.57	0.05	Ks	Vega	PO/Hale(200inches)/WIRC	n	14227	yes/X/Z

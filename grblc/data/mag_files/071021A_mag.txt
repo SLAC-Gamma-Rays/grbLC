@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 6732.0	20.4	0.0	R	USNO	Lulin/1m/TRIPOL	n	6961	no
 2592.0	20.32	0.0	Unfiltered	USNO	Xinglong/TNT(0.8m)/VersArray1300B	n	6962	no
 4968.0	20.85	0.0	R	USNO	Xinglong/TNT(0.8m)/VersArray1300B	n	6962	no

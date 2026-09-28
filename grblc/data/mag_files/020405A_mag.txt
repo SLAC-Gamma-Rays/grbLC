@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 63000.0	18.5	0.0	R	DSS	AAO/1.3m/MACHO	n	1326	no
 121064.0	19.9	0.0	R	USNO	AAO/1.3m/MACHO	n	1333	no
 80944.2	18.8	0.14	R	USNO	WISE/B&C(1m)/Tek	n	1335	no

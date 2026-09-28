@@ -16,7 +16,7 @@ time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 1292.95	19.4	0.4	UVW1	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
 1317.9	18.0	0.15	U	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
 1341.75	17.0	0.1	B	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
-1366.45	17.39	0.065	white	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
+1366.45	17.39	0.06	white	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
 1564.6	19.4	0.0	UVW2	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
 1589.55	15.61	0.09	V	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no
 1662.35	18.4	0.2	U	AB	NGSO/Swift/UVOT	y	arXiv2111.14861	no

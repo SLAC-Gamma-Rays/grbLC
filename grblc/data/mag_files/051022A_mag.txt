@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 42482.88	20.0	0	Ks	Vega	CTIO/SOAR(4.1m)/OSIRIS	y	arXiv0706.1518	no
 40469.76	20.3	0	J	Vega	CTIO/SOAR(4.1m)/OSIRIS	y	arXiv0706.1518	no
 37039.68	22.9	0	Z	AB	ORM/WHT(4.2m)/API	y	arXiv0706.1518	no
@@ -10,11 +10,11 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 105.51	17.7	0	unfiltered	USNO	Miyazaki/RIMOTS(30cm)/CCD	n	4133	no
 936.0	20.0	0	R	DSS	SSO/1m/CCD	n	4134	no
 53014.6	21.21	0	R	Vega	KPNO/WIYN(0.9m)/ODI	n	4149	no
-12942.0	19.5	0	V	AB	NGSO/Swift/UVOT	n	4155	no
-20304.0	18.9	0	B	AB	NGSO/Swift/UVOT	n	4155	no
-19818.0	20.1	0	U	AB	NGSO/Swift/UVOT	n	4155	no
-15012.0	19.3	0	UVW1	AB	NGSO/Swift/UVOT	n	4155	no
-13878.0	20.4	0	UVM2	AB	NGSO/Swift/UVOT	n	4155	no
+12942.0	19.5	0	V	Vega	NGSO/Swift/UVOT	n	4155	no
+20304.0	18.9	0	B	Vega	NGSO/Swift/UVOT	n	4155	no
+19818.0	20.1	0	U	Vega	NGSO/Swift/UVOT	n	4155	no
+15012.0	19.3	0	UVW1	Vega	NGSO/Swift/UVOT	n	4155	no
+13878.0	20.4	0	UVM2	Vega	NGSO/Swift/UVOT	n	4155	no
 11402.0	22.5	0	R	USNO	IAO/HCT(2.01m)/HFOSC	n	arXiv0708.3043	no
 13922.0	21.8	0	I	USNO	IAO/HCT(2.01m)/HFOSC	n	arXiv0708.3043	no
 15122.0	20.8	0	R	USNO	ARIES/Sampurnanand(104cm)/AIMPOL	n	arXiv0708.3043	no

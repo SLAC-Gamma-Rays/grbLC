@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 212862.0	20.1	0.04	r'	AB	ORM/NOT(2.56m)/ALFOSC	n	13490	no
 216235.0	21.8	0.1	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	13492	yes/X/Y
 216235.0	20.9	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	13492	no

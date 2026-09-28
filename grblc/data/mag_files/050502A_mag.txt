@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 23.3	14.3	0.0	CR	USNO	McDonald/ROTSE-IIIb(0.45m)/CCD	n	3322	no
 1000.0	18.5	0.0	CR	USNO	McDonald/ROTSE-IIIb(0.45m)/CCD	n	3322	no
 7413.32	19.8	0.4	V	USNO	Cordell-Lorentz/0.30m/SBIG-ST1001E	n	3340	no

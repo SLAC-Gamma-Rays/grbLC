@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 3431.0	18.2	0.4	unfiltered	USNO	Mayhill/GRAS-04(0.25m)/SBIG-ST8XE-CCD	n	10064	yes/X/Z
 10572.0	19.66	0.02	R	USNO	Yunnan/GMG(2.4m)/YFOSC	n	10092	yes/X/Z
 14314.0	20.18	0.03	R	USNO	Yunnan/GMG(2.4m)/YFOSC	n	10092	yes/X/Z

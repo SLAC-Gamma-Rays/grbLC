@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 1227.0	18.7	0.3	R	USNO	SSO/Faulkes-South(2m)/Merope	n	5700	no
 1578.0	18.0	0.3	R	USNO	SSO/Faulkes-South(2m)/Merope	n	5700	no
 53752.8	22.35	0.05	I	Vega	PAO/VLT(8.2m)/FORS1	n	arXiv0901.4038	no
@@ -10,9 +10,9 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 13337885.9	22.0	0.2	J	Vega	PAO/ANTU-VLT-UT1(8.2m)/ISAAC	n	arXiv0901.4038	no
 13765679.1	24.56	0.07	V	Vega	PAO/VLT(8.2m)/FORS1	n	arXiv0901.4038	no
 13767014.0	23.05	0.12	I	Vega	PAO/VLT(8.2m)/FORS1	n	arXiv0901.4038	no
-9222.0	20.85	0.0	V	AB	NGSO/Swift/UVOT	n	5711	no
-15427.0	21.23	0.0	B	AB	NGSO/Swift/UVOT	n	5711	no
-23210.0	21.86	0.0	U	AB	NGSO/Swift/UVOT	n	5711	no
-21181.0	21.5	0.0	UVW1	AB	NGSO/Swift/UVOT	n	5711	no
-18226.5	21.69	0.0	UVM2	AB	NGSO/Swift/UVOT	n	5711	no
-9017.5	21.12	0.0	UVW2	AB	NGSO/Swift/UVOT	n	5711	no
+9222.0	20.85	0.0	V	Vega	NGSO/Swift/UVOT	n	5711	no
+15427.0	21.23	0.0	B	Vega	NGSO/Swift/UVOT	n	5711	no
+23210.0	21.86	0.0	U	Vega	NGSO/Swift/UVOT	n	5711	no
+21181.0	21.5	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	5711	no
+18226.5	21.69	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	5711	no
+9017.5	21.12	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	5711	no

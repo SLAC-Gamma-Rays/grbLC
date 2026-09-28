@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 887331.0	24.98	0.07	F450W	USNO	Hubble/HST/WFPC2	n	astro-ph0103377	no
 896070.0	24.54	0.03	F606W	USNO	Hubble/HST/WFPC2	n	astro-ph0103377	no
 909166.0	23.89	0.03	F814W	USNO	Hubble/HST/WFPC2	n	astro-ph0103377	no
@@ -96,7 +96,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 334670.0	21.956	0.029	i	USNO	ORM/INT(2.54m)/WFC	n	astro-ph0102158	yes/Z
 154800.0	20.0	0.2	Unfiltered	USNO	Nyrola/40cm/ST8XE	n	https://articles.adsabs.harvard.edu/pdf/2002JAVSO..30..126O	no
 161203.0	18.6	0.3	J	USNO	CAMIMP/AZT-24(108cm)/SWIRCAM	n	816	yes/X/Z
-199995.0048	21.23	0.05	R	USNO	MKO/CFHT(3.58m)/CFH12K	n	818	no
 286395.0048	22.19	0.06	R	USNO	MKO/CFHT(3.58m)/CFH12K	n	823	no
 199995.0048	21.19	0.05	R	USNO	MKO/CFHT(3.58m)/CFH12K	n	826	no
 286395.0048	22.15	0.06	R	USNO	MKO/CFHT(3.58m)/CFH12K	n	826	no

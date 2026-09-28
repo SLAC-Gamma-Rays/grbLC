@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 121.0	16.4	0.0	P|	Vega	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	27801	no
 121.0	16.2	0.0	P-	Vega	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	27801	no
 202.0	16.5	0.0	P|	Vega	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	27801	no
@@ -76,7 +76,7 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 109800.0	18.7	0.0	Rc	Vega	OAO/MITSuME(50cm)/WF-NIC	n	27824	no
 109800.0	18.7	0.0	g'	Vega	OAO/MITSuME(50cm)/WF-NIC	n	27824	no
 109800.0	18.0	0.0	Ic	Vega	OAO/MITSuME(50cm)/WF-NIC	n	27824	no
-117504.0	22.06	0.12	white	AB	NGSO/Swift/UVOT	n	27825	no
+117504.0	22.06	0.12	white	Vega	NGSO/Swift/UVOT	n	27825	no
 213589.0	22.57	0.1	r'	AB	ATO/AZT-20/KL400	n	27830	no
 307253.0	22.8	0.17	r'	AB	ATO/AZT-20/KL400	n	27850	no
 320668.0	22.54	0.2	Rc	Lupton	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	27851	no

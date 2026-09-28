@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 76437.6	20.77	0.07	U	2MASS	PAO/VLT(8.2m)/FORS2	n	Covino2008	no
 160647.6	22.11	0.13	U	2MASS	PAO/VLT(8.2m)/FORS2	n	Covino2008	no
 76817.8	21.16	0.04	B	2MASS	PAO/VLT(8.2m)/FORS2	n	Covino2008	no

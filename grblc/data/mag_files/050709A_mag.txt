@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 122394	22.71	0.06	R	Vega	LSO/Danish(1.54m)/DFOSC	y	astro-ph0604153	no
 206168	23.46	0.28	R	Vega	LSO/Danish(1.54m)/DFOSC	y	astro-ph0604153	no
 212121	23.25	0.0	I	Vega	PAO/ANTU-VLT-UT1(8.2m)/FORS1	y	astro-ph0604153	no
@@ -23,12 +23,10 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 212423	24.1	0.2	I	Vega	PAO/ANTU-VLT(8.2m)/FORS2	n	arXiv1603.07869	no
 377872	23.6	0.0	I	Vega	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv1603.07869	no
 720682	24.8	0.0	I	Vega	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv1603.07869	no
-125994	22.8	0.07	R	Vega	LSO/Danish(1.54m)/DFOSC	n	arXiv1603.07869	no
-211267	23.55	0.25	R	Vega	LSO/Danish(1.54m)/DFOSC	n	arXiv1603.07869	no
 108036	20.5	0.0	I	Vega	LCO/Swope(1m)/CISCO	n	astro-ph0510110	no
 295524	21.05	0.15	R	Vega	LCO/duPont(2.5m)/WFIRC	n	astro-ph0510110	yes/Z
 486539	22.1	0.7	K'	Vega	MKO/Subaru(8.2m)/FOCAS	n	astro-ph0510110	yes/Z
-159786	21.64	0.0	V	AB	NGSO/Swift/UVOT	n	3577	no
+159786	21.64	0.0	V	Vega	NGSO/Swift/UVOT	n	3577	no
 102240	20.0	0.0	CR	Vega	Boyden/0.30m/CCD	n	3571	no
 106560	21.6	0.0	Rc	USNO	CTIO/PROMPT-5/ApogeeAltaU47	n	3702	no
 723780	21.6	0.0	Rc	USNO	CTIO/PROMPT-5/ApogeeAltaU47	n	3702	no

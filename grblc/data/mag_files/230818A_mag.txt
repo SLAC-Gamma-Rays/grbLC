@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 42.0	17.3	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34477	no
 47.0	14.2	0.0	P-	Vega	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	34477	no
 47.0	16.4	0.0	P	Vega	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	34477	no
@@ -204,7 +204,7 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 6897.0	18.1	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34482	no
 7088.0	18.1	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34482	no
 7276.0	17.9	0.0	C	Vega	LMSU/MASTER-Tavrida/Apogee-ALTA-U16M	n	34482	no
-219.0	19.6	0.0	white	AB	NGSO/Swift/UVOT	n	34479	no
+219.0	19.6	0.0	white	Vega	NGSO/Swift/UVOT	n	34479	no
 446.0	17.75	0.02	L	Vega	GOTO/8x40cm-N/CCD+GOTO/8x40cm-S/CCD	n	34480	no
 313.92	17.79	0.06	R	Vega	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	34483	no
 416.16	18.07	0.06	R	Vega	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	34483	no
@@ -213,12 +213,12 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 3836.88	20.52	0.13	R	Vega	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	34483	no
 5015.988	20.48	0.09	R	Vega	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	34483	no
 4356.0	20.02	0.02	i	SDSS	ORM/NOT(2.56m)/ALFOSC	n	34485	no
-219.0	19.09	0.0	white	AB	NGSO/Swift/UVOT	n	34486	no
-475.5	18.4	0.0	V	AB	NGSO/Swift/UVOT	n	34486	no
-995.0	19.68	0.0	B	AB	NGSO/Swift/UVOT	n	34486	no
-969.5	19.5	0.0	U	AB	NGSO/Swift/UVOT	n	34486	no
-945.5	20.2	0.0	UVW1	AB	NGSO/Swift/UVOT	n	34486	no
-3006.5	20.1	0.0	UVW2	AB	NGSO/Swift/UVOT	n	34486	no
+219.0	19.09	0.0	white	Vega	NGSO/Swift/UVOT	n	34486	no
+475.5	18.4	0.0	V	Vega	NGSO/Swift/UVOT	n	34486	no
+995.0	19.68	0.0	B	Vega	NGSO/Swift/UVOT	n	34486	no
+969.5	19.5	0.0	U	Vega	NGSO/Swift/UVOT	n	34486	no
+945.5	20.2	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	34486	no
+3006.5	20.1	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	34486	no
 1180.83	18.7	0.2	R	Vega	KCHR/RC-25/CCD	n	34487	no
 3290.11	19.8	0.3	R	Vega	KCHR/RC-25/CCD	n	34487	no
 1431.92	18.9	0.07	R	Vega	BassanoBresciano/25cm/CCD	n	34488	no

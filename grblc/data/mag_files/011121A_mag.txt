@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 37350.72	19.06	0.03	R	Johnson	LCO/Warsaw(1.3m)/OGLE-III	y	astro-ph0204234	no
 37912.32	19.09	0.03	R	Johnson	LCO/Warsaw(1.3m)/OGLE-III	y	astro-ph0204234	no
 40547.52	18.55	0.03	I	Johnson	LCO/Warsaw(1.3m)/OGLE-III	y	astro-ph0204234	no

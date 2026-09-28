@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 330716.0	19.4	0.18	I	Landolt	ARIES/Sampurnanand(104cm)/AIMPOL	n	astro-ph0003257	no
 417116.0	19.9	0.14	I	Landolt	ARIES/Sampurnanand(104cm)/AIMPOL	n	astro-ph0003257	no
 501788.0	20.0	0.0	I	Landolt	ARIES/Sampurnanand(104cm)/AIMPOL	n	astro-ph0003257	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 106292.3	16.438	0.05	R	USNO	WISE/B&C(1m)/Tek	n	astro-ph0312594	no
 106425.3	16.414	0.051	R	USNO	WISE/B&C(1m)/Tek	n	astro-ph0312594	no
 106556.3	16.447	0.05	R	USNO	WISE/B&C(1m)/Tek	n	astro-ph0312594	no

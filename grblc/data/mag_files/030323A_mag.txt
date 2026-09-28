@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 27312.5	18.69	0.05	Rc	USNO	MtJohn/MOA(0.6m)/CCD+NOFS/USNO-FS(1m)/SITe	n	1949	no
 37710.0	19.56	0.05	CR	USNO	MtJohn/MOA(0.6m)/CCD+NOFS/USNO-FS(1m)/SITe	n	1949	no
 43949.9	19.72	0.05	CR	USNO	MtJohn/MOA(0.6m)/CCD+NOFS/USNO-FS(1m)/SITe	n	1949	no
@@ -32,9 +32,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 183377.0	21.3	0.0	Rc	USNO	LSO/Danish(1.54m)/DFOSC	n	1973	no
 269537.0	21.6	0.0	Rc	USNO	LSO/Danish(1.54m)/DFOSC	n	1973	no
 366437.0	22.8	0.0	Rc	USNO	LSO/Danish(1.54m)/DFOSC	n	1973	no
-279325.0	23.04	0.03	V	USNO	CP/Gemini-South(8.1m)/GMOS	n	2006	no
-281744.0	22.27	0.04	R	USNO	CP/Gemini-South(8.1m)/GMOS	n	2006	no
-283429.0	21.78	0.05	I	USNO	CP/Gemini-South(8.1m)/GMOS	n	2006	no
 33475.0	20.39	0.06	B	Johnson	NOFS/USNO-FS(1m)/SITe	n	astro-ph0403080	no
 34167.0	19.68	0.05	V	Johnson	NOFS/USNO-FS(1m)/SITe	n	astro-ph0403080	no
 34685.0	18.75	0.03	R	Johnson	NOFS/USNO-FS(1m)/SITe	n	astro-ph0403080	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 14601.6	18.93	0.04	B	Johnson	PO/Hale(200inches)/LFC	y	astro-ph9902272	no
 47433.6	20.0	0.05	r	Johnson	UPSO/1m/CCD	y	astro-ph9902272	no
 51494.4	20.16	0.15	B	Johnson	UPSO/1m/CCD	y	astro-ph9902272	no
@@ -11,13 +11,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 1437960.0	24.12	0.1	r	Johnson	Hubble/HST/STIS	y	astro-ph9902272	no
 1489970.0	23.91	0.07	r	Johnson	KO/Keck-2(10m)/NIRES	y	astro-ph9902272	no
 1908660.0	24.1	0.1	r	Johnson	MDM/Hiltner(2.4m)/WideFieldCCD	y	astro-ph9902272	no
-47562.2	20.31	0.08	B	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
-51186.0	19.61	0.03	R	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
-132412.0	20.83	0.05	R	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
-136472.8	21.71	0.11	B	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
-139995.2	21.08	0.15	V	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
-218802.0	21.34	0.1	R	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
-223132.0	21.89	0.1	V	Johnson	UPSO/1m/CCD	n	astro-ph9902196	no
 50374.0	19.58	0.14	R	Bessel	UPSO/1m/CCD	n	astro-ph9903021	no
 55085.2	20.42	0.1	B	Bessel	UPSO/1m/CCD	n	astro-ph9903021	no
 139279.6	21.82	0.12	B	Bessel	UPSO/1m/CCD	n	astro-ph9903021	no

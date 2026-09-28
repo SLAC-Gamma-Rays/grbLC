@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 2491.6	16.6	0	Unfiltered	USNO	HESS/ROTSE-IIIc(0.45m)/CCD	n	8866	no
 2527.1	16.9	0	Unfiltered	USNO	HESS/ROTSE-IIIc(0.45m)/CCD	n	8866	no
 3675.2	18.2	0	Unfiltered	USNO	HESS/ROTSE-IIIc(0.45m)/CCD	n	8866	no
@@ -7,10 +7,10 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 34200.0	23.0	0	J	2MASS	PAO/VLT(8.2m)/FORS2	n	8871	no
 34200.0	22.4	0	H	2MASS	PAO/VLT(8.2m)/FORS2	n	8871	no
 34200.0	21.1	0	K	2MASS	PAO/VLT(8.2m)/FORS2	n	8871	no
-4359.5	21.53	0	white	AB	NGSO/Swift/UVOT	n	8874	no
-7207.0	20.63	0	V	AB	NGSO/Swift/UVOT	n	8874	no
-10776.0	21.38	0	B	AB	NGSO/Swift/UVOT	n	8874	no
-10342.5	21.15	0	U	AB	NGSO/Swift/UVOT	n	8874	no
-9482.5	20.16	0	UVW1	AB	NGSO/Swift/UVOT	n	8874	no
-7576.5	20.53	0	UVM2	AB	NGSO/Swift/UVOT	n	8874	no
-5156.0	20.03	0	UVW2	AB	NGSO/Swift/UVOT	n	8874	no
+4359.5	21.53	0	white	Vega	NGSO/Swift/UVOT	n	8874	no
+7207.0	20.63	0	V	Vega	NGSO/Swift/UVOT	n	8874	no
+10776.0	21.38	0	B	Vega	NGSO/Swift/UVOT	n	8874	no
+10342.5	21.15	0	U	Vega	NGSO/Swift/UVOT	n	8874	no
+9482.5	20.16	0	UVW1	Vega	NGSO/Swift/UVOT	n	8874	no
+7576.5	20.53	0	UVM2	Vega	NGSO/Swift/UVOT	n	8874	no
+5156.0	20.03	0	UVW2	Vega	NGSO/Swift/UVOT	n	8874	no

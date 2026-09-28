@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-162.0	17.19	0	white	AB	NGSO/Swift/UVOT	n	14460	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+162.0	17.19	0	white	Vega	NGSO/Swift/UVOT	n	14460	no
 276.0	15.5	0	R	Vega	Haleakala/Faulkes-North(2m)/MuSCAT3	n	14461	no
 19778.7	18.0	0	g'	GSC	OAO/MITSuME(50cm)/Alta-U6	n	14477	no
 19778.7	18.3	0	Rc	GSC	OAO/MITSuME(50cm)/Alta-U6	n	14477	no

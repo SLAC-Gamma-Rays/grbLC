@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 8208.0	20.77	0.08	R	USNO	Lulin/1m/TRIPOL	n	Urata2007	no
 8553.6	20.71	0.06	R	USNO	Lulin/1m/TRIPOL	n	Urata2007	no
 8899.2	20.77	0.06	R	USNO	Lulin/1m/TRIPOL	n	Urata2007	no
@@ -29,10 +29,10 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 290279.0	25.1	0.0	R	USNO	ORM/WHT(4.2m)/PFC	n	AlbertoCastroTirado2006	no
 12180.0	17.0	0.0	unfiltered	Vega	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	4171	no
 15120.0	17.9	0.0	unfiltered	Vega	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	4173	no
-31860.0	20.2	0.0	V	AB	NGSO/Swift/UVOT	n	4177	no
-35100.0	21.1	0.0	UVW1	AB	NGSO/Swift/UVOT	n	4177	no
-34200.0	21.4	0.0	UVM2	AB	NGSO/Swift/UVOT	n	4177	no
-29160.0	21.4	0.0	UVW2	AB	NGSO/Swift/UVOT	n	4177	no
+31860.0	20.2	0.0	V	Vega	NGSO/Swift/UVOT	n	4177	no
+35100.0	21.1	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	4177	no
+34200.0	21.4	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	4177	no
+29160.0	21.4	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	4177	no
 41220.0	20.4	0.0	R	USNO	KPNO/SARA(0.9m)/Apogee-AP7-CCD	n	4179	no
 9982.5	17.9	0.0	R	USNO	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	4182	no
 12202.5	17.5	0.0	R	USNO	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	4182	no

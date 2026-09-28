@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 163.0	16.26	0.0	unfiltered	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	25989	no
 73.0	16.9	0.0	CR	Vega	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	25990	no
 98.0	18.1	0.0	CR	Vega	IAC/MASTER-IAC/Apogee-ALTA-U16M	n	25990	no
@@ -76,10 +76,10 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 15372.0	21.76	0.0	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	26001	no
 15372.0	19.81	0.0	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	26001	no
 15372.0	20.54	0.0	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	26001	no
-153.0	20.27	0.16	white	AB	NGSO/Swift/UVOT	n	26002	no
-6146.0	20.2	0.0	V	AB	NGSO/Swift/UVOT	n	26002	no
-3812.5	21.03	0.27	B	AB	NGSO/Swift/UVOT	n	26002	no
-3582.5	20.86	0.27	U	AB	NGSO/Swift/UVOT	n	26002	no
-3670.0	20.3	0.0	UVW1	AB	NGSO/Swift/UVOT	n	26002	no
-6635.5	21.1	0.0	UVM2	AB	NGSO/Swift/UVOT	n	26002	no
-4257.5	20.9	0.0	UVW2	AB	NGSO/Swift/UVOT	n	26002	no
+153.0	20.27	0.16	white	Vega	NGSO/Swift/UVOT	n	26002	no
+6146.0	20.2	0.0	V	Vega	NGSO/Swift/UVOT	n	26002	no
+3812.5	21.03	0.27	B	Vega	NGSO/Swift/UVOT	n	26002	no
+3582.5	20.86	0.27	U	Vega	NGSO/Swift/UVOT	n	26002	no
+3670.0	20.3	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	26002	no
+6635.5	21.1	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	26002	no
+4257.5	20.9	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	26002	no

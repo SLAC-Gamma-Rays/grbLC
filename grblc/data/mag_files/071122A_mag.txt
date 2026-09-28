@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 85.9	15.8	0.0	R	USNO	McDonald/ROTSE-IIIb(0.45m)/CCD	n	7122	no
 85.8	17.3	0.0	R	USNO	McDonald/ROTSE-IIIb(0.45m)/CCD	n	7122	no
 66.4	17.8	0.0	R	USNO	McDonald/ROTSE-IIIb(0.45m)/CCD	n	7122	no
@@ -10,13 +10,13 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 902.0	17.2	0.0	Unfiltered	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	7129	no
 1395.0	17.2	0.0	Unfiltered	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	7129	no
 1898.0	17.2	0.0	Unfiltered	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	7129	no
-1115.5	21.3	0.0	white	AB	NGSO/Swift/UVOT	n	7131	no
-884.5	21.2	0.0	V	AB	NGSO/Swift/UVOT	n	7131	no
-1101.0	19.6	0.0	B	AB	NGSO/Swift/UVOT	n	7131	no
-1076.0	19.4	0.0	U	AB	NGSO/Swift/UVOT	n	7131	no
-693.5	19.2	0.0	UVW1	AB	NGSO/Swift/UVOT	n	7131	no
-1026.5	18.7	0.0	UVM2	AB	NGSO/Swift/UVOT	n	7131	no
-1135.5	18.8	0.0	UVW2	AB	NGSO/Swift/UVOT	n	7131	no
+1115.5	21.3	0.0	white	Vega	NGSO/Swift/UVOT	n	7131	no
+884.5	21.2	0.0	V	Vega	NGSO/Swift/UVOT	n	7131	no
+1101.0	19.6	0.0	B	Vega	NGSO/Swift/UVOT	n	7131	no
+1076.0	19.4	0.0	U	Vega	NGSO/Swift/UVOT	n	7131	no
+693.5	19.2	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	7131	no
+1026.5	18.7	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	7131	no
+1135.5	18.8	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	7131	no
 1302.5	20.22	0.22	Rc	Vega	PO/60inches/SEDM	n	Cenko2009	no
 1739.0	19.89	0.17	i'	AB	PO/60inches/SEDM	n	Cenko2009	no
 2175.5	19.71	0.39	z'	AB	PO/60inches/SEDM	n	Cenko2009	no
@@ -34,6 +34,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 9483.5	19.74	0.18	i'	AB	PO/60inches/SEDM	n	Cenko2009	no
 88270.0	20.8	0.0	Rc	Vega	PO/60inches/SEDM	n	Cenko2009	no
 88430.0	21.0	0.25	i'	AB	PO/60inches/SEDM	n	Cenko2009	no
-157.6699981689453	20.451231	0.45309964	white	AB	NGSO/Swift/UVOT	n	Roming2017	no
-194.1300048828125	21.386412	0.5416759	white	AB	NGSO/Swift/UVOT	n	Roming2017	no
-237.0	20.544613	0.4811798	white	AB	NGSO/Swift/UVOT	n	Roming2017	no
+157.6699981689453	20.451231	0.45309964	white	Vega	NGSO/Swift/UVOT	n	Roming2017	no
+194.1300048828125	21.386412	0.5416759	white	Vega	NGSO/Swift/UVOT	n	Roming2017	no
+237.0	20.544613	0.4811798	white	Vega	NGSO/Swift/UVOT	n	Roming2017	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 44199.84	20.69	0.05	V	Landolt	LCO/Warsaw(1.3m)/OGLE-III	n	astro-ph0202309	no
 127204.32	21.59	0.08	V	Landolt	LCO/Warsaw(1.3m)/OGLE-III	n	astro-ph0202309	no
 232687.68	22.3	0.0	V	Landolt	FLWO/1.2m/4Shooter	n	astro-ph0202309	no

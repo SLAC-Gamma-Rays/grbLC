@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 153431	22.0	0.0	R	Landolt	CTIO/SMARTS(1.5m)/OSIRIS	n	381	no
 238403	22.3	0.0	R	Landolt	CTIO/SMARTS(1.5m)/OSIRIS	n	381	no
 24563	16.57	0.05	H	Vega	LSO/NTT(3.58m)/SOFI	n	astro-ph9912423v1	no

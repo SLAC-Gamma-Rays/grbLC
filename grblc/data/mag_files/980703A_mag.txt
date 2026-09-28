@@ -1,14 +1,6 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 162432.0	21.0	0.0	Rc	Johnson	Loiano/Cassini(152cm)/BFOSC	n	133	no
 248832.0	21.0	0.0	Rc	Johnson	Loiano/Cassini(152cm)/BFOSC	n	133	no
-79574.4	21.0	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-83721.6	21.1	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-87609.6	21.6	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-164678.0	21.5	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-169862.0	21.2	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-174096.0	21.1	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-259781.4	21.1	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
-343958.4	22.45	0.2	R	USNO	ORM/NOT(2.56m)/ALFOSC	n	142	no
 112620.0	21.28	0.18	R	Johnson	PO/60inches/SEDM	n	astro-ph9808319	no
 199192.8	21.83	0.32	R	Johnson	PO/60inches/SEDM	n	astro-ph9808319	no
 296392.8	22.06	0.1	R	Johnson	KO/Keck-2(10m)/LRIS	n	astro-ph9808319	no

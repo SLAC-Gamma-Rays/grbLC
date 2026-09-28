@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 42787.44	21.18	0.03	I	Bessel	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv0706.1273	no
 125689.968	23.22	0.12	I	Bessel	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv0706.1273	no
 299250.288	25.53	0.33	I	Bessel	PAO/ANTU-VLT-UT1(8.2m)/FORS1	n	arXiv0706.1273	no
@@ -15,6 +15,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 48240.0	20.58	0.32	I	USNO	CTIO/SMARTS(1.3m)/ANDICAM	n	3694	no
 48240.0	18.87	0.32	J	2MASS	CTIO/SMARTS(1.3m)/ANDICAM	n	3694	yes/X/Y
 34380.0	22.4	0.13	R	USNO	ORM/Mercator(1.2m)/Meropell-CCD	n	3673	no
-1200.0	18.84	0.0	V	AB	NGSO/Swift/UVOT	n	3670	no
+1200.0	18.84	0.0	V	Vega	NGSO/Swift/UVOT	n	3670	no
 115455.0	20.0	0.0	J	2MASS	CAHA/OAN(1.5m)/CCD	n	3680	no
 36633.6	22.1	0.0	R	USNO	ORM/WHT(4.2m)/AUX-PortImager	n	3699	no

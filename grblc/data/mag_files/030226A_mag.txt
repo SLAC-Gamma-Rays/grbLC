@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 5762.88	18.0	0.0	R	USNO	LCO/Swope(1m)/CISCO	n	1881	no
 4898.0	17.8	0.0	R	USNO	MKO/Subaru(8.2m)/FOCAS	n	1882	no
 36002.0	19.0	0.2	R	USNO	MKO/Subaru(8.2m)/FOCAS	n	1884	no

@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-139526.0	22.0	0.0	U	AB	NGSO/Swift/UVOT	n	32302	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+139526.0	22.0	0.0	U	Vega	NGSO/Swift/UVOT	n	32302	no
 72576.0	13.71	0.06	q	AB	SAAO/MeerLICHT(0.6m)/CCD	n	arXiv2307.10339	no
 75168.0	13.79	0.07	q	AB	SAAO/MeerLICHT(0.6m)/CCD	n	arXiv2307.10339	no
 158112.0	15.28	0.2	q	AB	SAAO/MeerLICHT(0.6m)/CCD	n	arXiv2307.10339	no

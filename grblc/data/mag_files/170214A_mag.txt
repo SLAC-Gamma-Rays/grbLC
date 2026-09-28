@@ -1,9 +1,9 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 40626.0	21.06	0.11	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	20681	no
 40626.0	20.89	0.13	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	20681	no
 40626.0	20.54	0.18	Z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	20681	no
 40626.0	20.34	0.32	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	20681	no
-51945.0	21.0	0.0	UVW1	AB	NGSO/Swift/UVOT	n	20682	no
+51945.0	21.0	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	20682	no
 140040.0	22.45	0.07	r	AB	ORM/NOT(2.56m)/ALFOSC	n	20683	no
 63033.1	22.6	0.3	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	20684	no
 63033.1	21.3	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	20684	no

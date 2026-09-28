@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 26766.9	18.9	0.0	Unfiltered	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	16972	no
 47783.52	20.76	0.02	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	16977	sed/X/Y
 47783.52	19.93	0.01	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	16977	sed/X/Y
@@ -7,7 +7,7 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 47783.52	19.24	0.11	J	AB	LSO/MPG-ESO(2.2m)/GROND	n	16977	sed/X/Y
 47783.52	18.94	0.08	H	AB	LSO/MPG-ESO(2.2m)/GROND	n	16977	sed/X/Y
 47783.52	18.3	0.0	K	AB	LSO/MPG-ESO(2.2m)/GROND	n	16977	sed/X/Y
-34398.0	19.14	0.19	U	AB	NGSO/Swift/UVOT	n	16979	no
+34398.0	19.14	0.19	U	Vega	NGSO/Swift/UVOT	n	16979	no
 51192.0	20.09	0.02	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16980	no
 51192.0	19.85	0.02	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16980	no
 51192.0	19.5	0.1	z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16980	no
@@ -16,9 +16,9 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 53640.0	19.9	0.2	i'	SDSS	SAAO/LCOGT-SAAO(3X1m)/SpectralCamera+CTIO/LCOGT(1m)/Sinistro	n	16985	no
 56880.0	20.09	0.06	r'	SDSS	PO/60inches/SEDM	n	16989	no
 141480.0	21.0	0.05	r'	SDSS	PO/60inches/SEDM	n	16989	no
-31108.0	19.0	0.18	U	AB	NGSO/Swift/UVOT	n	16990	no
-71072.5	20.7	0.13	U	AB	NGSO/Swift/UVOT	n	16990	no
-116587.0	21.3	0.18	U	AB	NGSO/Swift/UVOT	n	16990	no
+31108.0	19.0	0.18	U	Vega	NGSO/Swift/UVOT	n	16990	no
+71072.5	20.7	0.13	U	Vega	NGSO/Swift/UVOT	n	16990	no
+116587.0	21.3	0.18	U	Vega	NGSO/Swift/UVOT	n	16990	no
 151488.0	21.19	0.04	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16991	no
 151488.0	20.79	0.03	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16991	no
 151488.0	20.74	0.24	z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16991	no

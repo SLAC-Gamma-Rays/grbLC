@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 84.0	15.3	0.0	Unfiltered	Vega	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	17518	no
 18000.0	21.7	0.2	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	17522	no
 18000.0	21.4	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	17522	no
@@ -38,11 +38,11 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 1778.0	18.85	0.14	P135	USNO	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	arXiv1511.02641v1	no
 2004.0	18.87	0.13	P135	USNO	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	arXiv1511.02641v1	no
 2232.0	19.09	0.14	P135	USNO	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	arXiv1511.02641v1	no
-160.9	16.19	0.05	white	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-4054.15	20.49	0.32	white	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-3881.8	20.37	0.54	B	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-420.45	16.92	0.06	U	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-5932.7	20.39	0.0	V	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-8155.45	20.37	0.34	UVW1	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-5728.1	20.77	0.0	UVW2	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-6137.6	20.38	0.0	UVM2	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+160.9	16.19	0.05	white	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+4054.15	20.49	0.32	white	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+3881.8	20.37	0.54	B	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+420.45	16.92	0.06	U	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+5932.7	20.39	0.0	V	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+8155.45	20.37	0.34	UVW1	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+5728.1	20.77	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+6137.6	20.38	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no

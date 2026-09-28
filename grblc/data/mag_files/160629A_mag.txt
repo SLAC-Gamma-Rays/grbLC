@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 113.0	16.4	0.0	R	USNO	Calern/TAROT(25cm)/ANDOR-IKON-L936-BEX2-DD	n	19622	no
 153.5	16.9	0.0	R	USNO	Calern/TAROT(25cm)/ANDOR-IKON-L936-BEX2-DD	n	19622	no
 452.0	17.1	0.0	R	USNO	Calern/TAROT(25cm)/ANDOR-IKON-L936-BEX2-DD	n	19622	no
@@ -23,7 +23,7 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 5914.0	19.44	0.06	Rc	USNO	SAO-RAS/BTA(6m)/SCORPIO	n	19623	no
 41.0	16.6	0.0	R	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	19638	no
 134.0	17.0	0.0	R	Johnson	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	19638	no
-83134.0	21.4	0.0	U	AB	NGSO/Swift/UVOT	n	19643	no
+83134.0	21.4	0.0	U	Vega	NGSO/Swift/UVOT	n	19643	no
 74798.2	21.4	0.0	CR	USNO	Abastumani/AS-32(0.7m)/PL4240-CCD	n	19646	no
 167398.0	22.2	0.2	CR	USNO	Abastumani/AS-32(0.7m)/PL4240-CCD	n	19646	no
 344048.0	23.4	0.0	CR	USNO	Abastumani/AS-32(0.7m)/PL4240-CCD	n	19669	no

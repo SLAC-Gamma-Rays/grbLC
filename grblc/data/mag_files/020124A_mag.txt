@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 5765.4	17.918	0.041	RM	Bessel	AAO/1.3m/MACHO	n	astro-ph0207320	no
 5765.4	18.628	0.057	BM	Bessel	AAO/1.3m/MACHO	n	astro-ph0207320	no
 6035.0	18.219	0.046	R	Bessel	SSO/1m/CCD	n	astro-ph0207320	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 10200.0	16.23	0.03	Rc	UCAC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	23004	no
 10200.0	16.24	0.05	Ic	UCAC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	23004	no
 13950.0	16.53	0.06	g'	UCAC	OAO/MITSuME(50cm)/Alta-U6	n	22983	no

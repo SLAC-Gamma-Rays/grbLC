@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 0.0	17.9	0.0	r	AB	PO/Oschin(1.2m)/ZTF	y	29305	no
 150708.0	22.89	0.12	Rc	Johnson	CAHA/2.2m/CAFOS	n	29321	no
 157607.0	23.39	0.11	g'	SDSS	LSO/MPG-ESO(2.2m)/GROND	n	29330	no

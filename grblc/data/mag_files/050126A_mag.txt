@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 10080.0	15.5	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2986	no
 10434.0	15.0	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no
 10484.0	15.0	0.0	R	Johnson	AKO/MASTER-Vostrykovo/Apogee-ALTA-U16M	n	2988	no

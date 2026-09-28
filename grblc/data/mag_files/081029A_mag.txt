@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 2783.0	20.47	0.29	white	Vega	NGSO/Swift/UVOT	n	Holland2011	no
 3377.0	20.64	0.25	white	Vega	NGSO/Swift/UVOT	n	Holland2011	no
 4812.0	19.41	0.1	white	Vega	NGSO/Swift/UVOT	n	Holland2011	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 44.5	12.791	0.019	CR	USNO	LO/KAIT(0.8m)/FLI-PL77	n	Perley2008	no
 51.5	12.999	0.024	CR	USNO	LO/KAIT(0.8m)/FLI-PL77	n	Perley2008	no
 57.5	13.193	0.021	CR	USNO	LO/KAIT(0.8m)/FLI-PL77	n	Perley2008	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 24120.0	17.89	0.01	r	SDSS	PO/Oschin(1.2m)/ZTF	n	16226	no
 60120.0	18.7	0.05	R	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	16228	no
 62880.0	18.7	0.3	CR	USNO	Pulkovo/MASTER-Kislovodsk/Apogee-ALTA-U16M	n	16228	no
@@ -14,9 +14,9 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 103770.0	19.2	0.03	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16236	no
 103770.0	19.18	0.03	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16236	no
 103770.0	18.98	0.03	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16236	no
-69378.5	19.38	0.1	V	AB	NGSO/Swift/UVOT	n	16243	no
-71029.5	19.59	0.06	B	AB	NGSO/Swift/UVOT	n	16243	no
-70212.5	18.81	0.05	U	AB	NGSO/Swift/UVOT	n	16243	no
+69378.5	19.38	0.1	V	Vega	NGSO/Swift/UVOT	n	16243	no
+71029.5	19.59	0.06	B	Vega	NGSO/Swift/UVOT	n	16243	no
+70212.5	18.81	0.05	U	Vega	NGSO/Swift/UVOT	n	16243	no
 195840.0	20.63	0.03	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16246	sed/X/Y
 195840.0	20.47	0.03	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16246	sed/X/Y
 195840.0	20.29	0.05	Z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	16246	sed/X/Y

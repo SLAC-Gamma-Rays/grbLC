@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-15273.5	20.3	0.0	U	AB	NGSO/Swift/UVOT	n	17828	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+15273.5	20.3	0.0	U	Vega	NGSO/Swift/UVOT	n	17828	no
 60648.0	20.3	0.2	R	AB	Xinglong/2.16m/BFOSC	n	17829	yes/X/Z
 65880.0	21.2	0.1	r'	AB	Yunnan/GMG(2.4m)/YFOSC	n	17830	no
 111636.0	21.26	0.04	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	17831	no

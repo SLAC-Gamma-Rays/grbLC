@@ -1,6 +1,6 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-6811.5	21.4	0.0	UVW1	AB	NGSO/Swift/UVOT	n	18597	no
-9633.0	21.3	0.0	UVM2	AB	NGSO/Swift/UVOT	n	18597	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+6811.5	21.4	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	18597	no
+9633.0	21.3	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	18597	no
 41030.0	25.4	0.0	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1709.06867	no
 41030.0	23.58	0.09	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1709.06867	no
 41030.0	22.63	0.08	i'	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1709.06867	no
@@ -22,9 +22,9 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 225119.0	22.0	0.0	J	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1709.06867	no
 225119.0	21.6	0.0	H	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1709.06867	no
 225119.0	20.6	0.0	Ks	AB	LSO/MPG-ESO(2.2m)/GROND	n	arXiv1709.06867	no
-3835.8	22.19	0.0	white	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-4222.55	21.2	0.0	B	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-10907.65	21.06	0.0	B	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-4017.2	20.88	0.0	U	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-10371.3	21.79	0.0	U	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
-4119.35	20.59	0.0	V	AB	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+3835.8	22.19	0.0	white	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+4222.55	21.2	0.0	B	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+10907.65	21.06	0.0	B	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+4017.2	20.88	0.0	U	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+10371.3	21.79	0.0	U	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no
+4119.35	20.59	0.0	V	Vega	NGSO/Swift/UVOT	n	https://gcn.gsfc.nasa.gov/swift_gnd_ana.html	no

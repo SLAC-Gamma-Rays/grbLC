@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 36330.0	20.5	0	R	Vega	MtJohn/MOA-I(0.6m)/MOA-cam2	n	3061	no
 14760.0	21.2	0	Rc	Vega	CTIO/PROMPT/ApogeeAltaU47	n	3067	yes/X/Y
 15120.0	21.3	0	V	Vega	CTIO/PROMPT/ApogeeAltaU47	n	3067	no

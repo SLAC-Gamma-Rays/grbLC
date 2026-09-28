@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 65160.0	18.2	0.0	Ks	Johnson	PAO/VLT(8.2m)/FORS2	n	2185	no
 65160.0	17.9	0.0	Ks	Johnson	PAO/VLT(8.2m)/FORS2	n	2185	no
 24278.4	18.8	0.2	J	Johnson	SAAO/IRSF(1.4m)/SIRIUS	n	2195	sed/X/Z

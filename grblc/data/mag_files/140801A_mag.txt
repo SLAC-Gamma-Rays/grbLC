@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 108.6	14.64	0.07	CR	AB	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	arXiv1510.07807	no
 202.8	15.45	0.15	CR	AB	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	arXiv1510.07807	no
 204.6	15.69	0.11	CR	AB	ISU/MASTER-Tunka/Apogee-ALTA-U16M	n	arXiv1510.07807	no
@@ -55,10 +55,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 809150.4	20.601	0.0	K	AB	CAHA/3.5m/Omega-2000	n	arXiv1510.07807	no
 22140.0	20.6	0.0	R	Vega	ORM/NOT(2.56m)/ALFOSC	n	16656	no
 18540.0	19.6	0.0	R	UCAC-4	VO/0.43m/CCD	n	16659	no
-42193.5	20.7	0.0	UVW1	AB	NGSO/Swift/UVOT	n	16662	no
+42193.5	20.7	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	16662	no
 10260.0	20.2	0.0	R	USNO	SAO-RAS/BTA(6m)/SCORPIO-1	n	16663	no
-53496.0	22.4	0.1	g'	AB	LSO/MPG-ESO(2.2m)/GROND	n	16666	no
-53496.0	21.9	0.1	r'	AB	LSO/MPG-ESO(2.2m)/GROND	n	16666	no
-53496.0	21.8	0.1	i'	AB	LSO/MPG-ESO(2.2m)/GROND	n	16666	no
-53496.0	21.2	0.2	z'	AB	LSO/MPG-ESO(2.2m)/GROND	n	16666	no
 99327.2	22.13	0.18	CR	USNO	Abastumani/AS-32(0.7m)/PL4240-CCD	n	16667	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 48669.1	19.94	0.07	R	USNO	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	19561	no
 49870.1	19.94	0.07	R	USNO	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	19561	no
 51072.8	20.32	0.13	R	USNO	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	19561	no
@@ -8,8 +8,8 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 107622.0	18.41	0.02	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	19567	no
 107622.0	17.46	0.01	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	19567	no
 107622.0	16.93	0.01	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	19567	no
-46154.5	21.1	0.0	V	AB	NGSO/Swift/UVOT	n	19568	no
-45753.5	21.5	0.0	U	AB	NGSO/Swift/UVOT	n	19568	no
+46154.5	21.1	0.0	V	Vega	NGSO/Swift/UVOT	n	19568	no
+45753.5	21.5	0.0	U	Vega	NGSO/Swift/UVOT	n	19568	no
 37142.5	20.4	0.0	g'	GSC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	19572	no
 37142.5	18.63	0.06	Rc	GSC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	19572	no
 37142.5	17.19	0.06	Ic	GSC	IshigakiJima/MURIKABUSHI(1m)/Tricolor	n	19572	no

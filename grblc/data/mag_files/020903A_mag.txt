@@ -1,13 +1,8 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 86800.7	19.8	0.0	R_MACHO	AB	AAO/1.3m/MACHO	n	1533	no
 43200.0	17.4	0.0	R	Bessel	CrAO/K-380/ApogeeAltaE47	n	1535	no
 16020.0	17.5	0.0	R	USNO	Kyoto/25cm/CCD	n	1537	no
 2464165.0	21.87	0.06	B	USNO	ORM/TNG(3.58m)/DOLORES	n	1563	no
-77760.0	19.23	0.1	R	USNO	PO/Hale(200inches)/LFC	n	astro-ph0311050	no
-596160.0	20.6	0.1	R	USNO	PO/Hale(200inches)/LFC	n	astro-ph0311050	no
-2142720.0	20.8	0.2	R	USNO	PO/Hale(200inches)/LFC	n	astro-ph0311050	no
-2920320.0	20.73	0.17	R	USNO	PO/Hale(200inches)/LFC	n	astro-ph0311050	no
-26101440.0	21.0	0.45	R	USNO	PO/Hale(200inches)/LFC	n	astro-ph0311050	yes/Z
 7897880.0	24.53	0.03	F606W	AB	Hubble/HST/WFC3	y	astro-ph0502553	no
 60048.0	21.4	0.17	B	USNO	CTIO/VictorMBlanco(4m)/MOSAIC2	n	astro-ph0602163	no
 3175804.8	24.59	0.26	B	USNO	LSO/Danish(1.54m)/DFOSC	n	astro-ph0602163	no

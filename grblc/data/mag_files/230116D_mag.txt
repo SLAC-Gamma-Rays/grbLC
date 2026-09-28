@@ -1,9 +1,7 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-208.0	18.0	0.0	white	AB	NGSO/Swift/UVOT	n	33176	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+208.0	18.0	0.0	white	Vega	NGSO/Swift/UVOT	n	33176	no
 189.0	19.1	0.0	r	SDSS	Xinjiang/NEXT(0.6m)/CCD	n	33177	no
 1215.0	19.5	0.0	R	USNO	CrAO/Sintesz(35cm)/CCD	n	33178	no
-3376.08	19.93	0.07	R	USNO	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	33179	no
-5124.96	19.72	0.06	R	USNO	SAO-RAS/Zeiss-1000/EEV-4240-CCD	n	33179	no
 2052.0	17.63	0.0	r'	AB	IAO/GROWTH-India(0.7m)/AndoriKon-XL	n	33182	no
 3384.0	21.04	0.07	g'	AB	IAO/GROWTH-India(0.7m)/AndoriKon-XL	n	33182	yes/X/Z
 6012.0	19.99	0.05	r'	AB	IAO/GROWTH-India(0.7m)/AndoriKon-XL	n	33182	no

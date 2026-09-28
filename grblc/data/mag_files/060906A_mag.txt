@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 661.0	19.18	0.16	Rc	Vega	PO/60inches/SEDM	n	Cenko2009	no
 765.2	18.73	0.23	i'	AB	PO/60inches/SEDM	n	Cenko2009	no
 874.0	18.85	0.37	z'	AB	PO/60inches/SEDM	n	Cenko2009	no
@@ -78,7 +78,7 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 96180.0	21.9	0.0	Rc	Vega	PO/60inches/SEDM	n	Cenko2009	no
 96200.0	22.0	0.0	i'	AB	PO/60inches/SEDM	n	Cenko2009	no
 96250.0	22.3	0.0	g'	AB	PO/60inches/SEDM	n	Cenko2009	no
-202.0	18.5	0.0	white	AB	NGSO/Swift/UVOT	n	5528	no
+202.0	18.5	0.0	white	Vega	NGSO/Swift/UVOT	n	5528	no
 113.5	18.2	0.0	clear	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5532	no
 148.5	16.7	0.0	V	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5532	no
 174.5	17.5	0.0	I	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5532	no
@@ -86,13 +86,13 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 246.5	17.3	0.0	V	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5532	no
 303.5	18.3	0.0	I	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5532	no
 358.5	18.9	0.3	clear	USNO	LO/KAIT(0.8m)/Apogee-AP7-CCD	n	5532	no
-4161.0	20.6	0.0	white	AB	NGSO/Swift/UVOT	n	5536	no
-3833.5	20.1	0.0	V	AB	NGSO/Swift/UVOT	n	5536	no
-4384.0	20.3	0.0	B	AB	NGSO/Swift/UVOT	n	5536	no
-4272.0	20.0	0.0	U	AB	NGSO/Swift/UVOT	n	5536	no
-4158.0	19.6	0.0	UVW1	AB	NGSO/Swift/UVOT	n	5536	no
-4043.5	19.9	0.0	UVM2	AB	NGSO/Swift/UVOT	n	5536	no
-3889.5	19.7	0.0	UVW2	AB	NGSO/Swift/UVOT	n	5536	no
+4161.0	20.6	0.0	white	Vega	NGSO/Swift/UVOT	n	5536	no
+3833.5	20.1	0.0	V	Vega	NGSO/Swift/UVOT	n	5536	no
+4384.0	20.3	0.0	B	Vega	NGSO/Swift/UVOT	n	5536	no
+4272.0	20.0	0.0	U	Vega	NGSO/Swift/UVOT	n	5536	no
+4158.0	19.6	0.0	UVW1	Vega	NGSO/Swift/UVOT	n	5536	no
+4043.5	19.9	0.0	UVM2	Vega	NGSO/Swift/UVOT	n	5536	no
+3889.5	19.7	0.0	UVW2	Vega	NGSO/Swift/UVOT	n	5536	no
 88.5	15.2	0.0	R	GSC	LANL/RAPTOR-B/Apogee-AP-10	n	5539	no
 1584.0	17.7	0.0	I	USNO	NMSO/0.3m/CCD	n	5540	no
 172574.0	21.95	0.0	I	USNO	LSO/Danish(1.54m)/DFOSC	n	5557	no

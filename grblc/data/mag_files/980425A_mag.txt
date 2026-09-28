@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 564424.416	14.81329	0.00523	Rc	Johnson	LSO/NTT(3.58m)/EFOSC+CTIO/SMARTS(0.9m)/CCD+CTIO/SMARTS(1.0m)/CCD	y	LiLiang(arXiv1712.03704)	no
 570221.856	14.81329	0.00523	Rc	Johnson	LSO/NTT(3.58m)/EFOSC+CTIO/SMARTS(0.9m)/CCD+CTIO/SMARTS(1.0m)/CCD	y	LiLiang(arXiv1712.03704)	no
 566350.272	14.86567	0.00525	Rc	Johnson	LSO/NTT(3.58m)/EFOSC+CTIO/SMARTS(0.9m)/CCD+CTIO/SMARTS(1.0m)/CCD	y	LiLiang(arXiv1712.03704)	no

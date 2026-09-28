@@ -1,8 +1,8 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 105408.0	21.16	0.0	r	AB	PO/Oschin(1.2m)/ZTF	y	arXiv2109.06041	no
 111456.0	20.99	0.0	g	AB	PO/Oschin(1.2m)/ZTF	y	arXiv2109.06041	no
 150336.0	20.5	0.0	CR	AB	ISON-K/RC-360/CCD	y	arXiv2109.06041	no
-154656.0	21.57	0.13	white	AB	NGSO/Swift/UVOT	y	arXiv2109.06041	no
+154656.0	21.57	0.13	white	Vega	NGSO/Swift/UVOT	y	arXiv2109.06041	no
 18144.0	20.64	0.05	g	AB	PO/Oschin(1.2m)/ZTF	y	arXiv2109.06041	no
 188352.0	22.0	0.07	r	AB	MGIO/LBT(8.4m)/MODS	y	arXiv2109.06041	no
 188352.0	22.74	0.07	g	AB	MGIO/LBT(8.4m)/MODS	y	arXiv2109.06041	no
@@ -33,6 +33,5 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 1022.0	18.3	0.0	CR	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	28285	no
 1221.0	18.3	0.0	CR	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	28285	no
 1421.0	18.3	0.0	CR	Vega	OAFA/MASTER-OAFA/Apogee-ALTA-U16M	n	28285	no
-155180.0	21.86	0.13	white	AB	NGSO/Swift/UVOT	n	28300	no
 66204.9	20.2	0.0	CR	USNO	ISON-K/RC-360/CCD	n	28306	no
 149917.0	20.4	0.0	CR	USNO	ISON-K/RC-360/CCD	n	28306	no

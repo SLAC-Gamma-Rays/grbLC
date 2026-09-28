@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 25.6	13.6	0.0	R	USNO	McDonald/ROTSE-IIIb(0.45m)/CCD	n	6948	no
 7200.0	20.4	0.0	R	USNO	PAO/VLT(8.2m)/FORS2	n	6952	no
 9814.0	19.06	0.23	J	2MASS	FLWO/PAIRITEL(1.3m)/2MASS-3-Band-NIC	n	6953	no

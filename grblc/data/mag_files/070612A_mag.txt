@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 5220.0	17.16	0.17	R	USNO	KPNO/SARA(0.9m)/Apogee-AP7-CCD	n	6515	no
 6480.0	16.97	0.0	i'	SDSS	PO/60inches/SEDM	n	6525	no
 7920.0	16.27	0.0	i'	SDSS	PO/60inches/SEDM	n	6525	no

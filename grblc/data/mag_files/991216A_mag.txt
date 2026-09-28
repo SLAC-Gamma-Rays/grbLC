@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 41165.79839999991	18.63	0.02	R	Bessel	UPSO/1m/CCD	y	astro-ph0003257	no
 41511.39840000002	18.64	0.02	R	Bessel	UPSO/1m/CCD	y	astro-ph0003257	no
 43844.1983999998	18.73	0.05	R	Bessel	UPSO/1m/CCD	y	astro-ph0003257	no

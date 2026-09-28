@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 566.25	16.6	0.0	Unfiltered	USNO	TuNO/ROTSE-IIId/CCD	n	8807	no
 775.35	17.3	0.0	Unfiltered	USNO	TuNO/ROTSE-IIId/CCD	n	8807	no
 1344.5	17.3	0.0	Unfiltered	USNO	TuNO/ROTSE-IIId/CCD	n	8807	no
@@ -12,4 +12,4 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 22563.0	20.0	0.0	K	AB	LSO/MPG-ESO(2.2m)/GROND	n	8812	no
 26839.0	21.1	0.0	R	USNO	LOAO/1m/SHOC-SAAO-CCD	n	8814	no
 28598.0	20.5	0.0	I	USNO	LOAO/1m/SHOC-SAAO-CCD	n	8814	no
-154.0	20.73	0.0	white	AB	NGSO/Swift/UVOT	y	8813	no
+154.0	20.73	0.0	white	Vega	NGSO/Swift/UVOT	y	8813	no

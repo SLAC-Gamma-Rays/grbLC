@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 40	14.5	0.0	Clear	Vega	NL/BOOTES-3-YA(60cm)/EMCCD	n	arxiv0906.1577	no
 300	18.5	0.0	Clear	Vega	NL/BOOTES-3-YA(60cm)/EMCCD	n	arxiv0906.1577	no
 228	21.9	0.0	r'	Vega	PO/60inches/SEDM	n	arxiv0906.1577	no

@@ -1,5 +1,5 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
-139.0	18.5	0	white	AB	NGSO/Swift/UVOT	n	6305	no
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
+139.0	18.5	0	white	Vega	NGSO/Swift/UVOT	n	6305	no
 25550.2	20.7	0	I	2MASS	SSO/ANU(2.3m)/CCD	n	6325	no
 26587.0	22.1	0	R	2MASS	SSO/ANU(2.3m)/CCD	n	6325	no
 7812.0	20.0	0	R	DSS	MtJohn/MOA-I(0.6m)/MOA-cam2	n	6312	no

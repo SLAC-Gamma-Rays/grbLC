@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 3135.4	15.2	0.0	clear	USNO	LLNP/LOTIS(4x11cm)/Loral442	n	astro-ph0112397	no
 3135.4	15.6	0.0	V	USNO	LLNP/LOTIS(4x11cm)/Loral442	n	astro-ph0112397	no
 17132.2	15.2	0.0	clear	USNO	LLNP/LOTIS(4x11cm)/Loral442	n	astro-ph0112397	no

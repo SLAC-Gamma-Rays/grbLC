@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 556591.0	23.544	0.038	B	USNO	Hubble/HST/WFPC2	n	Galama2003	no
 556591.0	23.264	0.017	V	USNO	Hubble/HST/WFPC2	n	Galama2003	no
 556591.0	22.818	0.015	R	USNO	Hubble/HST/WFPC2	n	Galama2003	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 2363560.0	23.4	0.2	R	Johnson	KO/Keck-2(10m)/LRIS	n	IAUC6676	no
 2132870.0	23.1	0.15	R	AB	Hubble/HST/STIS	n	IAUC6674	no
 21704.4	20.4	0.1	I	Johnson	KO/Keck-1/NIRC	n	IAUC6666	no

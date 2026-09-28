@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 133846.0	20.99	0.2	B	USNO	VBO/VBT(2.3m)/CCD	n	astro-ph0004223	no
 180503.0	21.11	0.04	B	USNO	MKO/CFHT(3.58m)/MOS-OSIS	n	astro-ph0004223	yes/Z
 268631.0	21.41	0.04	B	USNO	MDM/McGrawHill(1.3m)/TIFKAM	n	astro-ph0004223	no
@@ -31,8 +31,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 1139543.0	23.82	0.1	R	USNO	MKO/CFHT(3.58m)/MOS-OSIS	n	astro-ph0004223	no
 2893463.0	26.9	0.15	R	USNO	Hubble/HST/STIS	n	astro-ph0004223	no
 220246.0	19.94	0.15	I	USNO	ARIES/Sampurnanand(104cm)/AIMPOL	n	astro-ph0004223	no
-184823.0	18.88	0.02	J	USNO	MKO/Subaru(8.2m)/IRCS	n	astro-ph0004223	yes/Z
-279862.0	19.06	0.05	J	USNO	MKO/IRTF(3m)/NSFCam	n	astro-ph0004223	yes/Z
 156311.0	17.51	0.06	K'	USNO	MKO/IRTF(3m)/NSFCam	n	astro-ph0004223	yes/Z
 185687.0	17.52	0.02	K'	USNO	MKO/Subaru(8.2m)/IRCS	n	astro-ph0004223	yes/Z
 278998.0	17.65	0.04	K'	USNO	MKO/IRTF(3m)/NSFCam	n	astro-ph0004223	yes/Z

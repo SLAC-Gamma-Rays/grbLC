@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 494.0	14.86	0.085	UVW2	Vega	NGSO/Swift/UVOT	n	arXiv1509.09234	no
 643.0	14.03	0.055	UVW2	Vega	NGSO/Swift/UVOT	n	arXiv1509.09234	no
 793.0	13.67	0.05	UVW2	Vega	NGSO/Swift/UVOT	n	arXiv1509.09234	no
@@ -583,12 +583,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 25984.8	18.01	0.08	CR	NOMAD	THO/0.35m/CCD	n	15156	no
 19518.0	17.98	0.034	R	USNO	TuNO/T100/CCD	n	15161	no
 19878.0	17.99	0.035	R	USNO	TuNO/T100/CCD	n	15161	no
-67284.0	20.64	0.03	r'	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15165	no
-67284.0	20.38	0.03	i'	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15165	no
-67284.0	20.2	0.07	Z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15165	no
-67284.0	19.69	0.07	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15165	no
-67284.0	19.87	0.09	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15165	no
-67284.0	19.88	0.14	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15165	no
 675.648	13.86	0.02	CR	Lupton	UAFO/ISON-SANTEL-650/CCD+UAFO/VT-50(0.5m)/CCD	n	15185	no
 804.384	13.75	0.02	CR	Lupton	UAFO/ISON-SANTEL-650/CCD+UAFO/VT-50(0.5m)/CCD	n	15185	no
 933.0	13.78	0.02	CR	Lupton	UAFO/ISON-SANTEL-650/CCD+UAFO/VT-50(0.5m)/CCD	n	15185	no
@@ -603,10 +597,4 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 1406592.0	22.77	0.07	R	Lupton	MAO/AZT-22(1.5m)/SNUCAM	n	15237	no
 42018.0	19.57	0.02	R	Lupton	TuNO/RTT150/TFOSC	n	15244	no
 42410.4	19.62	0.02	R	Lupton	TuNO/RTT150/TFOSC	n	15244	no
-2571264.0	23.84	0.18	r	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15274	no
-2571264.0	23.23	0.15	i	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15274	no
-2571264.0	23.04	0.0	Z	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15274	no
-2571264.0	22.53	0.0	Y	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15274	no
-2571264.0	22.37	0.0	J	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15274	no
-2571264.0	21.72	0.0	H	AB	OAN/HaroldJohnson(1.5m)/RATIR	n	15274	no
 122400.0	20.46	0.24	R	USNO	Montarrenti/0.53m/Apogee-Alta-U47	n	15167	no

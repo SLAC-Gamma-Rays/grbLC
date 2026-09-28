@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 30468.0	19.2	0.3	R	USNO	SAAO/1m/SAAO-CCD(STE3-STE4)	n	310	no
 31332.0	19.11	0.02	R	USNO	SAAO/1m/SAAO-CCD(STE3-STE4)	n	313	no
 33924.0	19.17	0.02	R	USNO	SAAO/1m/SAAO-CCD(STE3-STE4)	n	313	no
@@ -116,12 +116,10 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 35683.2	18.9	0.08	V	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 36374.4	18.98	0.05	V	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 52617.6	19.23	0.04	V	Landolt	CTIO/Yale(1m)/Finger-Lakes-Instrument	n	astro-ph9905306	no
-55382.4	19.39	0.05	V	Landolt	LCO/Swope(1m)/SITE3	n	astro-ph9905306	no
 98323.2	20.11	0.09	V	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 98668.8	20.01	0.08	V	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 99014.4	20.06	0.07	V	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 153446.4	20.89	0.07	V	Landolt	CTIO/Yale(1m)/Finger-Lakes-Instrument	n	astro-ph9905306	no
-172540.8	21.22	0.14	V	Landolt	LCO/Swope(1m)/SITE3	n	astro-ph9905306	no
 12441.6	17.54	0.02	R	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 13132.8	17.61	0.02	R	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
 13737.6	17.6	0.02	R	Landolt	AAO/1.3m/MACHO	n	astro-ph9905306	no
@@ -145,8 +143,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 340243.2	22.01	0.18	R	Landolt	CTIO/Yale(1m)/Finger-Lakes-Instrument	n	astro-ph9905306	no
 54345.6	18.4	0.04	I	Landolt	CTIO/Yale(1m)/Finger-Lakes-Instrument	n	astro-ph9905306	no
 154137.6	20.04	0.09	I	Landolt	CTIO/Yale(1m)/Finger-Lakes-Instrument	n	astro-ph9905306	no
-57369.6	18.61	0.05	I	Landolt	LCO/Swope(1m)/SITE3	n	astro-ph9905306	no
-144460.8	19.83	0.1	I	Landolt	LCO/Swope(1m)/SITE3	n	astro-ph9905306	no
 331517.0	21.95	0.02	R	Bessel	PAO/ANTU-VLT-UT1(8.2m)/FORS1	y	astro-ph9909043	no
 332294.0	21.93	0.01	R	Bessel	PAO/ANTU-VLT-UT1(8.2m)/FORS1	y	astro-ph9909043	no
 333504.0	21.95	0.05	R	Bessel	PAO/ANTU-VLT-UT1(8.2m)/FORS1	y	astro-ph9909043	no

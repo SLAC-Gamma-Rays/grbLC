@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 303418.0	25.85	0.0	B	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no
 303590.0	24.66	0.1	V	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	yes/Y
 303763.0	23.26	0.04	R	Landolt	PAO/VLT(4x8.2m&AT4x1.8m)/CRIRES	y	astro-ph0010322	no

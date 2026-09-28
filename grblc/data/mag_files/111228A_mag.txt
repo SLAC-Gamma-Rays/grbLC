@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 441.504	17.45	0.06	g'	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	12743	no
 441.504	17.13	0.05	Rc	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	12743	no
 441.504	16.52	0.05	Ic	SDSS	OAO/MITSuME(50cm)/Alta-U6	n	12743	no
@@ -6,12 +6,12 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 35280.0	19.01	0.05	Rc	USNO	ORM/NOT(2.56m)/ALFOSC	n	12750	no
 24228.0	19.4	0.1	g'	SDSS	DAO/16inches/FAST	n	12751	no
 26280.0	19.3	0.2	r'	SDSS	DAO/16inches/FAST	n	12751	no
-228.5	17.3	0.03	white	AB	NGSO/Swift/UVOT	n	12752	no
-418.0	17.73	0.16	V	AB	NGSO/Swift/UVOT	n	12752	no
-497.5	17.71	0.15	B	AB	NGSO/Swift/UVOT	n	12752	no
-472.5	16.7	0.12	U	AB	NGSO/Swift/UVOT	n	12752	no
-448.5	16.59	0.17	UVW1	AB	NGSO/Swift/UVOT	n	12752	no
-773.5	16.84	0.24	UVM2	AB	NGSO/Swift/UVOT	n	12752	no
+228.5	17.3	0.03	white	Vega	NGSO/Swift/UVOT	n	12752	no
+418.0	17.73	0.16	V	Vega	NGSO/Swift/UVOT	n	12752	no
+497.5	17.71	0.15	B	Vega	NGSO/Swift/UVOT	n	12752	no
+472.5	16.7	0.12	U	Vega	NGSO/Swift/UVOT	n	12752	no
+448.5	16.59	0.17	UVW1	Vega	NGSO/Swift/UVOT	n	12752	no
+773.5	16.84	0.24	UVM2	Vega	NGSO/Swift/UVOT	n	12752	no
 32522.0	18.7	0.2	R	USNO	AstroCamp/GRAS-017/FLI-PL	n	12754	no
 48750.0	19.0	0.4	R	NOMAD	Calern/TAROT(25cm)/ANDOR-IKON-L936-BEX2-DD	n	12758	no
 51900.0	19.2	0.3	R	NOMAD	Calern/TAROT(25cm)/ANDOR-IKON-L936-BEX2-DD	n	12758	no

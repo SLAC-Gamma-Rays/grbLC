@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 532.0	21.179	0.44	R	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	y	LiLiang(correcting_data_from_astro-ph0607601)	no
 879.0	21.789	0.28	R	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	y	LiLiang(correcting_data_from_astro-ph0607601)	no
 2004.0	21.829	0.31	R	USNO	Haleakala/Faulkes-North(2m)/MuSCAT3	y	LiLiang(correcting_data_from_astro-ph0607601)	no

@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 945.0	18.0	0.0	R	Johnson	PO/60inches/SEDM	n	2741	no
 8640.0	17.5	0.0	K'	Johnson	MKO/Subaru(8.2m)/IRCS	n	2742	no
 24120.0	21.4	0.0	R	Vega	Lulin/1m/TRIPOL	n	2743	no

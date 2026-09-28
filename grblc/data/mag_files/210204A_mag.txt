@@ -1,4 +1,4 @@
-Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Source	Flag
+time_sec	mag	mag_err	band	system	telescope	extcorr	source	flag
 60410.0	19.5	0.0	CR	AB	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	29395	no
 60650.0	19.4	0.0	CR	AB	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	29395	no
 61528.0	19.3	0.0	CR	AB	SAAO/MASTER-SAAO(2X0.4m)/VWF-2	n	29395	no
@@ -18,14 +18,6 @@ Time(s)	Mag	MagErr	Filter	System	Observatory/Telescope/Instrument	GalExtCorr	Sou
 266112.0	20.4	0.1	i	AB	MGIO/LBT(8.4m)/LBC	n	29433	no
 287072.64	20.61	0.04	R	AB	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	29438	no
 379326.24	20.92	0.05	R	AB	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	29438	no
-477422.208	21.09	0.08	R	AB	CrAO/ZTSH(2.6m)/FLI-PL4240	n	29499	no
-480047.04	21.4	0.2	R	AB	Abastumani/AS-32(0.7m)/PL4240-CCD	n	29499	no
-648834.624	21.8	0.2	R	AB	Abastumani/AS-32(0.7m)/PL4240-CCD	n	29499	no
-660801.888	21.6	0.3	R	AB	CrAO/ZTSH(2.6m)/FLI-PL4240	n	29499	no
-727303.968	21.66	0.09	R	AB	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	29520	no
-985536.288	21.86	0.15	r'	AB	ATO/AZT-20/KL400	n	29520	no
-1068087.168	21.8	0.4	R	AB	Sayan/AZT-33IK(1.6m)/E2V-CCD30-11	n	29520	no
-1075420.8	22.18	0.14	r'	AB	ATO/AZT-20/KL400	n	29520	no
 -88273.152	20.87	0.0	r	AB	PO/Oschin(1.2m)/ZTF	n	arXiv2204.07587	no
 -86558.1552	21.34	0.0	g	AB	PO/Oschin(1.2m)/ZTF	n	arXiv2204.07587	no
 -81029.15136	20.22	0.0	i	AB	PO/Oschin(1.2m)/ZTF	n	arXiv2204.07587	no
